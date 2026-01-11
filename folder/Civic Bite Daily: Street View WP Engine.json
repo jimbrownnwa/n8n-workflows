@@ -1,0 +1,1419 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "HTTP → Downgrades (B & C, week)1": {
+      "main": [
+        [
+          {
+            "node": "Filter: B/C (lenient)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Closures Week": {
+      "main": [
+        [
+          {
+            "node": "Filter: Closures",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Dates": {
+      "main": [
+        [
+          {
+            "node": "Closures Week",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP → Downgrades (B & C, week)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter: Closures": {
+      "main": [
+        [
+          {
+            "node": "Generate Slug: closure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter: B/C (lenient)": {
+      "main": [
+        [
+          {
+            "node": "Generate Slug: DG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Check if data exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Confirm New or Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Wordpress: Get Post to Update",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update WP Post": {
+      "main": [
+        [
+          {
+            "node": "Wordpress: Update Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deduplicate Dates (test this)": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Slug: DG": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Wordpress: Create New Draft": {
+      "main": [
+        [
+          {
+            "node": "Find Pano_ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Slug: closure": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wordpress: Get Post to Update": {
+      "main": [
+        [
+          {
+            "node": "Update WP Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wordpress: Update Post": {
+      "main": [
+        [
+          {
+            "node": "Deduplicate Dates (test this)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Create Spotlight Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confirm New or Update": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create New Post Content": {
+      "main": [
+        [
+          {
+            "node": "Wordpress: Create New Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if data exists": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Get Google Street View Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Pano_ID": {
+      "main": [
+        [
+          {
+            "node": "Find Lat and Lng",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Lat and Lng": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Google Street View Image": {
+      "main": [
+        [
+          {
+            "node": "Upload image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload image": {
+      "main": [
+        [
+          {
+            "node": "Set image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set image": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Create New Post Content",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Todays Date": {
+      "main": [
+        [
+          {
+            "node": "Closures Week",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP → Downgrades (B & C, week)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Todays Date",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Manually": {
+      "main": [
+        [
+          {
+            "node": "Set Dates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-04T17:20:48.942Z",
+  "id": "koLXFnnoL3dtqMp7",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Civic Bite Daily: Street View WP Engine",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.sdfoodinfo.org/restaurants/search.htm",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded; charset=UTF-8"
+            },
+            {
+              "name": "X-Requested-With",
+              "value": "XMLHttpRequest"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "start_date",
+              "value": "={{ $json.start_date }}"
+            },
+            {
+              "name": "end_date",
+              "value": "={{ $json.end_date }}"
+            },
+            {
+              "name": "closures_only",
+              "value": "0"
+            },
+            {
+              "name": "lat",
+              "value": "32.715738"
+            },
+            {
+              "name": "lng",
+              "value": "-117.1610838"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        592,
+        608
+      ],
+      "id": "77a74951-6bed-440d-ae81-538acc477e88",
+      "name": "HTTP → Downgrades (B & C, week)1",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.sdfoodinfo.org/restaurants/search.htm",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded; charset=UTF-8"
+            },
+            {
+              "name": "X-Requested-With",
+              "value": "XMLHttpRequest"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "start_date",
+              "value": "={{ $json.start_date }}"
+            },
+            {
+              "name": "end_date",
+              "value": "={{ $json.end_date }}"
+            },
+            {
+              "name": "closures_only",
+              "value": "1"
+            },
+            {
+              "name": "lat",
+              "value": "32.715738"
+            },
+            {
+              "name": "lng",
+              "value": "-117.1610838"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        592,
+        416
+      ],
+      "id": "7c29629c-7597-404a-8d71-aa3ffbda310b",
+      "name": "Closures Week",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "// B/C DOWNGRADES — reads date window from \"Set Dates\" node.\n// Accepts payload JSON under .result or under .body.result or raw array.\n// Filters to Restaurant* only; keeps B/C (or score <= 89); excludes closures; de-dupes by (business,date).\n\n// ---- get date window from Set Dates node ----\nfunction getDateStr(name){\n  const v = $node[\"Set Dates\"]?.json?.[name];\n  return (v == null) ? \"\" : String(v);\n}\n\nconst startDateStr = getDateStr('start_date');\nconst endDateStr = getDateStr('end_date');\n\nif (!startDateStr || !endDateStr) {\n  return [{json:{error:'Missing date window from Set Dates', got:{startDateStr, endDateStr}}}];\n}\n\n// ---- robust date helpers ----\nfunction pad2(n){ n=Number(n); return n<10?'0'+n:String(n); }\nfunction toISO(d){ return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth()+1)}-${pad2(d.getUTCDate())}`; }\nfunction parseDateLoose(s){\n  if (!s) return null;\n  const t=String(s).trim();\n  let m=t.match(/^(\\d{4})[-/](\\d{1,2})[-/](\\d{1,2})$/);\n  if (m) return new Date(Date.UTC(+m[1], +m[2]-1, +m[3]));\n  m=t.match(/^(\\d{1,2})\\/(\\d{1,2})\\/(\\d{4})$/);\n  if (m) return new Date(Date.UTC(+m[3], +m[1]-1, +m[2]));\n  const d=new Date(t);\n  return isNaN(d)?null:new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));\n}\n\nconst startDate = parseDateLoose(startDateStr);\nconst endDate = parseDateLoose(endDateStr);\n\nif (!startDate || !endDate) {\n  return [{json:{error:'Unparseable date(s)', got:{startDateStr, endDateStr}}}];\n}\n\nconst startTS = startDate.getTime();\nconst endTS = endDate.getTime();\nconst inRangeTS = (s)=>{ const d=parseDateLoose(s); if(!d) return false; const ts=d.getTime(); return ts>=startTS && ts<=endTS; };\n\n// ---- parse HTTP payload ----\nfunction parsePayload(item0){\n  const j=item0?.json ?? {};\n  if (typeof j.data === 'string') { try { return JSON.parse(j.data); } catch {} }\n  return j;\n}\nconst raw = parsePayload(items[0]) || {};\nlet businesses = [];\nif (Array.isArray(raw)) businesses = raw;\nelse if (Array.isArray(raw.result)) businesses = raw.result;\nelse if (raw.body && Array.isArray(raw.body.result)) businesses = raw.body.result;\n\n// ---- helpers ----\nfunction isRestaurantFoodFacility(biz){\n  const t = String(biz.business_type ?? biz.facility_type ?? '').toLowerCase();\n  return t.includes('restaurant');\n}\nfunction isClosureStatus(status=''){\n  const s=String(status).toLowerCase();\n  return s.includes('ordered closed')||s.includes('closure')||s==='closed';\n}\nfunction asViolations(arr){ \n  return Array.isArray(arr) ? arr.map(v=>v?.violation_text || v?.violation || String(v)).filter(Boolean) : [];\n}\nfunction letterFromScore(score){\n  const n=Number(score);\n  if (!Number.isFinite(n)) return '';\n  if (n>=90) return 'A'; if (n>=80) return 'B'; return 'C';\n}\nfunction norm(s){ return String(s||'').trim().toLowerCase(); }\nfunction rankRecord(rec){\n  let r=0; const g=String(rec.grade||'').toUpperCase();\n  if (g==='C') r+=6; else if (g==='B') r+=3;\n  if (rec.score!=null && Number.isFinite(Number(rec.score))) r+=Math.max(0,100-Number(rec.score));\n  if (Array.isArray(rec.violations) && rec.violations.length) r+=2;\n  const url=String(rec.detail_url||'').toLowerCase();\n  if (/routine\\.html/.test(url)) r+=5;\n  else if (/environmental\\.html/.test(url)) r+=4;\n  else if (/status_verification\\.html/.test(url)) r+=3;\n  else if (/site_investigation\\.html/.test(url)) r+=2;\n  else if (/reinspection\\.html/.test(url)) r+=1;\n  const status=String(rec.status||'').toLowerCase();\n  if (status==='complete') r+=2;\n  if (status==='approved to reopen') r+=1;\n  return r;\n}\n\n// ---- collect ----\nconst candidates=[];\nfor (const biz of businesses){\n  if (!isRestaurantFoodFacility(biz)) continue;\n  const inspections=Array.isArray(biz.inspections)?biz.inspections:[];\n  for (const ins of inspections){\n    const dateRaw = ins.completed_date || ins.inspection_date || ins.date || '';\n    if (!dateRaw || !inRangeTS(dateRaw)) continue;\n    if (isClosureStatus(ins.status||'')) continue;\n\n    const scoreNum = Number(ins.score);\n    const rawGrade = String(ins.grade ?? biz.grade ?? biz.current_grade ?? '').trim();\n    const letter   = (rawGrade.match(/[ABC]/i)||[''])[0]?.toUpperCase() || letterFromScore(scoreNum);\n    const isBC     = (letter==='B'||letter==='C') || (Number.isFinite(scoreNum)&&scoreNum<=89);\n    if (!isBC) continue;\n\n    const violations = asViolations(ins.violations);\n\n    candidates.push({json:{\n      type:'downgrade',\n      facility: biz.name || '',\n      address: biz.address || '',\n      city: biz.city || '',\n      zip: biz.zip || '',\n      business_id: biz.business_id || null,\n      date: toISO(parseDateLoose(dateRaw)),\n      grade: letter || '',\n      score: Number.isFinite(scoreNum)?scoreNum:null,\n      status: ins.status || '',\n      violations: violations,\n      detail_url: ins.link || null,\n      reinspection: /re-?inspection/i.test(ins.type||'')\n    }});\n  }\n}\n\n// Filter out items with no violations\nconst withViolations = candidates.filter(c => c.json.violations && c.json.violations.length > 0);\n\n// ---- de-dupe by (business,date) keeping strongest ----\nconst groups=new Map();\nfor (const row of withViolations){\n  const j=row.json;\n  const bkey = j.business_id ? `id:${j.business_id}` : `fa:${norm(j.facility)}|${norm(j.address)}|${norm(j.zip)}`;\n  const key = `${bkey}|d:${j.date}`;\n  const cur = groups.get(key);\n  if (!cur || rankRecord(j)>rankRecord(cur.json)) groups.set(key,row);\n}\nconst deduped = Array.from(groups.values()).sort((a,b)=>{\n  const da=a.json.date, db=b.json.date;\n  return da===db ? String(a.json.facility).localeCompare(String(b.json.facility)) : da.localeCompare(db);\n});\n\nconsole.log(`Found ${candidates.length} downgrades, ${withViolations.length} with violations, ${deduped.length} after deduplication`);\n\nif (deduped.length === 0) {\n  console.log(`No B/C downgrades with violations found between ${startDateStr} and ${endDateStr}`);\n  return [];\n}\n\nreturn deduped;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        816,
+        608
+      ],
+      "id": "27819735-aa68-4d6d-8c0f-a34c64c28054",
+      "name": "Filter: B/C (lenient)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// CLOSURES — reads date window from \"Set Dates\" node, filters Restaurant*, de-dupes.\n// dates\nfunction getDateStr(name){\n  const v = $node[\"Set Dates\"]?.json?.[name];\n  return (v == null) ? \"\" : String(v);\n}\nfunction pad2(n){ n=Number(n); return n<10?'0'+n:String(n); }\nfunction toISO(d){ return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth()+1)}-${pad2(d.getUTCDate())}`; }\nfunction parseDateLoose(s){\n  if (!s) return null;\n  const t=String(s).trim();\n  let m=t.match(/^(\\d{4})[-/](\\d{1,2})[-/](\\d{1,2})$/);\n  if (m) return new Date(Date.UTC(+m[1], +m[2]-1, +m[3]));\n  m=t.match(/^(\\d{1,2})\\/(\\d{1,2})\\/(\\d{4})$/);\n  if (m) return new Date(Date.UTC(+m[3], +m[1]-1, +m[2]));\n  const d=new Date(t);\n  return isNaN(d)?null:new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));\n}\nconst startDateStr = getDateStr('start_date');\nconst endDateStr = getDateStr('end_date');\nconst startDate = parseDateLoose(startDateStr);\nconst endDate = parseDateLoose(endDateStr);\nconst startTS = startDate?.getTime?.();\nconst endTS = endDate?.getTime?.();\nconst inRangeTS = (s)=>{ const d=parseDateLoose(s); if(!d||startTS==null||endTS==null) return true; const ts=d.getTime(); return ts>=startTS && ts<=endTS; };\n// payload\nfunction parsePayload(item0){\n  const j=item0?.json ?? {};\n  if (typeof j.data === 'string') { try { return JSON.parse(j.data); } catch {} }\n  return j;\n}\nconst raw=parsePayload(items[0])||{};\nlet businesses=[];\nif (Array.isArray(raw)) businesses=raw;\nelse if (Array.isArray(raw.result)) businesses=raw.result;\nelse if (raw.body && Array.isArray(raw.body.result)) businesses=raw.body.result;\n// helpers\nfunction isRestaurantFoodFacility(biz){\n  const t=String(biz.business_type ?? biz.facility_type ?? '').toLowerCase();\n  return t.includes('restaurant');\n}\nfunction isClosureStatus(status=''){\n  const s=String(status).toLowerCase();\n  return s.includes('ordered closed')||s.includes('closure')||s==='closed';\n}\nfunction asViolations(arr){ \n  return Array.isArray(arr)?arr.map(v=>v?.violation_text||v?.violation||String(v)).filter(Boolean):[];\n}\nfunction norm(s){ return String(s||'').trim().toLowerCase(); }\n// collect\nconst out=[];\nfor (const biz of businesses){\n  if (!isRestaurantFoodFacility(biz)) continue;\n  const inspections=Array.isArray(biz.inspections)?biz.inspections:[];\n  for (const ins of inspections){\n    const dateRaw = ins.completed_date || ins.inspection_date || ins.date || '';\n    if (!dateRaw || !inRangeTS(dateRaw)) continue;\n    if (!isClosureStatus(ins.status||'')) continue;\n    \n    const violations = asViolations(ins.violations);\n    \n    out.push({json:{\n      type:'closure',\n      facility: biz.name || '',\n      address: biz.address || '',\n      city: biz.city || '',\n      zip: biz.zip || '',\n      date: toISO(parseDateLoose(dateRaw)),\n      status: ins.status || 'Ordered Closed',\n      score: (ins.score!=null ? Number(ins.score) : null),\n      grade: ins.grade ?? biz.grade ?? biz.current_grade ?? '',\n      violations: violations,\n      detail_url: ins.link || null\n    }});\n  }\n}\n\n// Filter out items with no violations\nconst withViolations = out.filter(o => o.json.violations && o.json.violations.length > 0);\n\n// de-dupe by facility+date+url\nconst seen=new Set();\nconst dedup=withViolations.filter(o=>{\n  const j=o.json, k=`${norm(j.facility)}|${norm(j.address)}|${j.date||''}|${j.detail_url||''}`;\n  if (seen.has(k)) return false; seen.add(k); return true;\n});\n\nconsole.log(`Found ${out.length} closures, ${withViolations.length} with violations, ${dedup.length} after deduplication`);\n\nif (dedup.length === 0) {\n  console.log(`No closures with violations found between ${startDateStr} and ${endDateStr}`);\n  return [];\n}\nreturn dedup;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        816,
+        416
+      ],
+      "id": "f4c2f507-788f-471c-9a4a-0f1d76a66a0b",
+      "name": "Filter: Closures"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "77f747b8-e8d0-4fe7-8476-19430c1ad0fb",
+              "name": "start_date",
+              "value": "2026-01-02",
+              "type": "string"
+            },
+            {
+              "id": "42c31e22-23bb-4948-9c9e-96863979dbf2",
+              "name": "end_date",
+              "value": "2026-01-02",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        272,
+        0
+      ],
+      "id": "9a8a55f5-9c36-493f-ada8-a3b7cfb6757c",
+      "name": "Set Dates"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1264,
+        512
+      ],
+      "id": "c5ff65b2-879b-4721-b1d2-eaf61e114c26",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1fRV6MEHE7wPkbnjBqJPRcnOAbuNWuMuxgNbFgdbV6CE",
+          "mode": "list",
+          "cachedResultName": "New Venue Inspections",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fRV6MEHE7wPkbnjBqJPRcnOAbuNWuMuxgNbFgdbV6CE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fRV6MEHE7wPkbnjBqJPRcnOAbuNWuMuxgNbFgdbV6CE/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1792,
+        512
+      ],
+      "id": "3ba7bbc0-1abc-420a-91e7-b143feb2657f",
+      "name": "Get row(s) in sheet",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "eOPhFUrfwo2AgnTD",
+          "name": "NWA Boost:Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "37096608-4f3b-4a6a-8cc8-55ff6086ce0c",
+              "leftValue": "={{ $json.exists }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2256,
+        512
+      ],
+      "id": "4e102517-89e9-4072-bc31-d886a74dcb9d",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1fRV6MEHE7wPkbnjBqJPRcnOAbuNWuMuxgNbFgdbV6CE",
+          "mode": "list",
+          "cachedResultName": "New Venue Inspections",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fRV6MEHE7wPkbnjBqJPRcnOAbuNWuMuxgNbFgdbV6CE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fRV6MEHE7wPkbnjBqJPRcnOAbuNWuMuxgNbFgdbV6CE/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "slug": "={{ $('Create New Post Content').item.json.slug }}",
+            "facility": "={{ $('Create New Post Content').item.json.facility }}",
+            "address": "={{ $('Create New Post Content').item.json.address }}",
+            "city": "={{ $('Create New Post Content').item.json.city }}",
+            "zip ": "={{ $('Create New Post Content').item.json.zip }}",
+            "post_id": "={{ $json.id }}",
+            "first_post_date": "={{ $json.date }}",
+            "Inspection Specifics": "={{ $json.content.raw }}",
+            "post_URL": "={{ $json.guid.rendered }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "slug",
+              "displayName": "slug",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "facility",
+              "displayName": "facility",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "address",
+              "displayName": "address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "city",
+              "displayName": "city",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "zip ",
+              "displayName": "zip ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "post_id",
+              "displayName": "post_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "first_post_date",
+              "displayName": "first_post_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "last_update_date",
+              "displayName": "last_update_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "all_closure_dates",
+              "displayName": "all_closure_dates",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "all_downgrade_dates",
+              "displayName": "all_downgrade_dates",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Inspection Specifics",
+              "displayName": "Inspection Specifics",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "post_URL",
+              "displayName": "post_URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3616,
+        960
+      ],
+      "id": "1901154a-4b40-42b3-9912-fed89a2abd98",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "eOPhFUrfwo2AgnTD",
+          "name": "NWA Boost:Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Append a timestamped update to existing content (HTML format)\nconst inspection = $json;\n\nconst tz = 'America/Los_Angeles';\nconst stamp = new Date(new Date().toLocaleString('en-US', {timeZone: tz})).toLocaleString(\n  'en-US', {month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true, timeZone: tz}\n) + ' PT';\n\nfunction joinViolations(vs) { \n  if (!Array.isArray(vs) || !vs.length) return ''; \n  return vs.join('; ').replace(/\\s*;\\s*;/g, ';'); \n}\n\nconst reasons = joinViolations(inspection.violations);\n\n// Build HTML update line based on type\nlet updateLine = '';\n\nif (inspection.type === 'closure') {\n  updateLine = `\n<p><strong>Update (${stamp}):</strong> Additional closure action posted for ${inspection.date}${reasons ? ` — ${reasons}` : ''}.</p>\n`;\n} else {\n  // Downgrade\n  const scoreText = inspection.score != null ? ` ${inspection.score}` : '';\n  const reinspText = inspection.reinspection ? ' [reinspection]' : '';\n  \n  updateLine = `\n<p><strong>Update (${stamp}):</strong> Additional downgrade entry (${inspection.grade || '?'}${scoreText}${reinspText}) on ${inspection.date}${reasons ? ` — ${reasons}` : ''}.</p>\n`;\n}\n\n// Get existing content from WordPress\nconst wpPost = $('Wordpress: Get Post to Update').first().json;\nconst existing = wpPost.content?.rendered || '';\n\n// Append new update\nconst newContent = `${existing}\\n${updateLine}`;\n\nreturn [{\n  json: {\n    post_id: inspection.post_id,\n    new_content: newContent.trim(),\n    slug: inspection.key_slug,\n    post_date: inspection.date\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2752,
+        272
+      ],
+      "id": "a20b86b1-44ce-4239-8588-d49d11087da3",
+      "name": "Update WP Post"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1fRV6MEHE7wPkbnjBqJPRcnOAbuNWuMuxgNbFgdbV6CE",
+          "mode": "list",
+          "cachedResultName": "New Venue Inspections",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fRV6MEHE7wPkbnjBqJPRcnOAbuNWuMuxgNbFgdbV6CE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Evergreen Venues",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fRV6MEHE7wPkbnjBqJPRcnOAbuNWuMuxgNbFgdbV6CE/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "post_id": "={{ $('Wordpress: Update Post').item.json.id }}",
+            "last_update_date": "={{ $json.last_update_date }}",
+            "all_downgrade_dates": "={{ $json.all_downgrade_dates }}"
+          },
+          "matchingColumns": [
+            "post_id"
+          ],
+          "schema": [
+            {
+              "id": "slug",
+              "displayName": "slug",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "facility",
+              "displayName": "facility",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "address",
+              "displayName": "address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "city",
+              "displayName": "city",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "zip ",
+              "displayName": "zip ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "post_id",
+              "displayName": "post_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "first_post_date",
+              "displayName": "first_post_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "last_update_date",
+              "displayName": "last_update_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "all_closure_dates",
+              "displayName": "all_closure_dates",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "all_downgrade_dates",
+              "displayName": "all_downgrade_dates",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3504,
+        272
+      ],
+      "id": "6d9037fb-b153-4801-8f52-f2a3f3f267d5",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "eOPhFUrfwo2AgnTD",
+          "name": "NWA Boost:Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Deduplicate dates and prepare for sheet update\nconst inspection = $json;\n\n// Determine which date field to update based on type\nconst dateField = inspection.type === 'closure' ? 'all_closure_dates' : 'all_downgrade_dates';\n\n// Get existing dates (empty string if none)\nconst existingDates = inspection[dateField] || '';\nconst dateArray = existingDates.split(',').map(s => s.trim()).filter(Boolean);\n\n// Add new date if not already present\nif (!dateArray.includes(inspection.date)) {\n  dateArray.push(inspection.date);\n}\n\nreturn [{\n  json: {\n    row_number: inspection.row_number,\n    slug: inspection.key_slug,\n    last_update_date: inspection.date,\n    [dateField]: dateArray.join(', ')\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3232,
+        272
+      ],
+      "id": "5e2a02aa-8a93-4272-afc5-a2aba0cbafe7",
+      "name": "Deduplicate Dates (test this)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build Post (Downgrade) — Function node: one output per input, adds evergreen key_slug,\n// cleans duplicate city/zip from address for a stable slug, and builds Markdown body.\n\n// ---------- slug + address helpers ----------\nfunction slugify(str){\n  return String(str||'')\n    .toLowerCase()\n    .replace(/&/g,' and ')\n    .replace(/[^a-z0-9]+/g,'-')\n    .replace(/^-+|-+$/g,'')\n    .slice(0,96);\n}\n// Remove city/zip if they already appear inside the address string\nfunction addrLineClean(j){\n  let addr = String(j.address||'').trim();\n  const city = String(j.city||'').trim();\n  const zip  = String(j.zip||'').trim();\n\n  if (city && addr.toLowerCase().includes(city.toLowerCase())) {\n    addr = addr.replace(new RegExp(city.replace(/[-/\\\\^$*+?.()|[\\]{}]/g,'\\\\$&'), 'i'), '').trim();\n  }\n  if (zip && addr.includes(zip)) {\n    addr = addr.replace(zip, '').trim();\n  }\n  // collapse double spaces and stray commas\n  addr = addr.replace(/\\s{2,}/g,' ').replace(/\\s*,\\s*/g, ', ').replace(/^,|,$/g,'').trim();\n\n  return [addr, city, zip].filter(Boolean).join(' ');\n}\nfunction makeSlug(j){\n  const base = `${j.facility||''} ${addrLineClean(j)}`;\n  return slugify(base);\n}\n\nfunction joinViolations(vs){\n  if(!Array.isArray(vs)||!vs.length) return '';\n  return vs.map(v=>String(v).trim()).filter(Boolean).join('; ').replace(/\\s*;\\s*;/g,';');\n}\nfunction addrPretty(j){\n  return [j.address, j.city, j.zip].filter(Boolean).join(', ');\n}\n\nconst tz='America/Los_Angeles';\nconst todayHuman = new Date(new Date().toLocaleString('en-US',{timeZone:tz}))\n  .toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});\n\nreturn items.map((item)=>{\n  const j=item.json||{};\n  const key_slug = makeSlug(j);\n  const reasons  = joinViolations(j.violations);\n  const scoreTxt = (j.score!=null)?` (${j.score})`:'';\n  const reinsp   = j.reinspection ? ' [reinspection]' : '';\n\n  const title = `${j.facility} — health inspection log (San Diego County)`;\n  const md = [\n    `**${j.facility}** (${addrPretty(j)})`,\n    ``,\n    `**Inspection date:** ${j.date}`,\n    `**Outcome:** Downgraded to ${j.grade||'?'}${scoreTxt}${reinsp}`,\n    j.detail_url ? `**Detail:** ${j.detail_url}` : ``,\n    ``,\n    reasons ? `**Inspector notes:** ${reasons}` : `**Inspector notes:** (not provided)`,\n    ``,\n    `_This page will be updated if additional inspection actions are posted for this facility._`\n  ].filter(Boolean).join('\\n');\n\n  return {json:{\n    ...j,\n    type: 'downgrade',\n    key_slug,          // evergreen key for Sheets/WordPress lookup\n    title,\n    content_md: md\n  }};\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        608
+      ],
+      "id": "26799509-d2fd-4185-8e9b-f2389ee01d2e",
+      "name": "Generate Slug: DG",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://civicbite.com/wp-json/wp/v2/posts",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wordpressApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "title",
+              "value": "={{ $json.title }}"
+            },
+            {
+              "name": "content",
+              "value": "={{ $json.content }}"
+            },
+            {
+              "name": "status",
+              "value": "publish"
+            },
+            {
+              "name": "categories",
+              "value": "6"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3264,
+        512
+      ],
+      "id": "1d6a43c2-8152-44c5-9c8e-f7885ae48c85",
+      "name": "Wordpress: Create New Draft"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build Post (Closure) — Function node: one output per input, adds evergreen key_slug,\n// cleans duplicate city/zip from address for a stable slug, and builds Markdown body.\n\n// ---------- slug + address helpers ----------\nfunction slugify(str){\n  return String(str||'')\n    .toLowerCase()\n    .replace(/&/g,' and ')\n    .replace(/[^a-z0-9]+/g,'-')\n    .replace(/^-+|-+$/g,'')\n    .slice(0,96);\n}\n// Remove city/zip if they already appear inside the address string\nfunction addrLineClean(j){\n  let addr = String(j.address||'').trim();\n  const city = String(j.city||'').trim();\n  const zip  = String(j.zip||'').trim();\n\n  if (city && addr.toLowerCase().includes(city.toLowerCase())) {\n    addr = addr.replace(new RegExp(city.replace(/[-/\\\\^$*+?.()|[\\]{}]/g,'\\\\$&'), 'i'), '').trim();\n  }\n  if (zip && addr.includes(zip)) {\n    addr = addr.replace(zip, '').trim();\n  }\n  // collapse double spaces and stray commas\n  addr = addr.replace(/\\s{2,}/g,' ').replace(/\\s*,\\s*/g, ', ').replace(/^,|,$/g,'').trim();\n\n  return [addr, city, zip].filter(Boolean).join(' ');\n}\nfunction makeSlug(j){\n  const base = `${j.facility||''} ${addrLineClean(j)}`;\n  return slugify(base);\n}\n\nfunction joinViolations(vs){\n  if(!Array.isArray(vs)||!vs.length) return '';\n  return vs.map(v=>String(v).trim()).filter(Boolean).join('; ').replace(/\\s*;\\s*;/g,';');\n}\nfunction addrPretty(j){\n  return [j.address, j.city, j.zip].filter(Boolean).join(', ');\n}\n\nconst tz='America/Los_Angeles';\nconst todayHuman = new Date(new Date().toLocaleString('en-US',{timeZone:tz}))\n  .toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});\n\nreturn items.map((item)=>{\n  const j=item.json||{};\n  const key_slug = makeSlug(j);\n  const reasons  = joinViolations(j.violations);\n\n  const title = `${j.facility} — health inspection log (San Diego County)`;\n  const md = [\n    `**${j.facility}** (${addrPretty(j)})`,\n    ``,\n    `**Closure date:** ${j.date}`,\n    j.detail_url ? `**Detail:** ${j.detail_url}` : ``,\n    ``,\n    reasons ? `**Inspector notes:** ${reasons}` : `**Inspector notes:** (not provided)`,\n    ``,\n    `_This page will be updated if additional inspection actions are posted for this facility._`\n  ].filter(Boolean).join('\\n');\n\n  return {json:{\n    ...j,\n    type: 'closure',\n    key_slug,          // evergreen key for Sheets/WordPress lookup\n    title,\n    content_md: md\n  }};\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        416
+      ],
+      "id": "d3198bc5-3112-4dcb-94ea-d78ecb807b63",
+      "name": "Generate Slug: closure"
+    },
+    {
+      "parameters": {
+        "url": "=https://civicbite.com/wp-json/wp/v2/posts/{{ $('Confirm New or Update').item.json.post_id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wordpressApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2528,
+        272
+      ],
+      "id": "84f87f5c-d6fa-403f-8279-d1f5be95a633",
+      "name": "Wordpress: Get Post to Update",
+      "credentials": {
+        "wordpressApi": {
+          "id": "BDzYDNG9SadXzoda",
+          "name": "NWA Shop Local Wordpress account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://civicbite.com/wp-json/wp/v2/posts/{{ $('Wordpress: Get Post to Update').first().json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wordpressApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "content",
+              "value": "={{ $json.new_content }}</br>{{ $json.excerpt.rendered }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2992,
+        272
+      ],
+      "id": "3c3bcf80-4f31-47a7-b416-07ebe6a7db79",
+      "name": "Wordpress: Update Post",
+      "credentials": {
+        "wordpressApi": {
+          "id": "BDzYDNG9SadXzoda",
+          "name": "NWA Shop Local Wordpress account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Simple matching: Compare all inspections against all sheet rows\n\n// Get inspections from Merge node\nconst inspections = $('Merge').all().map(item => item.json);\n\n// Get sheet rows (all of them)\nconst sheetRows = $input.all().map(item => item.json);\n\n// Create lookup map: slug -> sheet row\nconst sheetMap = new Map();\nfor (const row of sheetRows) {\n  if (row.slug) {\n    sheetMap.set(row.slug, row);\n  }\n}\n\n// Tag each inspection\nconst results = inspections.map(inspection => {\n  const sheetRow = sheetMap.get(inspection.key_slug);\n  \n  if (sheetRow) {\n    // EXISTS - merge with sheet data\n    return {\n      json: {\n        ...inspection,  // All inspection data\n        exists: true,\n        post_id: sheetRow.post_id,\n        row_number: sheetRow.row_number\n      }\n    };\n  } else {\n    // NEW - just tag it\n    return {\n      json: {\n        ...inspection,  // All inspection data\n        exists: false\n      }\n    };\n  }\n});\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2032,
+        512
+      ],
+      "id": "bb579e2c-9e4e-4072-8d5c-53a87f774397",
+      "name": "Confirm New or Update"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process ALL items - return multiple outputs for WordPress to create\nconst tz = 'America/Los_Angeles';\nconst stamp = new Date(new Date().toLocaleString('en-US', {timeZone: tz})).toLocaleString(\n  'en-US', {month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true, timeZone: tz}\n) + ' PT';\n\n// Helper functions\nfunction joinViolations(vs) { \n  if (!Array.isArray(vs) || !vs.length) return ''; \n  return vs.join('; ').replace(/\\s*;\\s*;/g, ';'); \n}\n\nfunction formatViolationsList(vs) {\n  if (!Array.isArray(vs) || !vs.length) return '';\n  // Format as bullet list for better readability\n  return '<ul>\\n' + vs.map(v => `<li>${v}</li>`).join('\\n') + '\\n</ul>';\n}\n\nfunction formatAddress(insp) {\n  const addr = String(insp.address || '').trim();\n  const city = String(insp.city || '').trim();\n  const zip = String(insp.zip || '').trim();\n  \n  // Check if address already contains city and zip\n  const hasCity = city && addr.toLowerCase().includes(city.toLowerCase());\n  const hasZip = zip && addr.includes(zip);\n  \n  // If address already has both, just return the address\n  if (hasCity && hasZip) {\n    return addr;\n  }\n  \n  // Otherwise, build the full address\n  const parts = [addr];\n  if (!hasCity && city) parts.push(city);\n  if (!hasZip && zip) parts.push(zip);\n  \n  return parts.filter(Boolean).join(', ');\n}\n\n// Generate Schema.org structured data for SEO\nfunction generateSchemaMarkup(inspection, baseUrl = 'https://civicbite.com') {\n  const postUrl = `${baseUrl}/${inspection.key_slug}/`;\n  const publishDate = new Date(inspection.date).toISOString();\n  const modifiedDate = new Date().toISOString();\n  \n  const schema = {\n    \"@context\": \"https://schema.org\",\n    \"@graph\": [\n      // 1. The Article (your inspection report)\n      {\n        \"@type\": \"NewsArticle\",\n        \"@id\": `${postUrl}#article`,\n        \"headline\": `${inspection.facility} — ${inspection.city}`,\n        \"description\": inspection.type === 'closure' \n          ? `Health inspection closure report for ${inspection.facility} in ${inspection.city}, CA`\n          : `Health inspection downgrade report for ${inspection.facility} in ${inspection.city}, CA`,\n        \"datePublished\": publishDate,\n        \"dateModified\": modifiedDate,\n        \"author\": {\n          \"@type\": \"Organization\",\n          \"@id\": `${baseUrl}/#organization`\n        },\n        \"publisher\": {\n          \"@type\": \"Organization\",\n          \"@id\": `${baseUrl}/#organization`\n        },\n        \"mainEntityOfPage\": {\n          \"@type\": \"WebPage\",\n          \"@id\": postUrl\n        },\n        \"about\": {\n          \"@type\": \"Restaurant\",\n          \"@id\": `${postUrl}#restaurant`\n        },\n        \"articleSection\": inspection.type === 'closure' ? 'Health Closures' : 'Health Downgrades',\n        \"keywords\": `${inspection.city} restaurants, health inspection, ${inspection.type === 'closure' ? 'closure' : 'downgrade'}, San Diego County`\n      },\n      \n      // 2. The Restaurant being inspected\n      {\n        \"@type\": \"Restaurant\",\n        \"@id\": `${postUrl}#restaurant`,\n        \"name\": inspection.facility,\n        \"address\": {\n          \"@type\": \"PostalAddress\",\n          \"streetAddress\": inspection.address,\n          \"addressLocality\": inspection.city,\n          \"addressRegion\": \"CA\",\n          \"postalCode\": inspection.zip,\n          \"addressCountry\": \"US\"\n        },\n        \"url\": postUrl\n      },\n      \n      // 3. Your Organization (Civic Bite)\n      {\n        \"@type\": \"Organization\",\n        \"@id\": `${baseUrl}/#organization`,\n        \"name\": \"Civic Bite\",\n        \"url\": baseUrl,\n        \"logo\": {\n          \"@type\": \"ImageObject\",\n          \"url\": `${baseUrl}/wp-content/uploads/civic-bite-logo.png`\n        },\n        \"description\": \"San Diego County restaurant health inspection reports and news\",\n        \"sameAs\": []\n      },\n      \n      // 4. The WebPage\n      {\n        \"@type\": \"WebPage\",\n        \"@id\": postUrl,\n        \"url\": postUrl,\n        \"name\": `${inspection.facility} — ${inspection.city}`,\n        \"isPartOf\": {\n          \"@id\": `${baseUrl}/#website`\n        },\n        \"datePublished\": publishDate,\n        \"dateModified\": modifiedDate,\n        \"description\": inspection.type === 'closure' \n          ? `Health inspection closure for ${inspection.facility}`\n          : `Health inspection downgrade for ${inspection.facility}`\n      }\n    ]\n  };\n  \n  return `<script type=\"application/ld+json\">\\n${JSON.stringify(schema, null, 2)}\\n</script>`;\n}\n\n// Process each inspection\nreturn items.map(item => {\n  const inspection = item.json;\n  const reasons = joinViolations(inspection.violations);\n  const title = `${inspection.facility} — ${inspection.city}`;\n  \n  // Create human-interest intro\n  let introParagraph = '';\n  if (inspection.type === 'closure') {\n    introParagraph = `<p>San Diego County health inspectors have ordered <strong>${inspection.facility}</strong> to temporarily cease operations following a recent inspection. ${reasons ? `The closure stems from violations including ${reasons.toLowerCase()}.` : 'Specific violations were not immediately disclosed.'} The restaurant, located at ${formatAddress(inspection)}, will remain closed until all health code violations are addressed and the facility passes a follow-up inspection.</p>\\n\\n`;\n  } else {\n    const gradeText = inspection.grade ? `a ${inspection.grade} grade` : 'a failing grade';\n    introParagraph = `<p><strong>${inspection.facility}</strong>, a San Diego County restaurant, received ${gradeText} during a recent health inspection${inspection.score ? ` with a score of ${inspection.score}` : ''}. ${reasons ? `Inspectors documented violations including ${reasons.toLowerCase()}.` : 'The inspection revealed multiple health code violations.'} The establishment at ${formatAddress(inspection)} ${inspection.reinspection ? 'underwent reinspection following previous violations' : 'will need to address these issues to improve its health rating'}.</p>\\n\\n`;\n  }\n  \n  // Generate Schema markup\n  const schemaMarkup = generateSchemaMarkup(inspection);\n  \n  // Build HTML content\n  let htmlContent = '';\n  if (inspection.type === 'closure') {\n    // Format violations section\n    let violationsSection = '';\n    if (inspection.violations && inspection.violations.length > 0) {\n      violationsSection = `<p><strong>Inspector Notes - Violations Found:</strong></p>\\n${formatViolationsList(inspection.violations)}`;\n    } else {\n      violationsSection = '<p><strong>Inspector Notes:</strong> Specific violations not provided</p>';\n    }\n    \n    htmlContent = `${schemaMarkup}\\n\\n${introParagraph}<hr>\\n\\n<p><strong>${inspection.facility}</strong><br/>${formatAddress(inspection)}</p>\\n\\n<p><strong>Closure Date:</strong> ${inspection.date}</p>\\n<p><strong>Status:</strong> ${inspection.status || 'Ordered Closed'}</p>\\n${inspection.detail_url ? `<p><strong>Detail:</strong> <a href=\"${inspection.detail_url}\" target=\"_blank\">View Full Report</a></p>` : ''}\\n\\n${violationsSection}\\n\\n<p><em>Posted: ${stamp}</em></p>\\n<p><em>This page will be updated if additional inspection actions are posted for this facility.</em></p>`;\n  } else {\n    // Downgrade\n    const scoreText = inspection.score != null ? ` (Score: ${inspection.score})` : '';\n    const reinspText = inspection.reinspection ? ' [Reinspection]' : '';\n    \n    // Format violations section\n    let violationsSection = '';\n    if (inspection.violations && inspection.violations.length > 0) {\n      violationsSection = `<p><strong>Inspector Notes - Violations Found:</strong></p>\\n${formatViolationsList(inspection.violations)}`;\n    } else {\n      violationsSection = '<p><strong>Inspector Notes:</strong> Specific violations not provided</p>';\n    }\n    \n    htmlContent = `${schemaMarkup}\\n\\n${introParagraph}<hr>\\n\\n<p><strong>${inspection.facility}</strong><br/>${formatAddress(inspection)}</p>\\n\\n<p><strong>Inspection Date:</strong> ${inspection.date}</p>\\n<p><strong>Outcome:</strong> Downgraded to ${inspection.grade || '?'}${scoreText}${reinspText}</p>\\n${inspection.detail_url ? `<p><strong>Detail:</strong> <a href=\"${inspection.detail_url}\" target=\"_blank\">View Full Report</a></p>` : ''}\\n\\n${violationsSection}\\n\\n<p><em>Posted: ${stamp}</em></p>\\n<p><em>This page will be updated if additional inspection actions are posted for this facility.</em></p>`;\n  }\n  \n  return {\n    json: {\n      title: title,\n      content: htmlContent.trim(),\n      slug: inspection.key_slug,\n      facility: inspection.facility,\n      address: inspection.address,\n      city: inspection.city,\n      zip: inspection.zip,\n      date: inspection.date,\n      type: inspection.type\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3024,
+        512
+      ],
+      "id": "eb9be460-5f2d-46cb-b832-44cb34aa4989",
+      "name": "Create New Post Content"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "MTHpVWNRKMUD9FZv",
+          "mode": "list",
+          "cachedResultName": "Civic Bite Spotlight: Street View WP Engine"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        3856,
+        960
+      ],
+      "id": "f387d414-2c82-4f32-9f4d-fdded33f8f0d",
+      "name": "Create Spotlight Post"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "93696b71-3adf-4461-ba2b-c0197688b08e",
+              "leftValue": "={{ $json.key_slug }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1520,
+        512
+      ],
+      "id": "bf05c9f5-0a14-466b-9911-462fa18844ab",
+      "name": "Check if data exists"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4",
+          "mode": "list",
+          "cachedResultName": "GPT-4"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are a compass-bearing calculator. You return only a number representing the compass heading (in degrees from 0 to 360) between two GPS points.\n",
+              "role": "system"
+            },
+            {
+              "content": "=What is the compass heading in degrees from point A ({{ $('Find Pano_ID').item.json.location.lat }}, {{ $('Find Pano_ID').item.json.location.lng }}) to point B ({{ $json.results[0].geometry.location.lat }}, {{ $json.results[0].geometry.bounds.southwest.lng }})? Only return a number."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        2576,
+        960
+      ],
+      "id": "abd1c391-d14f-49a8-8113-2ca9872a3a3f",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "6sKwLZ4CBgrhQ8HO",
+          "name": "Hostinger n8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://maps.googleapis.com/maps/api/streetview/metadata?location={{ $('Loop Over Items').item.json.address }}&key=AIzaSyBqlLIvyRD6WKlXF3rel1bglGLS2fcVybI",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3472,
+        512
+      ],
+      "id": "d621a510-25b9-418b-8834-8592e37439d2",
+      "name": "Find Pano_ID"
+    },
+    {
+      "parameters": {
+        "url": "=https://maps.googleapis.com/maps/api/geocode/json?address={{ $('Create New Post Content').item.json.address }}&key=AIzaSyBqlLIvyRD6WKlXF3rel1bglGLS2fcVybI",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3680,
+        512
+      ],
+      "id": "6a2d79cf-0898-4921-a6e2-9395fb9ffc1b",
+      "name": "Find Lat and Lng"
+    },
+    {
+      "parameters": {
+        "url": "=https://maps.googleapis.com/maps/api/streetview?size=1024x1024&pano={{ $('Find Pano_ID').item.json.pano_id }}&heading={{ $json.message.content }}&pitch=10&fov=70&key=AIzaSyBqlLIvyRD6WKlXF3rel1bglGLS2fcVybI",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2928,
+        960
+      ],
+      "id": "337b7b9e-a3f0-45d3-a797-9f201762ba30",
+      "name": "Get Google Street View Image",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://civicbite.com//wp-json/wp/v2/media",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wordpressApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Disposition",
+              "value": "=attachment; filename=\"san_diego-{{ $json.mimeType }}.png\""
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "id": "4cb2e7fe-4952-488e-8d6f-ba5499786839",
+      "name": "Upload image",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        3184,
+        960
+      ],
+      "typeVersion": 4.2,
+      "credentials": {
+        "wordpressApi": {
+          "id": "BDzYDNG9SadXzoda",
+          "name": "NWA Shop Local Wordpress account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://civicbite.com/wp-json/wp/v2/posts/{{ $('Wordpress: Create New Draft').item.json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wordpressApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "featured_media",
+              "value": "={{ $json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9d5ec4c6-6955-4307-9d8d-8ce0514f16f8",
+      "name": "Set image",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        3392,
+        960
+      ],
+      "typeVersion": 4.2,
+      "credentials": {
+        "wordpressApi": {
+          "id": "BDzYDNG9SadXzoda",
+          "name": "NWA Shop Local Wordpress account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2800,
+        512
+      ],
+      "id": "69dd9f9b-6837-44ef-b320-454689f1294a",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Set today's date for daily inspection run\n// Runs at 10pm, so \"today\" is the current day in Pacific Time\n\nconst tz = 'America/Los_Angeles'; // San Diego timezone\n\n// Get current date in Pacific Time\nconst now = new Date(new Date().toLocaleString('en-US', { timeZone: tz }));\n\n// Format as YYYY-M-D (no leading zeros, matches API format)\nconst year = now.getFullYear();\nconst month = now.getMonth() + 1; // JavaScript months are 0-indexed\nconst day = now.getDate();\n\nconst todayStr = `${year}-${month}-${day}`;\n\n// Human-readable version\nconst humanDate = now.toLocaleDateString('en-US', { \n  timeZone: tz, \n  month: 'long', \n  day: 'numeric', \n  year: 'numeric' \n});\n\nconsole.log(`Daily run for: ${humanDate} (${todayStr})`);\n\nreturn [{\n  json: {\n    start_date: todayStr,\n    end_date: todayStr,\n    start_human: humanDate,\n    end_human: humanDate,\n    tz: tz\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        256,
+        512
+      ],
+      "id": "d16dce87-33fd-4956-905f-73aeb2fdc30e",
+      "name": "Set Todays Date"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 22
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -16,
+        512
+      ],
+      "id": "75896b33-72aa-4866-83fa-897d68bcb76a",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "79ceefc5-39b7-4f47-b77a-5da567ef2513",
+      "name": "Execute Manually"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-04T17:20:48.945Z",
+      "createdAt": "2026-01-04T17:20:48.945Z",
+      "role": "workflow:owner",
+      "workflowId": "koLXFnnoL3dtqMp7",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [
+    {
+      "updatedAt": "2026-01-04T17:19:59.865Z",
+      "createdAt": "2026-01-04T17:19:59.865Z",
+      "id": "CFeOyx50eOh0Yvx1",
+      "name": "SD Food"
+    },
+    {
+      "updatedAt": "2026-01-01T03:42:22.588Z",
+      "createdAt": "2026-01-01T03:42:22.588Z",
+      "id": "qYEpcppqDWzmBx4r",
+      "name": "LLM Used"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-11T02:03:09.968Z",
+  "versionId": "fcbca6ff-d0e7-499f-85bb-57f743755dc1"
+}
