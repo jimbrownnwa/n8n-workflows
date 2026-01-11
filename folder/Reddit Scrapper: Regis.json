@@ -1,0 +1,3087 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Configure Scraping Parameters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configure Scraping Parameters": {
+      "main": [
+        [
+          {
+            "node": "Split Subreddits",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Subreddits": {
+      "main": [
+        [
+          {
+            "node": "Prepare Apify Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Apify Request": {
+      "main": [
+        [
+          {
+            "node": "Scrape Reddit Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrape Reddit Posts": {
+      "main": [
+        [
+          {
+            "node": "Process Reddit Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Reddit Posts": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Analyze with OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze with OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine AI Analysis with Post Data": {
+      "main": [
+        [
+          {
+            "node": "Filter & Deduplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter & Deduplicate": {
+      "main": [
+        [
+          {
+            "node": "Save to Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Combine AI Analysis with Post Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Airtable": {
+      "main": [
+        [
+          {
+            "node": "Generate Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Summary": {
+      "main": [
+        [
+          {
+            "node": "Send email message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-01T23:35:03.396Z",
+  "id": "l41gb5i54xBBbCDf",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Reddit Scrapper: Regis",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "8fa8986a-ec1c-4725-b8c9-97520ae21944",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1328,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1b2c3d4-1111-2222-3333-444444444444",
+              "name": "subreddits",
+              "value": "datacenter,sysadmin",
+              "type": "string"
+            },
+            {
+              "id": "a1b2c3d4-2222-3333-4444-555555555555",
+              "name": "postLimit",
+              "value": 35,
+              "type": "number"
+            },
+            {
+              "id": "a1b2c3d4-3333-4444-5555-666666666666",
+              "name": "timeRange",
+              "value": "week",
+              "type": "string"
+            },
+            {
+              "id": "a1b2c3d4-4444-5555-6666-777777777777",
+              "name": "apifyToken",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7e6be550-d21b-4ecc-9781-bcd208907599",
+      "name": "Configure Scraping Parameters",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1104,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Split subreddits and create items for each\nconst inputData = $input.all();\n\nif (!inputData || inputData.length === 0) {\n  throw new Error('No input data received');\n}\n\nconst data = inputData[0].json;\nconst subreddits = data.subreddits.split(',');\nconst items = [];\n\nfor (const subreddit of subreddits) {\n  items.push({\n    json: {\n      subreddit: subreddit.trim(),\n      postLimit: parseInt(data.postLimit) || 35,\n      timeRange: data.timeRange || 'week',\n      apifyToken: data.apifyToken\n    }\n  });\n}\n\nreturn items;"
+      },
+      "id": "3b3319a9-5ba1-4978-b270-6f0ca305ddf4",
+      "name": "Split Subreddits",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -880,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare Apify request data - WORKING FORMAT\nconst items = [];\n\nfor (const item of $input.all()) {\n  const requestBody = {\n    \"debugMode\": false,\n    \"ignoreStartUrls\": false,\n    \"includeNSFW\": true,\n    \"maxComments\": 10,\n    \"maxCommunitiesCount\": 1,\n    \"maxItems\": parseInt(item.json.postLimit) || 35,\n    \"maxPostCount\": parseInt(item.json.postLimit) || 35,\n    \"maxUserCount\": 0,\n    \"proxy\": {\n      \"useApifyProxy\": true,\n      \"apifyProxyGroups\": [\"RESIDENTIAL\"]\n    },\n    \"scrollTimeout\": 40,\n    \"searchComments\": false,\n    \"searchCommunities\": false,\n    \"searchPosts\": false,\n    \"searchUsers\": false,\n    \"skipComments\": false,\n    \"skipCommunity\": false,\n    \"skipUserPosts\": false,\n    \"sort\": item.json.timeRange === 'week' ? 'top' : 'top',\n    \"time\": item.json.timeRange,\n    \"startUrls\": [\n      {\n        \"url\": `https://www.reddit.com/r/${item.json.subreddit}/top/?t=${item.json.timeRange}`,\n        \"method\": \"GET\"\n      }\n    ]\n  };\n  \n  items.push({\n    json: {\n      ...item.json,\n      apifyRequestBody: requestBody,\n      apifyUrl: `https://api.apify.com/v2/acts/trudax~reddit-scraper-lite/run-sync-get-dataset-items?token=${item.json.apifyToken}`\n    }\n  });\n}\n\nreturn items;"
+      },
+      "id": "b2f7c9b4-4fc8-41c0-8372-4ee1ccc4637b",
+      "name": "Prepare Apify Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -672,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.apifyUrl }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.apifyRequestBody) }}",
+        "options": {
+          "redirect": {
+            "redirect": {
+              "maxRedirects": 5
+            }
+          },
+          "response": {
+            "response": {}
+          },
+          "timeout": 120000
+        }
+      },
+      "id": "711a09da-ec4d-4f64-af45-036016073a99",
+      "name": "Scrape Reddit Posts",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -448,
+        64
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process Reddit posts from Apify response\nconst allPosts = [];\nconst themes = {\n  \"Smart Hands Frustrations\": {\n    keywords: [\"smart hands\", \"remote hands\", \"datacenter tech\", \"on-site support\", \"field service\", \"remote support\", \"datacenter technician\", \"hands and eyes\", \"NOC tech\", \"field engineer\", \"cable monkey\", \"rack and stack\", \"break fix\", \"hardware replacement\", \"physical access\"],\n    description: \"Issues with remote datacenter support and field technicians\"\n  },\n  \"Vendor Overload\": {\n    keywords: [\"too many vendors\", \"vendor management\", \"multiple vendors\", \"vendor fatigue\", \"sales calls\", \"account manager\", \"vendor sprawl\", \"consolidation\", \"vendor relationships\", \"procurement\", \"RFP\", \"vendor selection\", \"partnership\", \"sales pressure\"],\n    description: \"Challenges managing multiple technology vendors and sales relationships\"\n  },\n  \"Compliance Gaps\": {\n    keywords: [\"compliance\", \"SOC2\", \"ISO\", \"HIPAA\", \"PCI\", \"GDPR\", \"regulations\", \"documentation\", \"policies\", \"procedures\", \"controls\", \"framework\", \"certification\", \"standards\", \"governance\", \"risk management\", \"security controls\"],\n    description: \"Compliance framework implementation and documentation challenges\"\n  },\n  \"Audit Pain\": {\n    keywords: [\"audit\", \"auditor\", \"evidence\", \"documentation\", \"audit trail\", \"compliance audit\", \"external audit\", \"audit findings\", \"remediation\", \"audit prep\", \"audit season\", \"controls testing\", \"sampling\", \"walkthrough\", \"audit fatigue\"],\n    description: \"Audit preparation, execution, and remediation difficulties\"\n  }\n};\n\nfor (const item of $input.all()) {\n  try {\n    // The Apify node returns an array of posts directly, so we can iterate over item.json\n    // The previous check for post.type or post.dataType is not needed as Apify's output is directly a post\n    if (Array.isArray(item.json)) {\n      for (const post of item.json) {\n        allPosts.push({\n          json: {\n            postId: post.id || post.postId,\n            title: post.title || '',\n            body: post.body || post.text || post.selftext || '', // Prioritize 'body' or 'text'\n            url: post.url || post.postUrl || post.link || '',\n            link: post.link || post.url || post.postUrl || '',\n            subreddit: post.communityName || post.subreddit || post.subredditName || post.category || '', // Use communityName first as per sample\n            category: post.communityName || post.subreddit || post.subredditName || post.category || '',\n            author: post.username || post.author || post.authorName || post.authorUsername || 'unknown', // Use username first as per sample\n            createdAt: post.createdAt || new Date().toISOString(),\n            upvotes: post.upVotes || post.upvotes || post.score || 0,\n            themes: JSON.stringify(themes) // Note: This is stringifying the entire themes object for each post. This might not be the intended use if you want to use 'themes' directly in OpenAI prompt without it being part of the post's JSON.\n          }\n        });\n      }\n    } else {\n        // Handle cases where item.json is not an array, but a single object (e.g., if Apify returns only one post)\n        const post = item.json;\n        allPosts.push({\n            json: {\n                postId: post.id || post.postId,\n                title: post.title || '',\n                body: post.body || post.text || post.selftext || '',\n                url: post.url || post.postUrl || post.link || '',\n                link: post.link || post.url || post.postUrl || '',\n                subreddit: post.communityName || post.subreddit || post.subredditName || post.category || '',\n                category: post.communityName || post.subreddit || post.subredditName || post.category || '',\n                author: post.username || post.author || post.authorName || post.authorUsername || 'unknown',\n                createdAt: post.createdAt || new Date().toISOString(),\n                upvotes: post.upVotes || post.upvotes || post.score || 0,\n                themes: JSON.stringify(themes)\n            }\n        });\n    }\n  } catch (error) {\n    console.error('Error processing item:', error);\n  }\n}\n\nreturn allPosts;"
+      },
+      "id": "1d6cca41-8f95-4eaa-b0cc-c9a1f1df2324",
+      "name": "Process Reddit Posts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-3.5-turbo",
+          "mode": "list",
+          "cachedResultName": "GPT-3.5-TURBO"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are an expert at analyzing Reddit posts to identify high-signal quotes about infrastructure pain points. You categorize content into specific themes and score the signal strength of quotes.\n\nThemes to identify and their keywords:\n1. Smart Hands Frustrations: Issues with remote datacenter support and field technicians. Keywords: \"smart hands\", \"remote hands\", \"datacenter tech\", \"on-site support\", \"field service\", \"remote support\", \"datacenter technician\", \"hands and eyes\", \"NOC tech\", \"field engineer\", \"cable monkey\", \"rack and stack\", \"break fix\", \"hardware replacement\", \"physical access\"\n2. Vendor Overload: Challenges managing multiple technology vendors and sales relationships. Keywords: \"too many vendors\", \"vendor management\", \"multiple vendors\", \"vendor fatigue\", \"sales calls\", \"account manager\", \"vendor sprawl\", \"consolidation\", \"vendor relationships\", \"procurement\", \"RFP\", \"vendor selection\", \"partnership\", \"sales pressure\"\n3. Compliance Gaps: Compliance framework implementation and documentation challenges. Keywords: \"compliance\", \"SOC2\", \"ISO\", \"HIPAA\", \"PCI\", \"GDPR\", \"regulations\", \"documentation\", \"policies\", \"procedures\", \"controls\", \"framework\", \"certification\", \"standards\", \"governance\", \"risk management\", \"security controls\"\n4. Audit Pain: Audit preparation, execution, and remediation difficulties. Keywords: \"audit\", \"auditor\", \"evidence\", \"documentation\", \"audit trail\", \"compliance audit\", \"external audit\", \"audit findings\", \"remediation\", \"audit prep\", \"audit season\", \"controls testing\", \"sampling\", \"walkthrough\", \"audit fatigue\"\n\nYour task:\n1. Analyze the post for pain points related to these themes, paying close attention to the provided keywords.\n2. Extract the most impactful quote (50-200 characters) that directly relates to one of the themes.\n3. Rate signal strength 1-10, distributing scores across the full scale to provide maximum utility for filtering. Focus on the depth, novelty, and directness of the pain point.\n   - 1-3 (Low Signal): Indirectly relevant, subtle mention, or a very common/minor issue without much depth or specific detail.\n   - 4-6 (Medium Signal): Moderately relevant, an implied pain point, or a common issue that is not critical or groundbreaking. These are valuable but not top-tier insights.\n   - 7-8 (High Signal): Clear pain point, directly related to a theme, and impactful. These are solid, actionable insights.\n   - 9-10 (Very High Signal): Extremely clear, highly impactful, novel, or deeply insightful pain point directly related to a theme. These represent the most critical and unique findings.\n   A signal score of 0 means no relevant pain point was found.\n4. Write a one-line summary (max 100 characters) of the extracted quote.\n5. Identify the primary theme from the list above that the quote belongs to.\n\nRespond ONLY with valid JSON in this exact format:\n{\n  \"quote\": \"extracted quote here\",\n  \"summary\": \"one line summary\",\n  \"theme\": \"Theme Name\",\n  \"signalScore\": 8,\n  \"analysis\": \"brief explanation of why this is significant\"\n}\n\nIf no relevant pain point is found, return:\n{\n  \"quote\": \"\",\n  \"summary\": \"No relevant pain point\",\n  \"theme\": \"None\",\n  \"signalScore\": 0,\n  \"analysis\": \"Content does not match target themes\"\n}\n\n",
+              "role": "system"
+            }
+          ]
+        },
+        "options": {
+          "maxTokens": 500,
+          "temperature": 0.3,
+          "topP": 0.9
+        }
+      },
+      "id": "e4c3685f-9f94-4816-a4e5-c3aa3c3a5034",
+      "name": "Analyze with OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "alwaysOutputData": false,
+      "executeOnce": false,
+      "credentials": {
+        "openAiApi": {
+          "id": "6sKwLZ4CBgrhQ8HO",
+          "name": "Hostinger n8n"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Combine OpenAI analysis with original post data\nconst enrichedItems = [];\n\nfor (const item of $input.all()) {\n  try {\n    let aiResponse;\n    if (item.json.message && item.json.message.content) {\n      aiResponse = JSON.parse(item.json.message.content);\n    } else if (item.json.choices && item.json.choices[0]) {\n      aiResponse = JSON.parse(item.json.choices[0].message.content);\n    } else {\n      continue;\n    }\n    \n    enrichedItems.push({\n      json: {\n        ...aiResponse,\n        originalData: {\n          postId: item.json.postId,\n          title: item.json.title,\n          body: item.json.body,\n          url: item.json.url || item.json.link || '',\n          link: item.json.link || item.json.url || '',\n          subreddit: item.json.subreddit || item.json.category || '',\n          category: item.json.category || item.json.subreddit || '',\n          author: item.json.author || 'unknown',\n          createdAt: item.json.createdAt,\n          upvotes: item.json.upvotes || item.json.upVotes || 0\n        }\n      }\n    });\n  } catch (error) {\n    console.error('Error combining data:', error);\n  }\n}\n\nreturn enrichedItems;"
+      },
+      "id": "f997c40f-5f73-4491-9a02-d14bdcff993f",
+      "name": "Combine AI Analysis with Post Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        592,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Filter high-signal quotes and prepare for output\nconst results = []; // <--- This line defines the 'results' array\nconst seenQuotes = new Set();\nconst MIN_SIGNAL_SCORE = 7; // Adjust this value as needed\nconst MAX_RESULTS = 15;   // Adjust this value as needed\n\nconsole.log('--- Starting Filter & Deduplicate Node ---');\nconsole.log('Total items received:', $input.all().length);\n\nfor (const item of $input.all()) {\n  try {\n    // Access AI-generated fields directly from item.json\n    const quote = item.json.quote;\n    const summary = item.json.summary;\n    const themeCategory = item.json.theme;\n    const signalScore = item.json.signalScore;\n    const analysis = item.json.analysis;\n\n    // Access original post data from the nested 'originalData' object\n    const originalData = item.json.originalData || {};\n    let postTitle = originalData.title; // Use 'let' because we might modify it\n    const sourceUrl = originalData.link || originalData.url || '';\n    const subreddit = originalData.subreddit || originalData.category || '';\n    const dateScraped = originalData.createdAt;\n    const postId = originalData.postId; // Get postId for logging\n\n    // Extract Author and Upvotes\n    const author = originalData.author || 'unknown';\n    const upvotes = originalData.upvotes || originalData.upVotes || 0; // Handle common variations and default to 0\n\n\n    // Fallback for postTitle if it's empty (e.g., for comments)\n    if (!postTitle || postTitle.trim() === '') {\n        // Option 1 (Recommended): Use summary as a fallback title for comments\n        postTitle = `Comment: ${summary.substring(0, 75)}${(summary.length > 75 ? '...' : '')}`;\n        // Option 2 (Alternative): Use the quote as a fallback title for comments\n        // postTitle = `Quote: ${quote.substring(0, 75)}${(quote.length > 75 ? '...' : '')}`;\n        // Option 3 (Simpler): Just a generic placeholder\n        // postTitle = 'Comment (No Title)';\n    }\n\n    console.log('Processing item. PostId:', postId || 'N/A', 'Signal Score:', signalScore, 'Quote:', quote ? quote.substring(0, 50) + '...' : 'N/A', 'Post Title (processed):', postTitle, 'Author:', author, 'Upvotes:', upvotes);\n\n    if (typeof signalScore === 'number' && signalScore >= MIN_SIGNAL_SCORE && quote) {\n      console.log('  - Meets signal score and quote criteria.');\n      const normalizedQuote = quote.toLowerCase().replace(/[^a-z0-9]/g, '');\n\n      if (!seenQuotes.has(normalizedQuote)) {\n        console.log('  - Quote is not a duplicate. Adding to results.');\n        seenQuotes.add(normalizedQuote);\n\n        results.push({\n          json: {\n            \"Quote/Excerpt\": (quote || '').substring(0, 200),\n            \"Summary\": (summary || '').substring(0, 100),\n            \"Source URL\": sourceUrl,\n            \"Subreddit\": subreddit,\n            \"Theme Category\": themeCategory || 'Uncategorized',\n            \"Signal Score\": signalScore,\n            \"Date Scraped\": dateScraped || new Date().toISOString(),\n            \"Post Title\": (postTitle || '').substring(0, 200), // Use the potentially modified postTitle\n            \"AI Analysis Detail\": analysis || '',\n            \"Author\": author,\n            \"Upvotes\": upvotes,\n            \"Post ID\": postId // Include Post ID for Airtable deduplication\n          }\n        });\n      } else {\n        console.log('  - Quote is a duplicate. Skipping.');\n      }\n    } else {\n      console.log('  - Does NOT meet filter criteria (signalScore:', signalScore, 'quote exists:', !!quote, '). Skipping.');\n    }\n  } catch (error) {\n    console.error('Error processing item (PostId:', originalData.postId || 'unknown', '):', error);\n  }\n}\n\nconsole.log('--- Finished Filter & Deduplicate Node. Total results before sort/slice:', results.length, '---');\n\nresults.sort((a, b) => (b.json[\"Signal Score\"] || 0) - (a.json[\"Signal Score\"] || 0));\nreturn results.slice(0, MAX_RESULTS);"
+      },
+      "id": "c69262da-dc27-4b79-b476-f1104b7eeb10",
+      "name": "Filter & Deduplicate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        816,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appjGIvKlZRjUjxGE",
+          "mode": "list",
+          "cachedResultName": "Infrastructure Pain Points",
+          "cachedResultUrl": "https://airtable.com/appjGIvKlZRjUjxGE"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblrCM2HlM2PIh0z5",
+          "mode": "list",
+          "cachedResultName": "Infrastructure Pain Points",
+          "cachedResultUrl": "https://airtable.com/appjGIvKlZRjUjxGE/tblrCM2HlM2PIh0z5"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Theme Category": "={{ $json['Theme Category'] }}",
+            "Summary": "={{ $json.Summary }}",
+            "Quote": "={{ $json['Quote/Excerpt'] }}",
+            "Post ID": "={{ $json['Post ID'] }}",
+            "Source URL": "={{ $json['Source URL'] }}",
+            "Subreddit": "={{ $json.Subreddit }}",
+            "Signal Score": "={{ $json['Signal Score'] }}",
+            "Date Scraped": "={{ $json['Date Scraped'] }}",
+            "Post Title": "={{ $json['Post Title'] }}",
+            "Analysis": "={{ $json['AI Analysis Detail'] }}",
+            "Author": "={{ $json.Author }}",
+            "Upvotes": "={{ $json.Upvotes }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Theme Category",
+              "displayName": "Theme Category",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Post ID",
+              "displayName": "Post ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Quote",
+              "displayName": "Quote",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Source URL",
+              "displayName": "Source URL",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Subreddit",
+              "displayName": "Subreddit",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Signal Score",
+              "displayName": "Signal Score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Date Scraped",
+              "displayName": "Date Scraped",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Post Title",
+              "displayName": "Post Title",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Analysis",
+              "displayName": "Analysis",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Author",
+              "displayName": "Author",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Upvotes",
+              "displayName": "Upvotes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "5509e0b6-bafd-478f-bee5-8843e35ddc7d",
+      "name": "Save to Airtable",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        1024,
+        64
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "zSu8SJsj18PswsCt",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        368,
+        64
+      ],
+      "id": "e6482bd7-adab-481c-a3bd-ce5e9ab8dff5",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate summary report\nconst items = $input.all();\n\nconst summary = {\n  totalQuotesFound: items.length,\n  timestamp: new Date().toISOString(),\n  themeBreakdown: {},\n  topQuotes: [],\n  averageSignalScore: 0\n};\n\n// Calculate theme breakdown\nfor (const item of items) {\n  const theme = item.json.themeCategory;\n  summary.themeBreakdown[theme] = (summary.themeBreakdown[theme] || 0) + 1;\n  \n  // Add top 3 quotes\n  if (summary.topQuotes.length < 3) {\n    summary.topQuotes.push({\n      quote: item.json.quote,\n      theme: theme,\n      score: item.json.signalScore\n    });\n  }\n}\n\n// Calculate average signal score\nif (items.length > 0) {\n  const totalScore = items.reduce((sum, item) => sum + item.json.signalScore, 0);\n  summary.averageSignalScore = (totalScore / items.length).toFixed(1);\n}\n\nreturn [{ json: summary }];"
+      },
+      "id": "93abab50-5e81-491b-820f-7e957c93cbd7",
+      "name": "Generate Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        64
+      ],
+      "notes": "Create execution summary"
+    },
+    {
+      "parameters": {
+        "sendTo": "jimbrown131@gmail.com",
+        "subject": "=You have  {{ $json.totalQuotesFound }} New Quote(s)",
+        "message": "=Hi Regis,<br><br>Your report has run and you can see recent your new quote (s)<a href= \"https://airtable.com/appjGIvKlZRjUjxGE/tblrCM2HlM2PIh0z5/viw0GYGMdEWUyMRWw\">Here</a>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1472,
+        64
+      ],
+      "id": "25e1fac4-5878-4393-9fd1-f766decb169e",
+      "name": "Send email message",
+      "webhookId": "4d9021fb-6227-4c5d-a50d-f519ccca4f07",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "dmIKVw4RuLHhcC3Y",
+          "name": "Nwa Boost:Gmail"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Scrape Reddit Posts": [
+      {
+        "json": {
+          "id": "t3_1l0x2w9",
+          "parsedId": "1l0x2w9",
+          "url": "https://www.reddit.com/r/datacenter/comments/1l0x2w9/got_an_interview_at_a_data_center_in_a_few_days/",
+          "username": "Careless_Parsnip_511",
+          "userId": "t2_tfznya7j",
+          "title": "Got an interview at a data center in a few days, but the job is a little outside my jurisdiction",
+          "communityName": "r/datacenter",
+          "parsedCommunityName": "datacenter",
+          "body": "Last week I was called to schedule an interview for a job at a data center. I am very excited at this possibility because I have been searching for an IT job for the better part of 8-9 months now after graduating. The job title is Hardware Technician, and it is an entry level night shift position. I must admit I am quite nervous though because my concentration for my degree was programming. I did take a handful of DB management, networking, and security courses too, but they weren’t my area of expertise per se. I did mention on my resume that I’ve built PCs and have experience with troubleshooting as well. I want to do well and I have been studying since I scheduled the interview, but I am still naturally nervous about how the interview will go. There’s a lot of technical jargon in the job listing, but after breaking it down the duties seem to mostly include installations, troubleshooting, documentation, verification, labeling, etc.. as others I’ve spoken to have said, it seems like mostly grunt work because it’s an entry level position (which I’m more than happy to do). Lastly, I should also mention that I only live like 8-9 minutes away from the DC, so I hope that makes me a more valued candidate. Any advice or things in specific I should really focus on researching? Anything I should avoid mentioning in the interview? Any insight would be much appreciated. ",
+          "html": "&lt;!-- SC_OFF --&gt;&lt;div class=\"md\"&gt;&lt;p&gt;Last week I was called to schedule an interview for a job at a data center. I am very excited at this possibility because I have been searching for an IT job for the better part of 8-9 months now after graduating. The job title is Hardware Technician, and it is an entry level night shift position. I must admit I am quite nervous though because my concentration for my degree was programming. I did take a handful of DB management, networking, and security courses too, but they weren’t my area of expertise per se. I did mention on my resume that I’ve built PCs and have experience with troubleshooting as well. I want to do well and I have been studying since I scheduled the interview, but I am still naturally nervous about how the interview will go. There’s a lot of technical jargon in the job listing, but after breaking it down the duties seem to mostly include installations, troubleshooting, documentation, verification, labeling, etc.. as others I’ve spoken to have said, it seems like mostly grunt work because it’s an entry level position (which I’m more than happy to do). Lastly, I should also mention that I only live like 8-9 minutes away from the DC, so I hope that makes me a more valued candidate. Any advice or things in specific I should really focus on researching? Anything I should avoid mentioning in the interview? Any insight would be much appreciated. &lt;/p&gt;\n&lt;/div&gt;&lt;!-- SC_ON --&gt;",
+          "link": "https://www.reddit.com/r/datacenter/comments/1l0x2w9/got_an_interview_at_a_data_center_in_a_few_days/",
+          "numberOfComments": 22,
+          "flair": null,
+          "upVotes": 16,
+          "upVoteRatio": 0.95,
+          "isVideo": false,
+          "isAd": false,
+          "over18": false,
+          "thumbnailUrl": "",
+          "createdAt": "2025-06-01T19:08:16.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.714Z",
+          "dataType": "post"
+        }
+      },
+      {
+        "json": {
+          "id": "t3_1kyss4g",
+          "parsedId": "1kyss4g",
+          "url": "https://www.reddit.com/r/datacenter/comments/1kyss4g/work_in_chicago/",
+          "username": "onetwothreefoir",
+          "userId": "t2_3h1f812v",
+          "title": "Work In Chicago",
+          "communityName": "r/datacenter",
+          "parsedCommunityName": "datacenter",
+          "body": "I’ve applied at Equinix, Coresite, Insight Global, Stream, and Microsoft for Data Center Tech positions. Are there other data centers or staffing companies you all recommend?\n\nI have over 5 years experience as a Low Voltage Tech, but haven’t worked in a Data Center. ",
+          "html": "&lt;!-- SC_OFF --&gt;&lt;div class=\"md\"&gt;&lt;p&gt;I’ve applied at Equinix, Coresite, Insight Global, Stream, and Microsoft for Data Center Tech positions. Are there other data centers or staffing companies you all recommend?&lt;/p&gt;\n\n&lt;p&gt;I have over 5 years experience as a Low Voltage Tech, but haven’t worked in a Data Center. &lt;/p&gt;\n&lt;/div&gt;&lt;!-- SC_ON --&gt;",
+          "link": "https://www.reddit.com/r/datacenter/comments/1kyss4g/work_in_chicago/",
+          "numberOfComments": 32,
+          "flair": null,
+          "upVotes": 14,
+          "upVoteRatio": 0.95,
+          "isVideo": false,
+          "isAd": false,
+          "over18": false,
+          "thumbnailUrl": "",
+          "createdAt": "2025-05-30T02:10:42.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.622Z",
+          "dataType": "post"
+        }
+      },
+      {
+        "json": {
+          "id": "t3_1kzwkao",
+          "parsedId": "1kzwkao",
+          "url": "https://www.reddit.com/r/datacenter/comments/1kzwkao/so_currently_at_aws_amer_and_looking_elsewhere/",
+          "username": "DizzyActuary5009",
+          "userId": "t2_vlsyttvz",
+          "title": "So, currently at AWS AMER and looking elsewhere",
+          "communityName": "r/datacenter",
+          "parsedCommunityName": "datacenter",
+          "body": "So, as title says, I'm currently at AWS as a DCEO L3. I now have roughly 2 years data center experience, 9 years Industrial Maintenance before that. I have fielded many questions by FM, CE and  L4, as to why I'm a L3 and not a L4 since my hire. I have literally trained L4's that had no clue about anything, which, to be honest has fueled my resentment of AWS. I also have my issues with the culture and constant moving building to building and FM to FM with AWS as well. If you've ever worked for AWS, you know.\n\nA few of my FM's have noticed this and tried to explain with the builder growth, there's lots of room to move up. After 11 months of builder and paraphrasing FM's, \"Absolutely knocking it out of the park\" got a 1% raise. Like a 1.09, to 36.25 or something like that. Which meant nothing because the building I was moved to was in a different tax zone, no all it did was pay for the new taxes I am paying. I will give credit to my newest FM, in at least on the surface seeing and understanding my frustrations and trying to get me involved in teams that I am interested in. \n\nSo, I have been applying for both Industrial Maintenance and Data centers in the area. And I have had Google and Meta recruiters reach out to me scheduling interviews and such. Which I've done their first 2 rounds and still going.\n\nMeta I know lays off/fires alot, Every year. I haven't heard that about Google however. I have known people that worked at Google and said how much better off an environment it was over AWS, but very much act the liberal to cover your ass. \nI haven't really heard much about Meta, other than alot of enmass firings every year, I don't want to work somewhere where I always feel like I'm going to get fired. I had a 2 or 3 months spiel of that at AWS and that burned me out more than anything of AWS.\n\nSo my question comes down to, what does Meta and Google pay their critical technicians?",
+          "html": "&lt;!-- SC_OFF --&gt;&lt;div class=\"md\"&gt;&lt;p&gt;So, as title says, I&amp;#39;m currently at AWS as a DCEO L3. I now have roughly 2 years data center experience, 9 years Industrial Maintenance before that. I have fielded many questions by FM, CE and  L4, as to why I&amp;#39;m a L3 and not a L4 since my hire. I have literally trained L4&amp;#39;s that had no clue about anything, which, to be honest has fueled my resentment of AWS. I also have my issues with the culture and constant moving building to building and FM to FM with AWS as well. If you&amp;#39;ve ever worked for AWS, you know.&lt;/p&gt;\n\n&lt;p&gt;A few of my FM&amp;#39;s have noticed this and tried to explain with the builder growth, there&amp;#39;s lots of room to move up. After 11 months of builder and paraphrasing FM&amp;#39;s, &amp;quot;Absolutely knocking it out of the park&amp;quot; got a 1% raise. Like a 1.09, to 36.25 or something like that. Which meant nothing because the building I was moved to was in a different tax zone, no all it did was pay for the new taxes I am paying. I will give credit to my newest FM, in at least on the surface seeing and understanding my frustrations and trying to get me involved in teams that I am interested in. &lt;/p&gt;\n\n&lt;p&gt;So, I have been applying for both Industrial Maintenance and Data centers in the area. And I have had Google and Meta recruiters reach out to me scheduling interviews and such. Which I&amp;#39;ve done their first 2 rounds and still going.&lt;/p&gt;\n\n&lt;p&gt;Meta I know lays off/fires alot, Every year. I haven&amp;#39;t heard that about Google however. I have known people that worked at Google and said how much better off an environment it was over AWS, but very much act the liberal to cover your ass. \nI haven&amp;#39;t really heard much about Meta, other than alot of enmass firings every year, I don&amp;#39;t want to work somewhere where I always feel like I&amp;#39;m going to get fired. I had a 2 or 3 months spiel of that at AWS and that burned me out more than anything of AWS.&lt;/p&gt;\n\n&lt;p&gt;So my question comes down to, what does Meta and Google pay their critical technicians?&lt;/p&gt;\n&lt;/div&gt;&lt;!-- SC_ON --&gt;",
+          "link": "https://www.reddit.com/r/datacenter/comments/1kzwkao/so_currently_at_aws_amer_and_looking_elsewhere/",
+          "numberOfComments": 30,
+          "flair": null,
+          "upVotes": 11,
+          "upVoteRatio": 1,
+          "isVideo": false,
+          "isAd": false,
+          "over18": false,
+          "thumbnailUrl": "",
+          "createdAt": "2025-05-31T13:01:36.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.818Z",
+          "dataType": "post"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mvgtu4m",
+          "parsedId": "mvgtu4m",
+          "url": "https://www.reddit.com/r/datacenter/comments/1l0x2w9/got_an_interview_at_a_data_center_in_a_few_days/mvgtu4m/",
+          "postId": "t3_1l0x2w9",
+          "parentId": "t3_1l0x2w9",
+          "username": "AltruisticPlant4559",
+          "userId": "t2_n6wh043q",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "I think that working in a data center requires training almost from the scratch. Don’t worry, if they think you fit in the tram they’ll provide the training. Good luck!! 🤞",
+          "createdAt": "2025-06-01T19:33:27.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.835Z",
+          "upVotes": 6,
+          "numberOfreplies": 1,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;I think that working in a data center requires training almost from the scratch. Don’t worry, if they think you fit in the tram they’ll provide the training. Good luck!! 🤞&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv0fhqc",
+          "parsedId": "mv0fhqc",
+          "url": "https://www.reddit.com/r/datacenter/comments/1kyss4g/work_in_chicago/mv0fhqc/",
+          "postId": "t3_1kyss4g",
+          "parentId": "t3_1kyss4g",
+          "username": "fakegold4errbody",
+          "userId": "t2_38h5p7m",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "There’s lots, kinda depends your location and how far you’re willing to travel. Here’s some off the top of my head: Iron mountain (Elk Grove village), compass (Hoffman estates) cloud Hq (egv) edged energy (aurora), CyrusOne (aurora/wooddale/yorkville) aligned (egv), t5 (northlake/greyslake), digital (northlake). Those are all relatively new or under construction",
+          "createdAt": "2025-05-30T04:12:34.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.845Z",
+          "upVotes": 8,
+          "numberOfreplies": 1,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;There’s lots, kinda depends your location and how far you’re willing to travel. Here’s some off the top of my head: Iron mountain (Elk Grove village), compass (Hoffman estates) cloud Hq (egv) edged energy (aurora), CyrusOne (aurora/wooddale/yorkville) aligned (egv), t5 (northlake/greyslake), digital (northlake). Those are all relatively new or under construction&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mvguy2e",
+          "parsedId": "mvguy2e",
+          "url": "https://www.reddit.com/r/datacenter/comments/1l0x2w9/got_an_interview_at_a_data_center_in_a_few_days/mvguy2e/",
+          "postId": "t3_1l0x2w9",
+          "parentId": "t1_mvgtu4m",
+          "username": "Careless_Parsnip_511",
+          "userId": "t2_tfznya7j",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "Thanks! 🤞",
+          "createdAt": "2025-06-01T19:39:11.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.835Z",
+          "upVotes": 1,
+          "numberOfreplies": 0,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Thanks! 🤞&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv8mjgj",
+          "parsedId": "mv8mjgj",
+          "url": "https://www.reddit.com/r/datacenter/comments/1kzwkao/so_currently_at_aws_amer_and_looking_elsewhere/mv8mjgj/",
+          "postId": "t3_1kzwkao",
+          "parentId": "t3_1kzwkao",
+          "username": "BigT-2024",
+          "userId": "t2_uj40ct48",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "Amazon has really become stingy with raises for rank and file regardless of how you perform. \n\nThe big raises are only really reserved for upper management now",
+          "createdAt": "2025-05-31T13:07:33.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.932Z",
+          "upVotes": 13,
+          "numberOfreplies": 2,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Amazon has really become stingy with raises for rank and file regardless of how you perform. &lt;/p&gt;\n\n&lt;p&gt;The big raises are only really reserved for upper management now&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv1wqxm",
+          "parsedId": "mv1wqxm",
+          "url": "https://www.reddit.com/r/datacenter/comments/1kyss4g/work_in_chicago/mv1wqxm/",
+          "postId": "t3_1kyss4g",
+          "parentId": "t1_mv0fhqc",
+          "username": "onetwothreefoir",
+          "userId": "t2_3h1f812v",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "Thanks for the suggestions",
+          "createdAt": "2025-05-30T11:56:51.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.845Z",
+          "upVotes": 2,
+          "numberOfreplies": 0,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Thanks for the suggestions&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mvgy6si",
+          "parsedId": "mvgy6si",
+          "url": "https://www.reddit.com/r/datacenter/comments/1l0x2w9/got_an_interview_at_a_data_center_in_a_few_days/mvgy6si/",
+          "postId": "t3_1l0x2w9",
+          "parentId": "t3_1l0x2w9",
+          "username": "wm313",
+          "userId": "t2_14e2j2",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "Entry level is exactly what it is. People are going to teach you, should you get the job. Be honest with what you know and expect to learn. Your proximity to the DC is a non-factor. Be honest, speak like you want the position, and present yourself as wanting the job. Ambition is probably more of a factor than anything else. You will learn over time, so keep yourself grounded. People on this sub have gotten the job with less experience.",
+          "createdAt": "2025-06-01T19:55:51.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.835Z",
+          "upVotes": 3,
+          "numberOfreplies": 1,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Entry level is exactly what it is. People are going to teach you, should you get the job. Be honest with what you know and expect to learn. Your proximity to the DC is a non-factor. Be honest, speak like you want the position, and present yourself as wanting the job. Ambition is probably more of a factor than anything else. You will learn over time, so keep yourself grounded. People on this sub have gotten the job with less experience.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv8mzvr",
+          "parsedId": "mv8mzvr",
+          "url": "https://www.reddit.com/r/datacenter/comments/1kzwkao/so_currently_at_aws_amer_and_looking_elsewhere/mv8mzvr/",
+          "postId": "t3_1kzwkao",
+          "parentId": "t1_mv8mjgj",
+          "username": "DCOperator",
+          "userId": "t2_1gtnm64v5m",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "Lololol, L6+ hasn't gotten base pay raises for two years in a row. Barely any stock grants because the total compensation target is already below current comp because of stock appreciation.",
+          "createdAt": "2025-05-31T13:10:26.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.932Z",
+          "upVotes": 8,
+          "numberOfreplies": 2,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Lololol, L6+ hasn&amp;#39;t gotten base pay raises for two years in a row. Barely any stock grants because the total compensation target is already below current comp because of stock appreciation.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv0g3nq",
+          "parsedId": "mv0g3nq",
+          "url": "https://www.reddit.com/r/datacenter/comments/1kyss4g/work_in_chicago/mv0g3nq/",
+          "postId": "t3_1kyss4g",
+          "parentId": "t3_1kyss4g",
+          "username": "IndustrialApps",
+          "userId": "t2_q3wb7de4",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "Why not look at an electrical contractor that does datacenter work? You may find luck at a place like MKD.",
+          "createdAt": "2025-05-30T04:17:05.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.845Z",
+          "upVotes": 5,
+          "numberOfreplies": 1,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Why not look at an electrical contractor that does datacenter work? You may find luck at a place like MKD.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mvgzpip",
+          "parsedId": "mvgzpip",
+          "url": "https://www.reddit.com/r/datacenter/comments/1l0x2w9/got_an_interview_at_a_data_center_in_a_few_days/mvgzpip/",
+          "postId": "t3_1l0x2w9",
+          "parentId": "t1_mvgy6si",
+          "username": "Careless_Parsnip_511",
+          "userId": "t2_tfznya7j",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "Thanks for the advice, means a lot. I really hope I can land this 🤞",
+          "createdAt": "2025-06-01T20:03:36.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.835Z",
+          "upVotes": 1,
+          "numberOfreplies": 0,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Thanks for the advice, means a lot. I really hope I can land this 🤞&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv9o2jy",
+          "parsedId": "mv9o2jy",
+          "url": "https://www.reddit.com/r/datacenter/comments/1kzwkao/so_currently_at_aws_amer_and_looking_elsewhere/mv9o2jy/",
+          "postId": "t3_1kzwkao",
+          "parentId": "t1_mv8mzvr",
+          "username": "MrHaVoC805",
+          "userId": "t2_9bxzv",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "Sounds like you're perfectly set up to be pip fodder soon",
+          "createdAt": "2025-05-31T16:32:59.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.932Z",
+          "upVotes": 4,
+          "numberOfreplies": 2,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Sounds like you&amp;#39;re perfectly set up to be pip fodder soon&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv3gla7",
+          "parsedId": "mv3gla7",
+          "url": "https://www.reddit.com/r/datacenter/comments/1kyss4g/work_in_chicago/mv3gla7/",
+          "postId": "t3_1kyss4g",
+          "parentId": "t1_mv0g3nq",
+          "username": "onetwothreefoir",
+          "userId": "t2_3h1f812v",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "That’s a good idea, thank you!",
+          "createdAt": "2025-05-30T16:42:46.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.845Z",
+          "upVotes": 2,
+          "numberOfreplies": 0,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;That’s a good idea, thank you!&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mvhagqm",
+          "parsedId": "mvhagqm",
+          "url": "https://www.reddit.com/r/datacenter/comments/1l0x2w9/got_an_interview_at_a_data_center_in_a_few_days/mvhagqm/",
+          "postId": "t3_1l0x2w9",
+          "parentId": "t3_1l0x2w9",
+          "username": "WhiteChocolateSimpLo",
+          "userId": "t2_60yfvsdf",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "You won’t be expected to know anything, and they won’t let you touch anything without sufficient training. A mistake in a DC can be detrimental, don’t stress it just be ready to learn.",
+          "createdAt": "2025-06-01T20:58:27.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.835Z",
+          "upVotes": 3,
+          "numberOfreplies": 1,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;You won’t be expected to know anything, and they won’t let you touch anything without sufficient training. A mistake in a DC can be detrimental, don’t stress it just be ready to learn.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mvc87db",
+          "parsedId": "mvc87db",
+          "url": "https://www.reddit.com/r/datacenter/comments/1kzwkao/so_currently_at_aws_amer_and_looking_elsewhere/mvc87db/",
+          "postId": "t3_1kzwkao",
+          "parentId": "t1_mv9o2jy",
+          "username": "DizzyActuary5009",
+          "userId": "t2_vlsyttvz",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "They don't have time to pip anyone, people are leaving on their own in droves. 6 fms, 5 or 6 CE's, at least 14 or 15 EOTs. With my sub 12 month tenure, I've been there longer than 53 % of the region...",
+          "createdAt": "2025-06-01T01:00:34.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.932Z",
+          "upVotes": 2,
+          "numberOfreplies": 0,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;They don&amp;#39;t have time to pip anyone, people are leaving on their own in droves. 6 fms, 5 or 6 CE&amp;#39;s, at least 14 or 15 EOTs. With my sub 12 month tenure, I&amp;#39;ve been there longer than 53 % of the region...&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mvhbeep",
+          "parsedId": "mvhbeep",
+          "url": "https://www.reddit.com/r/datacenter/comments/1l0x2w9/got_an_interview_at_a_data_center_in_a_few_days/mvhbeep/",
+          "postId": "t3_1l0x2w9",
+          "parentId": "t1_mvhagqm",
+          "username": "Careless_Parsnip_511",
+          "userId": "t2_tfznya7j",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "That’s honestly a relief to hear. I’m just so used to IT jobs requiring 10 years of professional experience so I think I’m overthinking things a bit",
+          "createdAt": "2025-06-01T21:03:23.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.835Z",
+          "upVotes": 1,
+          "numberOfreplies": 1,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;That’s honestly a relief to hear. I’m just so used to IT jobs requiring 10 years of professional experience so I think I’m overthinking things a bit&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv01x09",
+          "parsedId": "mv01x09",
+          "url": "https://www.reddit.com/r/datacenter/comments/1kyss4g/work_in_chicago/mv01x09/",
+          "postId": "t3_1kyss4g",
+          "parentId": "t3_1kyss4g",
+          "username": "looktowindward",
+          "userId": "t2_bq9sj",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "Digital Realty",
+          "createdAt": "2025-05-30T02:41:08.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.845Z",
+          "upVotes": 3,
+          "numberOfreplies": 2,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Digital Realty&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv9t5lh",
+          "parsedId": "mv9t5lh",
+          "url": "https://www.reddit.com/r/datacenter/comments/1kzwkao/so_currently_at_aws_amer_and_looking_elsewhere/mv9t5lh/",
+          "postId": "t3_1kzwkao",
+          "parentId": "t1_mv9o2jy",
+          "username": "DCOperator",
+          "userId": "t2_1gtnm64v5m",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "You couldn't even make an 11 word post without having to edit it. I get it, GAD is a real thing ..., proud of you for working through it. 👍\n\nMeanwhile\nhttps://fortune.com/2024/03/27/amazon-no-cash-base-pay-raises-l6/\n\nAnd that this is true for this year's comp cycle didn't even make the news because it's just business as usual now.",
+          "createdAt": "2025-05-31T16:59:34.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.932Z",
+          "upVotes": 4,
+          "numberOfreplies": 0,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;You couldn&amp;#39;t even make an 11 word post without having to edit it. I get it, GAD is a real thing ..., proud of you for working through it. 👍&lt;/p&gt;\n\n&lt;p&gt;Meanwhile\n&lt;a href=\"https://fortune.com/2024/03/27/amazon-no-cash-base-pay-raises-l6/\"&gt;https://fortune.com/2024/03/27/amazon-no-cash-base-pay-raises-l6/&lt;/a&gt;&lt;/p&gt;\n\n&lt;p&gt;And that this is true for this year&amp;#39;s comp cycle didn&amp;#39;t even make the news because it&amp;#39;s just business as usual now.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mvhbmkc",
+          "parsedId": "mvhbmkc",
+          "url": "https://www.reddit.com/r/datacenter/comments/1l0x2w9/got_an_interview_at_a_data_center_in_a_few_days/mvhbmkc/",
+          "postId": "t3_1l0x2w9",
+          "parentId": "t1_mvhbeep",
+          "username": "WhiteChocolateSimpLo",
+          "userId": "t2_60yfvsdf",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "Definitely are, most companies would rather train you than fix all your fuckups after you start lol. Training may not be super hands on but it’ll be there, make sure to ask any questions you have.",
+          "createdAt": "2025-06-01T21:04:36.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.835Z",
+          "upVotes": 1,
+          "numberOfreplies": 1,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Definitely are, most companies would rather train you than fix all your fuckups after you start lol. Training may not be super hands on but it’ll be there, make sure to ask any questions you have.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv02344",
+          "parsedId": "mv02344",
+          "url": "https://www.reddit.com/r/datacenter/comments/1kyss4g/work_in_chicago/mv02344/",
+          "postId": "t3_1kyss4g",
+          "parentId": "t1_mv01x09",
+          "username": "onetwothreefoir",
+          "userId": "t2_3h1f812v",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "Thank you!",
+          "createdAt": "2025-05-30T02:42:09.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.845Z",
+          "upVotes": 2,
+          "numberOfreplies": 0,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Thank you!&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv8pdxw",
+          "parsedId": "mv8pdxw",
+          "url": "https://www.reddit.com/r/datacenter/comments/1kzwkao/so_currently_at_aws_amer_and_looking_elsewhere/mv8pdxw/",
+          "postId": "t3_1kzwkao",
+          "parentId": "t1_mv8mzvr",
+          "username": "BigT-2024",
+          "userId": "t2_uj40ct48",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "Bad news for you. L6 aren’t higher ups",
+          "createdAt": "2025-05-31T13:25:24.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.932Z",
+          "upVotes": -1,
+          "numberOfreplies": 1,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Bad news for you. L6 aren’t higher ups&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mvhdqyx",
+          "parsedId": "mvhdqyx",
+          "url": "https://www.reddit.com/r/datacenter/comments/1l0x2w9/got_an_interview_at_a_data_center_in_a_few_days/mvhdqyx/",
+          "postId": "t3_1l0x2w9",
+          "parentId": "t1_mvhbmkc",
+          "username": "Careless_Parsnip_511",
+          "userId": "t2_tfznya7j",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "Of course. Thanks for the insight 🙏",
+          "createdAt": "2025-06-01T21:15:56.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.835Z",
+          "upVotes": 1,
+          "numberOfreplies": 0,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Of course. Thanks for the insight 🙏&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mva2sm6",
+          "parsedId": "mva2sm6",
+          "url": "https://www.reddit.com/r/datacenter/comments/1kyss4g/work_in_chicago/mva2sm6/",
+          "postId": "t3_1kyss4g",
+          "parentId": "t1_mv01x09",
+          "username": "ghostalker4742",
+          "userId": "t2_9umdt2p1",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "Lord knows they *need* the help in Chicago, but having just gotten back from a trip out there and chatting with the guys on-site, I can tell ya they're *not* hiring.",
+          "createdAt": "2025-05-31T17:48:39.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.845Z",
+          "upVotes": 1,
+          "numberOfreplies": 0,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Lord knows they &lt;em&gt;need&lt;/em&gt; the help in Chicago, but having just gotten back from a trip out there and chatting with the guys on-site, I can tell ya they&amp;#39;re &lt;em&gt;not&lt;/em&gt; hiring.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mvhvm8c",
+          "parsedId": "mvhvm8c",
+          "url": "https://www.reddit.com/r/datacenter/comments/1l0x2w9/got_an_interview_at_a_data_center_in_a_few_days/mvhvm8c/",
+          "postId": "t3_1l0x2w9",
+          "parentId": "t3_1l0x2w9",
+          "username": "DCOperator",
+          "userId": "t2_1gtnm64v5m",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "I assume that English isn't your native language? A native speaker doesn't use the word \"jurisdiction\" to describe \"expertise\".\n\nIf English isn't your native language and you don't fully understand the question asked in the interview then ask the interviewer to restate the question. It's much better to ask for clarification than to give an answer based on an incorrect assumption.\n\nOther than that, nobody cares how far you live from the DC, commute times do not factor into hiring decisions. The interviewers don't know your address unless you made the mistake of putting your address on your resume. Even if you did that, nobody is going to look this up on a map.",
+          "createdAt": "2025-06-01T22:56:48.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.835Z",
+          "upVotes": 2,
+          "numberOfreplies": 1,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;I assume that English isn&amp;#39;t your native language? A native speaker doesn&amp;#39;t use the word &amp;quot;jurisdiction&amp;quot; to describe &amp;quot;expertise&amp;quot;.&lt;/p&gt;\n\n&lt;p&gt;If English isn&amp;#39;t your native language and you don&amp;#39;t fully understand the question asked in the interview then ask the interviewer to restate the question. It&amp;#39;s much better to ask for clarification than to give an answer based on an incorrect assumption.&lt;/p&gt;\n\n&lt;p&gt;Other than that, nobody cares how far you live from the DC, commute times do not factor into hiring decisions. The interviewers don&amp;#39;t know your address unless you made the mistake of putting your address on your resume. Even if you did that, nobody is going to look this up on a map.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv8pr37",
+          "parsedId": "mv8pr37",
+          "url": "https://www.reddit.com/r/datacenter/comments/1kzwkao/so_currently_at_aws_amer_and_looking_elsewhere/mv8pr37/",
+          "postId": "t3_1kzwkao",
+          "parentId": "t1_mv8pdxw",
+          "username": "DCOperator",
+          "userId": "t2_1gtnm64v5m",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "Just take the L rather than trying to argue about things you obviously know nothing about.",
+          "createdAt": "2025-05-31T13:27:39.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.932Z",
+          "upVotes": 7,
+          "numberOfreplies": 1,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Just take the L rather than trying to argue about things you obviously know nothing about.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv0d2ij",
+          "parsedId": "mv0d2ij",
+          "url": "https://www.reddit.com/r/datacenter/comments/1kyss4g/work_in_chicago/mv0d2ij/",
+          "postId": "t3_1kyss4g",
+          "parentId": "t3_1kyss4g",
+          "username": "Skyfall1125",
+          "userId": "t2_rm1a1nn",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "Look into critical facilities engineer. Might be a better fit with the low voltage. Are you coming from HVAC controls?",
+          "createdAt": "2025-05-30T03:54:52.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.845Z",
+          "upVotes": 2,
+          "numberOfreplies": 1,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Look into critical facilities engineer. Might be a better fit with the low voltage. Are you coming from HVAC controls?&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mvhxnqq",
+          "parsedId": "mvhxnqq",
+          "url": "https://www.reddit.com/r/datacenter/comments/1l0x2w9/got_an_interview_at_a_data_center_in_a_few_days/mvhxnqq/",
+          "postId": "t3_1l0x2w9",
+          "parentId": "t1_mvhvm8c",
+          "username": "Careless_Parsnip_511",
+          "userId": "t2_tfznya7j",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "I’m a native English speaker, I was just trying to use a different word because I already posted the same question in different subreddits. I didn’t want people to think I was being lazy and just copy/pasting the same thread into multiple subreddits. I know jurisdiction is more of a legal term generally, but I’ve also heard it used informally that way before. Apologies if that was confusing though, my bad. Good to know about the commute thing though. Is it bad that my address was on my resume or does it not really matter?",
+          "createdAt": "2025-06-01T23:08:35.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.835Z",
+          "upVotes": 1,
+          "numberOfreplies": 2,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;I’m a native English speaker, I was just trying to use a different word because I already posted the same question in different subreddits. I didn’t want people to think I was being lazy and just copy/pasting the same thread into multiple subreddits. I know jurisdiction is more of a legal term generally, but I’ve also heard it used informally that way before. Apologies if that was confusing though, my bad. Good to know about the commute thing though. Is it bad that my address was on my resume or does it not really matter?&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv8uq9v",
+          "parsedId": "mv8uq9v",
+          "url": "https://www.reddit.com/r/datacenter/comments/1kzwkao/so_currently_at_aws_amer_and_looking_elsewhere/mv8uq9v/",
+          "postId": "t3_1kzwkao",
+          "parentId": "t1_mv8pr37",
+          "username": "BigT-2024",
+          "userId": "t2_uj40ct48",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "Jokes on you. I know all about this.",
+          "createdAt": "2025-05-31T13:57:34.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.932Z",
+          "upVotes": -3,
+          "numberOfreplies": 0,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Jokes on you. I know all about this.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv0dkhu",
+          "parsedId": "mv0dkhu",
+          "url": "https://www.reddit.com/r/datacenter/comments/1kyss4g/work_in_chicago/mv0dkhu/",
+          "postId": "t3_1kyss4g",
+          "parentId": "t1_mv0d2ij",
+          "username": "onetwothreefoir",
+          "userId": "t2_3h1f812v",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "I’ll check out critical facilities engineer. I don’t have any HVAC experience",
+          "createdAt": "2025-05-30T03:58:26.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.845Z",
+          "upVotes": 2,
+          "numberOfreplies": 1,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;I’ll check out critical facilities engineer. I don’t have any HVAC experience&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv8n4re",
+          "parsedId": "mv8n4re",
+          "url": "https://www.reddit.com/r/datacenter/comments/1kzwkao/so_currently_at_aws_amer_and_looking_elsewhere/mv8n4re/",
+          "postId": "t3_1kzwkao",
+          "parentId": "t1_mv8mjgj",
+          "username": "DizzyActuary5009",
+          "userId": "t2_vlsyttvz",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "That's the issue, the upper management is running everyone off. I was considered \"senior\" at 7 months employment... I'm ironically following the standard of be there a year for training and bail.",
+          "createdAt": "2025-05-31T13:11:18.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.932Z",
+          "upVotes": 2,
+          "numberOfreplies": 0,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;That&amp;#39;s the issue, the upper management is running everyone off. I was considered &amp;quot;senior&amp;quot; at 7 months employment... I&amp;#39;m ironically following the standard of be there a year for training and bail.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv0mtxy",
+          "parsedId": "mv0mtxy",
+          "url": "https://www.reddit.com/r/datacenter/comments/1kyss4g/work_in_chicago/mv0mtxy/",
+          "postId": "t3_1kyss4g",
+          "parentId": "t1_mv0dkhu",
+          "username": "Obvious_Muffin9366",
+          "userId": "t2_dkii8o1f",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "You don't need any. All specialized work gets subbed out.  You just need to identify its 1, not working 2, who to contact to fix it.",
+          "createdAt": "2025-05-30T05:09:52.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.845Z",
+          "upVotes": 1,
+          "numberOfreplies": 1,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;You don&amp;#39;t need any. All specialized work gets subbed out.  You just need to identify its 1, not working 2, who to contact to fix it.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv9bf0d",
+          "parsedId": "mv9bf0d",
+          "url": "https://www.reddit.com/r/datacenter/comments/1kzwkao/so_currently_at_aws_amer_and_looking_elsewhere/mv9bf0d/",
+          "postId": "t3_1kzwkao",
+          "parentId": "t3_1kzwkao",
+          "username": "MikeClark_99",
+          "userId": "t2_33dg1ov",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "This sounds like an issue to take to Human Resources. Mangers are not your friends, the company always comes first. No matter what you do, and how good you do it, when you move to a new manager, you are back to the beginning. Two years after I left, a friend calls me to tell me he was let go and he was still L3. This person worked on the same projects I did when I was there, college degree, and previous experience.",
+          "createdAt": "2025-05-31T15:26:37.000Z",
+          "scrapedAt": "2025-06-04T02:30:11.932Z",
+          "upVotes": 2,
+          "numberOfreplies": 0,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;This sounds like an issue to take to Human Resources. Mangers are not your friends, the company always comes first. No matter what you do, and how good you do it, when you move to a new manager, you are back to the beginning. Two years after I left, a friend calls me to tell me he was let go and he was still L3. This person worked on the same projects I did when I was there, college degree, and previous experience.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t3_1l0bz7p",
+          "parsedId": "1l0bz7p",
+          "url": "https://www.reddit.com/r/datacenter/comments/1l0bz7p/curious_data_center_locations_in_cold_area/",
+          "username": "InvestigatorGlum7113",
+          "userId": "t2_1cp4zwd63k",
+          "title": "Curious, Data center locations in cold area.",
+          "communityName": "r/datacenter",
+          "parsedCommunityName": "datacenter",
+          "body": "Why don’t we place data centers in areas that are naturally cold to save on energy to cool machine. ",
+          "html": "&lt;!-- SC_OFF --&gt;&lt;div class=\"md\"&gt;&lt;p&gt;Why don’t we place data centers in areas that are naturally cold to save on energy to cool machine. &lt;/p&gt;\n&lt;/div&gt;&lt;!-- SC_ON --&gt;",
+          "link": "https://www.reddit.com/r/datacenter/comments/1l0bz7p/curious_data_center_locations_in_cold_area/",
+          "numberOfComments": 26,
+          "flair": null,
+          "upVotes": 7,
+          "upVoteRatio": 0.77,
+          "isVideo": false,
+          "isAd": false,
+          "over18": false,
+          "thumbnailUrl": "",
+          "createdAt": "2025-06-01T00:32:39.000Z",
+          "scrapedAt": "2025-06-04T02:30:20.220Z",
+          "dataType": "post"
+        }
+      },
+      {
+        "json": {
+          "id": "t3_1l2qong",
+          "parsedId": "1l2qong",
+          "url": "https://www.reddit.com/r/datacenter/comments/1l2qong/venting_on_google_aws/",
+          "username": "Hot_Pain_3253",
+          "userId": "t2_foprmy90h",
+          "title": "Venting on Google &amp; AWS",
+          "communityName": "r/datacenter",
+          "parsedCommunityName": "datacenter",
+          "body": "Just got the call today that I passed the interviews for DCEO at AWS but the role has already been filled. This is starting to get infuriating. I already went through this 3 months ago with Google and have been in team-matching hell ever since. I understand why companies do this, because it benefits them to have a pool to pull from. I am just sick of being given timelines that don't get met, and applying for roles in my local area and then being asked to uproot my entire family to make it work for the company.\n\nThe only company that didnt do this was Microsoft, but then they came to me with an offer for the same wage I make now and wouldn't negotiate on it.\n\nIf anything, the only thing this team matching stuff does is add more uncertainty to my life. It's great that I can pass interviews, but it's meaningless because it adds up to nothing. I do great on interviews, start thinking about the position seriously and prepare myself to leave my current company, just to get a \"Congratulations! Unfortunately...\". I call off work and use my PTO to do these full day interviews just to be told that the position has already been filled. Have the decency to just tell me beforehand that you already have a leading candidate so I don't have to waste my time and my PTO.\n\nI don't expect any advice or anything, I'm just so fed up with this process and needed to vent it out so I can get on with my day. ",
+          "html": "&lt;!-- SC_OFF --&gt;&lt;div class=\"md\"&gt;&lt;p&gt;Just got the call today that I passed the interviews for DCEO at AWS but the role has already been filled. This is starting to get infuriating. I already went through this 3 months ago with Google and have been in team-matching hell ever since. I understand why companies do this, because it benefits them to have a pool to pull from. I am just sick of being given timelines that don&amp;#39;t get met, and applying for roles in my local area and then being asked to uproot my entire family to make it work for the company.&lt;/p&gt;\n\n&lt;p&gt;The only company that didnt do this was Microsoft, but then they came to me with an offer for the same wage I make now and wouldn&amp;#39;t negotiate on it.&lt;/p&gt;\n\n&lt;p&gt;If anything, the only thing this team matching stuff does is add more uncertainty to my life. It&amp;#39;s great that I can pass interviews, but it&amp;#39;s meaningless because it adds up to nothing. I do great on interviews, start thinking about the position seriously and prepare myself to leave my current company, just to get a &amp;quot;Congratulations! Unfortunately...&amp;quot;. I call off work and use my PTO to do these full day interviews just to be told that the position has already been filled. Have the decency to just tell me beforehand that you already have a leading candidate so I don&amp;#39;t have to waste my time and my PTO.&lt;/p&gt;\n\n&lt;p&gt;I don&amp;#39;t expect any advice or anything, I&amp;#39;m just so fed up with this process and needed to vent it out so I can get on with my day. &lt;/p&gt;\n&lt;/div&gt;&lt;!-- SC_ON --&gt;",
+          "link": "https://www.reddit.com/r/datacenter/comments/1l2qong/venting_on_google_aws/",
+          "numberOfComments": 13,
+          "flair": null,
+          "upVotes": 8,
+          "upVoteRatio": 1,
+          "isVideo": false,
+          "isAd": false,
+          "over18": false,
+          "thumbnailUrl": "",
+          "createdAt": "2025-06-03T23:24:51.000Z",
+          "scrapedAt": "2025-06-04T02:30:20.214Z",
+          "dataType": "post"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mvva4r2",
+          "parsedId": "mvva4r2",
+          "url": "https://www.reddit.com/r/datacenter/comments/1l2qong/venting_on_google_aws/mvva4r2/",
+          "postId": "t3_1l2qong",
+          "parentId": "t3_1l2qong",
+          "username": "tlewallen",
+          "userId": "t2_pmsy7",
+          "category": "datacenter",
+          "communityName": "r/datacenter",
+          "body": "If you're willing to relocate, AWS is hiring a bunch of DCEO in Indiana.",
+          "createdAt": "2025-06-04T00:33:22.000Z",
+          "scrapedAt": "2025-06-04T02:30:20.325Z",
+          "upVotes": 4,
+          "numberOfreplies": 1,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;If you&amp;#39;re willing to relocate, AWS is hiring a bunch of DCEO in Indiana.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t3_1kyw8uq",
+          "parsedId": "1kyw8uq",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kyw8uq/its_time_to_move_on_from_vmware/",
+          "username": "A3V01D",
+          "userId": "t2_4f1t2d8j",
+          "title": "It’s time to move on from VMware…",
+          "communityName": "r/sysadmin",
+          "parsedCommunityName": "sysadmin",
+          "body": "We have a 5 year old Dell vxrails cluster of 13 hosts, 1144 cores, 8TB of ram, and a 1PB vsan. We extended the warranty one more year, and unwillingly paid the $89,000 got the vmware license. At this point the license cost more than the hardware’s value. It’s time for us to figure out its replacement. We’ve a government entity, and require 3 bids for anything over $10k. \n\nGiven that 7 of out 13 hosts have been running at -1.2ghz available CPU, 92% full storage, and about 75% ram usage, and the absolutely moronic cost of vmware licensing, Clearly we need to go big on the hardware, odds are it’s still going to be Dell, though the main Dell lover retired.. What are my best hardware and vm environment options? \n\n",
+          "html": "&lt;!-- SC_OFF --&gt;&lt;div class=\"md\"&gt;&lt;p&gt;We have a 5 year old Dell vxrails cluster of 13 hosts, 1144 cores, 8TB of ram, and a 1PB vsan. We extended the warranty one more year, and unwillingly paid the $89,000 got the vmware license. At this point the license cost more than the hardware’s value. It’s time for us to figure out its replacement. We’ve a government entity, and require 3 bids for anything over $10k. &lt;/p&gt;\n\n&lt;p&gt;Given that 7 of out 13 hosts have been running at -1.2ghz available CPU, 92% full storage, and about 75% ram usage, and the absolutely moronic cost of vmware licensing, Clearly we need to go big on the hardware, odds are it’s still going to be Dell, though the main Dell lover retired.. What are my best hardware and vm environment options? &lt;/p&gt;\n&lt;/div&gt;&lt;!-- SC_ON --&gt;",
+          "link": "https://www.reddit.com/r/sysadmin/comments/1kyw8uq/its_time_to_move_on_from_vmware/",
+          "numberOfComments": 627,
+          "flair": null,
+          "upVotes": 816,
+          "upVoteRatio": 0.95,
+          "isVideo": false,
+          "isAd": false,
+          "over18": false,
+          "thumbnailUrl": "self",
+          "createdAt": "2025-05-30T05:21:45.000Z",
+          "scrapedAt": "2025-06-04T02:30:07.827Z",
+          "dataType": "post"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv0pcsl",
+          "parsedId": "mv0pcsl",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kyw8uq/its_time_to_move_on_from_vmware/mv0pcsl/",
+          "postId": "t3_1kyw8uq",
+          "parentId": "t3_1kyw8uq",
+          "username": "TheSoCalledExpert",
+          "userId": "t2_vg9bv",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "Welcome to the party. \n\nHypervisor options include: Hyper-V, Proxmox, and Xen.\n\nHardware, who cares? Dell, HP, Lenovo. They’re all interchangeable. Some people prefer one brand over another. I ‘d try to get the best specs and support for your dollar. \n\nI like Dells and Proxmox, but you do you homie.",
+          "createdAt": "2025-05-30T05:31:09.000Z",
+          "scrapedAt": "2025-06-04T02:30:08.132Z",
+          "upVotes": 561,
+          "numberOfreplies": 9,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Welcome to the party. &lt;/p&gt;\n\n&lt;p&gt;Hypervisor options include: Hyper-V, Proxmox, and Xen.&lt;/p&gt;\n\n&lt;p&gt;Hardware, who cares? Dell, HP, Lenovo. They’re all interchangeable. Some people prefer one brand over another. I ‘d try to get the best specs and support for your dollar. &lt;/p&gt;\n\n&lt;p&gt;I like Dells and Proxmox, but you do you homie.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv0u3rl",
+          "parsedId": "mv0u3rl",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kyw8uq/its_time_to_move_on_from_vmware/mv0u3rl/",
+          "postId": "t3_1kyw8uq",
+          "parentId": "t1_mv0pcsl",
+          "username": "utrangerbob",
+          "userId": "t2_ldtow",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "I love Dell's open manage suite and idracs vs other companies.  Their ecosystem for out of the box notification of hardware failures has really endeared me to the brand.  On servers without openmanage I've got to rely on 3rd party hardware monitoring tools which have to be configured for customized for every other server type coming in.  Dell does a great job predicting and detecting hardware issues before they become a problem for the OS.  I find cheaper other companies give little to no ability out of the box to detect hardware issues outside bad hard drives which extremely important when you've got so many VMs on your hardware.\n\nProsupport for Dell has really dropped off a cliff ever since they went to India, and Costa Rica though.  At least you can get people on the line.  \n\nWe are government too and get bids through Summus.  The prices we get from Dell are pretty competitive with other vendors and are like 50-70% off the prices you see on their website.",
+          "createdAt": "2025-05-30T06:13:05.000Z",
+          "scrapedAt": "2025-06-04T02:30:08.132Z",
+          "upVotes": 135,
+          "numberOfreplies": 4,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;I love Dell&amp;#39;s open manage suite and idracs vs other companies.  Their ecosystem for out of the box notification of hardware failures has really endeared me to the brand.  On servers without openmanage I&amp;#39;ve got to rely on 3rd party hardware monitoring tools which have to be configured for customized for every other server type coming in.  Dell does a great job predicting and detecting hardware issues before they become a problem for the OS.  I find cheaper other companies give little to no ability out of the box to detect hardware issues outside bad hard drives which extremely important when you&amp;#39;ve got so many VMs on your hardware.&lt;/p&gt;\n\n&lt;p&gt;Prosupport for Dell has really dropped off a cliff ever since they went to India, and Costa Rica though.  At least you can get people on the line.  &lt;/p&gt;\n\n&lt;p&gt;We are government too and get bids through Summus.  The prices we get from Dell are pretty competitive with other vendors and are like 50-70% off the prices you see on their website.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv18eax",
+          "parsedId": "mv18eax",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kyw8uq/its_time_to_move_on_from_vmware/mv18eax/",
+          "postId": "t3_1kyw8uq",
+          "parentId": "t1_mv0u3rl",
+          "username": "DerpSkyfarter",
+          "userId": "t2_1i384ip",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "Having worked with Dell, HP, Lenovo, and IBM servers, nothing seems to come close to how far ahead Dell is with their OpenManage and iDRAC. iLO is pretty basic, and IBM is the worst I have ever used.",
+          "createdAt": "2025-05-30T08:30:57.000Z",
+          "scrapedAt": "2025-06-04T02:30:08.132Z",
+          "upVotes": 80,
+          "numberOfreplies": 4,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Having worked with Dell, HP, Lenovo, and IBM servers, nothing seems to come close to how far ahead Dell is with their OpenManage and iDRAC. iLO is pretty basic, and IBM is the worst I have ever used.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t3_1kz96qi",
+          "parsedId": "1kz96qi",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kz96qi/what_are_your_it_pet_peeves/",
+          "username": "techead2000",
+          "userId": "t2_s659o2n",
+          "title": "What are your IT pet peeves?",
+          "communityName": "r/sysadmin",
+          "parsedCommunityName": "sysadmin",
+          "body": "I'll go first:\n\n* When end users give as little details as possible when describing a problem they are having (\"Can you come help XYZ with his computer?\" Like, give me *something*.)\n* Useless-ass Zoom meetings that could've been like 2 emails\n* When previous IT people don't perform arguably the most important step of the troubleshooting process: DOCUMENT FINDINGS\n* When people assume I'm able to fix problems in software that are obviously bugs buried deep in proprietary code that I have zero access to\n* Mice that seem to be designed for toddler hands\n* When people outside of work assume that when I go home I *eat*, *breathe*, and *sleep* computers and technical junk. Like, I come home and play Paper Mario on my Wii and watch It's Always Sunny\n* Microsoft",
+          "html": "&lt;!-- SC_OFF --&gt;&lt;div class=\"md\"&gt;&lt;p&gt;I&amp;#39;ll go first:&lt;/p&gt;\n\n&lt;ul&gt;\n&lt;li&gt;When end users give as little details as possible when describing a problem they are having (&amp;quot;Can you come help XYZ with his computer?&amp;quot; Like, give me &lt;em&gt;something&lt;/em&gt;.)&lt;/li&gt;\n&lt;li&gt;Useless-ass Zoom meetings that could&amp;#39;ve been like 2 emails&lt;/li&gt;\n&lt;li&gt;When previous IT people don&amp;#39;t perform arguably the most important step of the troubleshooting process: DOCUMENT FINDINGS&lt;/li&gt;\n&lt;li&gt;When people assume I&amp;#39;m able to fix problems in software that are obviously bugs buried deep in proprietary code that I have zero access to&lt;/li&gt;\n&lt;li&gt;Mice that seem to be designed for toddler hands&lt;/li&gt;\n&lt;li&gt;When people outside of work assume that when I go home I &lt;em&gt;eat&lt;/em&gt;, &lt;em&gt;breathe&lt;/em&gt;, and &lt;em&gt;sleep&lt;/em&gt; computers and technical junk. Like, I come home and play Paper Mario on my Wii and watch It&amp;#39;s Always Sunny&lt;/li&gt;\n&lt;li&gt;Microsoft&lt;/li&gt;\n&lt;/ul&gt;\n&lt;/div&gt;&lt;!-- SC_ON --&gt;",
+          "link": "https://www.reddit.com/r/sysadmin/comments/1kz96qi/what_are_your_it_pet_peeves/",
+          "numberOfComments": 1236,
+          "flair": "General Discussion",
+          "upVotes": 1039,
+          "upVoteRatio": 0.96,
+          "isVideo": false,
+          "isAd": false,
+          "over18": false,
+          "thumbnailUrl": "self",
+          "createdAt": "2025-05-30T16:50:13.000Z",
+          "scrapedAt": "2025-06-04T02:30:08.654Z",
+          "dataType": "post"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv1lfcl",
+          "parsedId": "mv1lfcl",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kyw8uq/its_time_to_move_on_from_vmware/mv1lfcl/",
+          "postId": "t3_1kyw8uq",
+          "parentId": "t1_mv18eax",
+          "username": "Horsemeatburger",
+          "userId": "t2_15eio2",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "&gt;iLO is pretty basic.\n\nIn what way do you think it's basic? We buy Dell and HPE and at the moment I can't think of anything I could do in iDRAC+OME that I couldn't do in iLO+OneView.\n\nHPE (as HP before them) is also often quicker with implementing new stuff (for example, HP had HTML5 consoles in iLo when Dell was still using Java + ActiveX, and as to this day Dell has no standalone console app like HP LOCONS). And HPE also seems to provide updated firmware for its hardware for longer than Dell.\n\nFeature wise it's a draw, Dell PowerEdges have some nice stuff which Proliants lack and ProLiants have features which PowerEdges lack. And support from both vendors can be spotty, but then pretty much all support across vendors has somewhat nosedived over the last years.\n\nIf you want to see a poor BMC implementation, don't look further than Fujitsu (iRMC), although the few Supermicro machines I've seen come pretty close.",
+          "createdAt": "2025-05-30T10:33:56.000Z",
+          "scrapedAt": "2025-06-04T02:30:08.132Z",
+          "upVotes": 36,
+          "numberOfreplies": 3,
+          "html": "&lt;div class=\"md\"&gt;&lt;blockquote&gt;\n&lt;p&gt;iLO is pretty basic.&lt;/p&gt;\n&lt;/blockquote&gt;\n\n&lt;p&gt;In what way do you think it&amp;#39;s basic? We buy Dell and HPE and at the moment I can&amp;#39;t think of anything I could do in iDRAC+OME that I couldn&amp;#39;t do in iLO+OneView.&lt;/p&gt;\n\n&lt;p&gt;HPE (as HP before them) is also often quicker with implementing new stuff (for example, HP had HTML5 consoles in iLo when Dell was still using Java + ActiveX, and as to this day Dell has no standalone console app like HP LOCONS). And HPE also seems to provide updated firmware for its hardware for longer than Dell.&lt;/p&gt;\n\n&lt;p&gt;Feature wise it&amp;#39;s a draw, Dell PowerEdges have some nice stuff which Proliants lack and ProLiants have features which PowerEdges lack. And support from both vendors can be spotty, but then pretty much all support across vendors has somewhat nosedived over the last years.&lt;/p&gt;\n\n&lt;p&gt;If you want to see a poor BMC implementation, don&amp;#39;t look further than Fujitsu (iRMC), although the few Supermicro machines I&amp;#39;ve seen come pretty close.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv3k5af",
+          "parsedId": "mv3k5af",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kz96qi/what_are_your_it_pet_peeves/mv3k5af/",
+          "postId": "t3_1kz96qi",
+          "parentId": "t3_1kz96qi",
+          "username": "Ol_JanxSpirit",
+          "userId": "t2_72snee6r",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "\"It's super important that I, a super important person on staff, get assistance immediately. But not right now, because I'm super busy being super important.\"",
+          "createdAt": "2025-05-30T16:59:12.000Z",
+          "scrapedAt": "2025-06-04T02:30:08.795Z",
+          "upVotes": 1059,
+          "numberOfreplies": 9,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;&amp;quot;It&amp;#39;s super important that I, a super important person on staff, get assistance immediately. But not right now, because I&amp;#39;m super busy being super important.&amp;quot;&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv2bdxt",
+          "parsedId": "mv2bdxt",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kyw8uq/its_time_to_move_on_from_vmware/mv2bdxt/",
+          "postId": "t3_1kyw8uq",
+          "parentId": "t1_mv1lfcl",
+          "username": "TheDarthSnarf",
+          "userId": "t2_2jmdqzd2",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "I agree with pretty much all your points.  I like iLO+OneView quite a bit.\n\nMy only real warning with HPE is for cash-strapped entities -&gt; With HPE, most firmware updates are behind a pay-wall for those with active support contracts.  Dell, so far, has not followed this lead.   \n\nMeaning if you are in an environment where you may have to support servers without a hardware support contract - Dell is a much better option.  That or make sure to bake in your full life-cycle of support at the beginning so you don't have to worry about it (I generally find this to be the best option for most hardware vendors anyway - but I know from experience that many orgs won't buy more than one year of support every budget year.)",
+          "createdAt": "2025-05-30T13:23:42.000Z",
+          "scrapedAt": "2025-06-04T02:30:08.132Z",
+          "upVotes": 21,
+          "numberOfreplies": 3,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;I agree with pretty much all your points.  I like iLO+OneView quite a bit.&lt;/p&gt;\n\n&lt;p&gt;My only real warning with HPE is for cash-strapped entities -&amp;gt; With HPE, most firmware updates are behind a pay-wall for those with active support contracts.  Dell, so far, has not followed this lead.   &lt;/p&gt;\n\n&lt;p&gt;Meaning if you are in an environment where you may have to support servers without a hardware support contract - Dell is a much better option.  That or make sure to bake in your full life-cycle of support at the beginning so you don&amp;#39;t have to worry about it (I generally find this to be the best option for most hardware vendors anyway - but I know from experience that many orgs won&amp;#39;t buy more than one year of support every budget year.)&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv3jw0b",
+          "parsedId": "mv3jw0b",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kyw8uq/its_time_to_move_on_from_vmware/mv3jw0b/",
+          "postId": "t3_1kyw8uq",
+          "parentId": "t1_mv2bdxt",
+          "username": "___Brains",
+          "userId": "t2_16rnio",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "The lack of paywalls keep me going back to Dell.  I'll happily pay up front to not have to deal with wasting time trying to fight a website. I'm kind of petty that way.  I ported a simple cell phone line away from Verizon today just because it was faster than struggling with \"support.\"",
+          "createdAt": "2025-05-30T16:58:01.000Z",
+          "scrapedAt": "2025-06-04T02:30:08.132Z",
+          "upVotes": 13,
+          "numberOfreplies": 2,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;The lack of paywalls keep me going back to Dell.  I&amp;#39;ll happily pay up front to not have to deal with wasting time trying to fight a website. I&amp;#39;m kind of petty that way.  I ported a simple cell phone line away from Verizon today just because it was faster than struggling with &amp;quot;support.&amp;quot;&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv3qgkq",
+          "parsedId": "mv3qgkq",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kz96qi/what_are_your_it_pet_peeves/mv3qgkq/",
+          "postId": "t3_1kz96qi",
+          "parentId": "t1_mv3k5af",
+          "username": "Ol_JanxSpirit",
+          "userId": "t2_72snee6r",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "Oh, I almost forgot my other favorite. \"This has been happening for 10 months. Sure I've never mentioned the issue, but it needs to be fixed now.\"\n\nSorry, but the clock starts once the ticket's been submitted.",
+          "createdAt": "2025-05-30T17:28:18.000Z",
+          "scrapedAt": "2025-06-04T02:30:08.795Z",
+          "upVotes": 259,
+          "numberOfreplies": 3,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Oh, I almost forgot my other favorite. &amp;quot;This has been happening for 10 months. Sure I&amp;#39;ve never mentioned the issue, but it needs to be fixed now.&amp;quot;&lt;/p&gt;\n\n&lt;p&gt;Sorry, but the clock starts once the ticket&amp;#39;s been submitted.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv4efld",
+          "parsedId": "mv4efld",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kz96qi/what_are_your_it_pet_peeves/mv4efld/",
+          "postId": "t3_1kz96qi",
+          "parentId": "t1_mv3qgkq",
+          "username": "mazobob66",
+          "userId": "t2_g57as",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "Or the person who ~~rights~~ writes in about a problem, you say I can help right now.  But they say \"not right now, I have a meeting.  I will let you know.\"\n\nThen they ~~right~~ write in 4 months later saying \"This has been a problem that has not been fixed yet!\"\n\nIt was so gratifying to cut-n-paste their last response from January of this year (4 months ago)...",
+          "createdAt": "2025-05-30T19:22:54.000Z",
+          "scrapedAt": "2025-06-04T02:30:08.795Z",
+          "upVotes": 72,
+          "numberOfreplies": 2,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Or the person who &lt;del&gt;rights&lt;/del&gt; writes in about a problem, you say I can help right now.  But they say &amp;quot;not right now, I have a meeting.  I will let you know.&amp;quot;&lt;/p&gt;\n\n&lt;p&gt;Then they &lt;del&gt;right&lt;/del&gt; write in 4 months later saying &amp;quot;This has been a problem that has not been fixed yet!&amp;quot;&lt;/p&gt;\n\n&lt;p&gt;It was so gratifying to cut-n-paste their last response from January of this year (4 months ago)...&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv4op9r",
+          "parsedId": "mv4op9r",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kyw8uq/its_time_to_move_on_from_vmware/mv4op9r/",
+          "postId": "t3_1kyw8uq",
+          "parentId": "t1_mv3jw0b",
+          "username": "Stonewalled9999",
+          "userId": "t2_6mf1ff0q",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "Idrac live update is 10x better than HPs shitty ILO “here pay to download a 9 gb ISO to boot your server to for the one update you need instead of idrac click a button and install on reboot ",
+          "createdAt": "2025-05-30T20:14:10.000Z",
+          "scrapedAt": "2025-06-04T02:30:08.132Z",
+          "upVotes": 6,
+          "numberOfreplies": 1,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Idrac live update is 10x better than HPs shitty ILO “here pay to download a 9 gb ISO to boot your server to for the one update you need instead of idrac click a button and install on reboot &lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv4k8av",
+          "parsedId": "mv4k8av",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kz96qi/what_are_your_it_pet_peeves/mv4k8av/",
+          "postId": "t3_1kz96qi",
+          "parentId": "t1_mv4efld",
+          "username": "OverlordWaffles",
+          "userId": "t2_1orld6fd",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "You know, I wouldn't have expected \"right\" and \"write\" get mixed up multiple times but the correct \"their\" being used lol",
+          "createdAt": "2025-05-30T19:51:43.000Z",
+          "scrapedAt": "2025-06-04T02:30:08.795Z",
+          "upVotes": 41,
+          "numberOfreplies": 1,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;You know, I wouldn&amp;#39;t have expected &amp;quot;right&amp;quot; and &amp;quot;write&amp;quot; get mixed up multiple times but the correct &amp;quot;their&amp;quot; being used lol&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv2xhiu",
+          "parsedId": "mv2xhiu",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kyw8uq/its_time_to_move_on_from_vmware/mv2xhiu/",
+          "postId": "t3_1kyw8uq",
+          "parentId": "t1_mv2bdxt",
+          "username": "doalwa",
+          "userId": "t2_6iye8",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "It’s been my understanding the HPE is no longer gatekeeping firmware updates behind CarePacks. I’ve been able to download the current Servicepack for Proliant for an out of warranty Gen10 ProLiant server without any carepack coverage without any issues a few weeks ago.",
+          "createdAt": "2025-05-30T15:12:57.000Z",
+          "scrapedAt": "2025-06-04T02:30:08.132Z",
+          "upVotes": 7,
+          "numberOfreplies": 1,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;It’s been my understanding the HPE is no longer gatekeeping firmware updates behind CarePacks. I’ve been able to download the current Servicepack for Proliant for an out of warranty Gen10 ProLiant server without any carepack coverage without any issues a few weeks ago.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv1zrt9",
+          "parsedId": "mv1zrt9",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kyw8uq/its_time_to_move_on_from_vmware/mv1zrt9/",
+          "postId": "t3_1kyw8uq",
+          "parentId": "t1_mv1lfcl",
+          "username": "asdlkf",
+          "userId": "t2_4kpcd",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "My intuition is saying that the people you are responding to are using the basic non-licensed iLo. \n\nWhen you pay the like $45 for an enterprise advanced license for iLo, it will do things like federate with other boxes in the same subnet, auto-report home to HPE and auto create tickets for predictive failure hardware replacement.",
+          "createdAt": "2025-05-30T12:16:15.000Z",
+          "scrapedAt": "2025-06-04T02:30:08.132Z",
+          "upVotes": 21,
+          "numberOfreplies": 1,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;My intuition is saying that the people you are responding to are using the basic non-licensed iLo. &lt;/p&gt;\n\n&lt;p&gt;When you pay the like $45 for an enterprise advanced license for iLo, it will do things like federate with other boxes in the same subnet, auto-report home to HPE and auto create tickets for predictive failure hardware replacement.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv4olgg",
+          "parsedId": "mv4olgg",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kz96qi/what_are_your_it_pet_peeves/mv4olgg/",
+          "postId": "t3_1kz96qi",
+          "parentId": "t1_mv4k8av",
+          "username": "mazobob66",
+          "userId": "t2_g57as",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "Wow.  Me either.  I will fix it.",
+          "createdAt": "2025-05-30T20:13:38.000Z",
+          "scrapedAt": "2025-06-04T02:30:08.795Z",
+          "upVotes": 17,
+          "numberOfreplies": 1,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Wow.  Me either.  I will fix it.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv2bng5",
+          "parsedId": "mv2bng5",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kyw8uq/its_time_to_move_on_from_vmware/mv2bng5/",
+          "postId": "t3_1kyw8uq",
+          "parentId": "t1_mv1zrt9",
+          "username": "TheDarthSnarf",
+          "userId": "t2_2jmdqzd2",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "Plenty of things you can't do with iDRAC basic too... iDRAC enterprise is pretty much a requirement for any management at scale.  Personally I think both iDRAC and iLO are great products and would have no problems working with either.",
+          "createdAt": "2025-05-30T13:25:08.000Z",
+          "scrapedAt": "2025-06-04T02:30:08.132Z",
+          "upVotes": 9,
+          "numberOfreplies": 1,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Plenty of things you can&amp;#39;t do with iDRAC basic too... iDRAC enterprise is pretty much a requirement for any management at scale.  Personally I think both iDRAC and iLO are great products and would have no problems working with either.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv473yn",
+          "parsedId": "mv473yn",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kz96qi/what_are_your_it_pet_peeves/mv473yn/",
+          "postId": "t3_1kz96qi",
+          "parentId": "t1_mv3qgkq",
+          "username": "SchizoidRainbow",
+          "userId": "t2_6p46wtl",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "It is called a queue, right there",
+          "createdAt": "2025-05-30T18:46:55.000Z",
+          "scrapedAt": "2025-06-04T02:30:08.795Z",
+          "upVotes": 7,
+          "numberOfreplies": 1,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;It is called a queue, right there&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv3oss6",
+          "parsedId": "mv3oss6",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kz96qi/what_are_your_it_pet_peeves/mv3oss6/",
+          "postId": "t3_1kz96qi",
+          "parentId": "t1_mv3k5af",
+          "username": "Sea-Theory-6930",
+          "userId": "t2_xxecv0z0r",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "These, and the ones who ask for help NOW, get an immediate response, and then ghost the admin or tech for hours or days. It is why in past roles I implemented tracking these people and generating ticket metrics.\n\nWithout fail these are the ones who will blast IT with a completely off topic remark in a managers meeting for 'never responding.' It is quite satisfying to say back in front of the same room full of people, oh, well let us look at your ticket and see what happened...\n\nAh, you asked for help at 9:31am, John replied to you at 9:32am asking what the issue is, and for three days John continued reaching out via chat, email, and a phone calls, and you never responded to us, so it was closed. If you refuse to tell us what the problem is, how are we supposed to fix it?",
+          "createdAt": "2025-05-30T17:20:45.000Z",
+          "scrapedAt": "2025-06-04T02:30:08.795Z",
+          "upVotes": 247,
+          "numberOfreplies": 6,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;These, and the ones who ask for help NOW, get an immediate response, and then ghost the admin or tech for hours or days. It is why in past roles I implemented tracking these people and generating ticket metrics.&lt;/p&gt;\n\n&lt;p&gt;Without fail these are the ones who will blast IT with a completely off topic remark in a managers meeting for &amp;#39;never responding.&amp;#39; It is quite satisfying to say back in front of the same room full of people, oh, well let us look at your ticket and see what happened...&lt;/p&gt;\n\n&lt;p&gt;Ah, you asked for help at 9:31am, John replied to you at 9:32am asking what the issue is, and for three days John continued reaching out via chat, email, and a phone calls, and you never responded to us, so it was closed. If you refuse to tell us what the problem is, how are we supposed to fix it?&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv3qn6l",
+          "parsedId": "mv3qn6l",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kz96qi/what_are_your_it_pet_peeves/mv3qn6l/",
+          "postId": "t3_1kz96qi",
+          "parentId": "t1_mv3oss6",
+          "username": "Stompert",
+          "userId": "t2_d1568",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "These people deserve to be called out, not in private but full blast in a 17 person board meeting on Teams.",
+          "createdAt": "2025-05-30T17:29:09.000Z",
+          "scrapedAt": "2025-06-04T02:30:08.795Z",
+          "upVotes": 140,
+          "numberOfreplies": 2,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;These people deserve to be called out, not in private but full blast in a 17 person board meeting on Teams.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv4eaeu",
+          "parsedId": "mv4eaeu",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kz96qi/what_are_your_it_pet_peeves/mv4eaeu/",
+          "postId": "t3_1kz96qi",
+          "parentId": "t1_mv3qn6l",
+          "username": "One_Stranger7794",
+          "userId": "t2_10f01704z0",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "I find it doesn't land anyway. The call you unprofessional for not answering them, you provide proof that you did and they dropped the ball, they basically will say it's part of the leeway they get as managers to drop the ball, so it's a problem if you do it (or they imagine you do) but it's not a fault when they do.. you know because they are so busy! If you were them you'd do the same thing!",
+          "createdAt": "2025-05-30T19:22:11.000Z",
+          "scrapedAt": "2025-06-04T02:30:08.795Z",
+          "upVotes": 37,
+          "numberOfreplies": 2,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;I find it doesn&amp;#39;t land anyway. The call you unprofessional for not answering them, you provide proof that you did and they dropped the ball, they basically will say it&amp;#39;s part of the leeway they get as managers to drop the ball, so it&amp;#39;s a problem if you do it (or they imagine you do) but it&amp;#39;s not a fault when they do.. you know because they are so busy! If you were them you&amp;#39;d do the same thing!&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mv5frpy",
+          "parsedId": "mv5frpy",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kz96qi/what_are_your_it_pet_peeves/mv5frpy/",
+          "postId": "t3_1kz96qi",
+          "parentId": "t1_mv4eaeu",
+          "username": "blindedtrickster",
+          "userId": "t2_4nky7",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "While, obviously, all situations and social dynamics are different, I've found that the most reliable response is to keep my immediate manager up to speed so they can fight at their level.\n\nI've had two bosses independently give me different tasks to prioritize, not knowing about the other's expectations. Instead of debating or arguing with the second boss to approach me, I called over the first boss and told them both that I didn't care which issue I worked on first, but they needed to talk and decide together which issue I should start with.\n\nNeither was upset and they quickly reached a decision and told me what to focus on. It isn't my job to argue on behalf of a boss to anyone else in power.\n\nNow, when it comes to outside pressure, it's slightly different but not by much. I inform my boss, recommend what I believe to be the best course of action, and let him make the decision.\n\nI've also had a boss that tried to play too nice with assholes and I told him that we needed to shit that shit down, not entertain it or play nice.\n\nIf someone were to say that it's part of the leeway that manager's get to drop the ball, I'd be awfully tempted to insinuate that my manager must have deigned to invoke that right for themselves which would explain the whole situation! I probably wouldn't actually do it, but the temptation would be hella strong.\n\nWhat I'd certainly do, though, is to point at policy and give my absolute best sardonic response, \"I am limited to following my division's policy which directs X response in these cases. Should you be dissatisfied with company policy, I'd be happy to inform my management that you do not believe three days of attempted communication before closing a ticket is long enough. How many days of no communication would you prefer I recommend to them?\"",
+          "createdAt": "2025-05-30T22:34:06.000Z",
+          "scrapedAt": "2025-06-04T02:30:08.795Z",
+          "upVotes": 18,
+          "numberOfreplies": 1,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;While, obviously, all situations and social dynamics are different, I&amp;#39;ve found that the most reliable response is to keep my immediate manager up to speed so they can fight at their level.&lt;/p&gt;\n\n&lt;p&gt;I&amp;#39;ve had two bosses independently give me different tasks to prioritize, not knowing about the other&amp;#39;s expectations. Instead of debating or arguing with the second boss to approach me, I called over the first boss and told them both that I didn&amp;#39;t care which issue I worked on first, but they needed to talk and decide together which issue I should start with.&lt;/p&gt;\n\n&lt;p&gt;Neither was upset and they quickly reached a decision and told me what to focus on. It isn&amp;#39;t my job to argue on behalf of a boss to anyone else in power.&lt;/p&gt;\n\n&lt;p&gt;Now, when it comes to outside pressure, it&amp;#39;s slightly different but not by much. I inform my boss, recommend what I believe to be the best course of action, and let him make the decision.&lt;/p&gt;\n\n&lt;p&gt;I&amp;#39;ve also had a boss that tried to play too nice with assholes and I told him that we needed to shit that shit down, not entertain it or play nice.&lt;/p&gt;\n\n&lt;p&gt;If someone were to say that it&amp;#39;s part of the leeway that manager&amp;#39;s get to drop the ball, I&amp;#39;d be awfully tempted to insinuate that my manager must have deigned to invoke that right for themselves which would explain the whole situation! I probably wouldn&amp;#39;t actually do it, but the temptation would be hella strong.&lt;/p&gt;\n\n&lt;p&gt;What I&amp;#39;d certainly do, though, is to point at policy and give my absolute best sardonic response, &amp;quot;I am limited to following my division&amp;#39;s policy which directs X response in these cases. Should you be dissatisfied with company policy, I&amp;#39;d be happy to inform my management that you do not believe three days of attempted communication before closing a ticket is long enough. How many days of no communication would you prefer I recommend to them?&amp;quot;&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t3_1kxwt4p",
+          "parsedId": "1kxwt4p",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kxwt4p/anyone_else_dealing_with_shrinking_teams_and/",
+          "username": "PalmTreesandTech",
+          "userId": "t2_s2f7fc4d",
+          "title": "Anyone else dealing with shrinking teams and growing workloads?",
+          "communityName": "r/sysadmin",
+          "parsedCommunityName": "sysadmin",
+          "body": "Hey everyone,\n\nIt feels like the job market is getting out of control. We’re expected to do way more work for the same pay. A few years ago, my company had an IT Director, an IT Manager, two Sys Admins, and four help desk guys. I started as one of those help desk guys and got promoted to Senior IT Manager. Now, we’re down to just two help desk guys, one Sys Admin overseas, and no IT Director. I’m not even a director yet, and everything’s falling apart.\n\nI’m already looking for jobs, but it feels like every single IT Manager role out there in the whole country has 500+ applicants for a single opening. It’s brutal.\n\nIs anyone else seeing their teams shrink and their responsibilities explode? How are you all coping?\n",
+          "html": "&lt;!-- SC_OFF --&gt;&lt;div class=\"md\"&gt;&lt;p&gt;Hey everyone,&lt;/p&gt;\n\n&lt;p&gt;It feels like the job market is getting out of control. We’re expected to do way more work for the same pay. A few years ago, my company had an IT Director, an IT Manager, two Sys Admins, and four help desk guys. I started as one of those help desk guys and got promoted to Senior IT Manager. Now, we’re down to just two help desk guys, one Sys Admin overseas, and no IT Director. I’m not even a director yet, and everything’s falling apart.&lt;/p&gt;\n\n&lt;p&gt;I’m already looking for jobs, but it feels like every single IT Manager role out there in the whole country has 500+ applicants for a single opening. It’s brutal.&lt;/p&gt;\n\n&lt;p&gt;Is anyone else seeing their teams shrink and their responsibilities explode? How are you all coping?&lt;/p&gt;\n&lt;/div&gt;&lt;!-- SC_ON --&gt;",
+          "link": "https://www.reddit.com/r/sysadmin/comments/1kxwt4p/anyone_else_dealing_with_shrinking_teams_and/",
+          "numberOfComments": 159,
+          "flair": null,
+          "upVotes": 531,
+          "upVoteRatio": 0.96,
+          "isVideo": false,
+          "isAd": false,
+          "over18": false,
+          "thumbnailUrl": "self",
+          "createdAt": "2025-05-29T00:10:00.000Z",
+          "scrapedAt": "2025-06-04T02:30:16.336Z",
+          "dataType": "post"
+        }
+      },
+      {
+        "json": {
+          "id": "t3_1l20x7i",
+          "parsedId": "1l20x7i",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1l20x7i/goodbye_vmware/",
+          "username": "localgoon-",
+          "userId": "t2_pyouwkp4b",
+          "title": "Goodbye VMware",
+          "communityName": "r/sysadmin",
+          "parsedCommunityName": "sysadmin",
+          "body": "Just adding to the fire—we recently left after being long-time customers. We received an outrageous quote for just four of our Dell servers. Guess they’re saying F the small orgs. For those who’ve already made the switch how’s your alternative working out?",
+          "html": "&lt;!-- SC_OFF --&gt;&lt;div class=\"md\"&gt;&lt;p&gt;Just adding to the fire—we recently left after being long-time customers. We received an outrageous quote for just four of our Dell servers. Guess they’re saying F the small orgs. For those who’ve already made the switch how’s your alternative working out?&lt;/p&gt;\n&lt;/div&gt;&lt;!-- SC_ON --&gt;",
+          "link": "https://www.reddit.com/r/sysadmin/comments/1l20x7i/goodbye_vmware/",
+          "numberOfComments": 302,
+          "flair": "General Discussion",
+          "upVotes": 565,
+          "upVoteRatio": 0.95,
+          "isVideo": false,
+          "isAd": false,
+          "over18": false,
+          "thumbnailUrl": "self",
+          "createdAt": "2025-06-03T02:39:24.000Z",
+          "scrapedAt": "2025-06-04T02:30:16.535Z",
+          "dataType": "post"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_musr3og",
+          "parsedId": "musr3og",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kxwt4p/anyone_else_dealing_with_shrinking_teams_and/musr3og/",
+          "postId": "t3_1kxwt4p",
+          "parentId": "t3_1kxwt4p",
+          "username": "doyouvoodoo",
+          "userId": "t2_5v5r47ra",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "Our 9 person team has remained the same size since 2016 while the number of primary users we support has swelled from 32,000 to 48,000.",
+          "createdAt": "2025-05-29T00:25:30.000Z",
+          "scrapedAt": "2025-06-04T02:30:16.627Z",
+          "upVotes": 297,
+          "numberOfreplies": 8,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Our 9 person team has remained the same size since 2016 while the number of primary users we support has swelled from 32,000 to 48,000.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mvpxyjq",
+          "parsedId": "mvpxyjq",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1l20x7i/goodbye_vmware/mvpxyjq/",
+          "postId": "t3_1l20x7i",
+          "parentId": "t3_1l20x7i",
+          "username": "DeadOnToilet",
+          "userId": "t2_b38va",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "Not a small org; we're about 70% of the way through.  It's been easy enough, honestly your choice of VM platform doesn't really affect the VMs.  We had to re-do automation and all the back-end supporting systems, that was the rough part.",
+          "createdAt": "2025-06-03T05:14:57.000Z",
+          "scrapedAt": "2025-06-04T02:30:16.646Z",
+          "upVotes": 1,
+          "numberOfreplies": 3,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Not a small org; we&amp;#39;re about 70% of the way through.  It&amp;#39;s been easy enough, honestly your choice of VM platform doesn&amp;#39;t really affect the VMs.  We had to re-do automation and all the back-end supporting systems, that was the rough part.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t3_1kyctdd",
+          "parsedId": "1kyctdd",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kyctdd/leadership_wants_all_departments_implementing/",
+          "username": "buddylee007",
+          "userId": "t2_7qk05",
+          "title": "Leadership wants all departments implementing \"Agentic AI\", even my Infrastructure team.",
+          "communityName": "r/sysadmin",
+          "parsedCommunityName": "sysadmin",
+          "body": "Our CEO has told all department heads that she wants to see 10 agentic AI deployments every month across the company, so each department needs to be working on something to show growth for the overall department.\n\nMy team will use different AI tools to generate powershell, presentations, or code at times, but we're not really sure where to start on agent building when it comes to server/network management. \n\nAnyone else dealing with this type of push-down request and has anyone found decent agents worth doing? Or are we about to put on another show to check the boxes.",
+          "html": "&lt;!-- SC_OFF --&gt;&lt;div class=\"md\"&gt;&lt;p&gt;Our CEO has told all department heads that she wants to see 10 agentic AI deployments every month across the company, so each department needs to be working on something to show growth for the overall department.&lt;/p&gt;\n\n&lt;p&gt;My team will use different AI tools to generate powershell, presentations, or code at times, but we&amp;#39;re not really sure where to start on agent building when it comes to server/network management. &lt;/p&gt;\n\n&lt;p&gt;Anyone else dealing with this type of push-down request and has anyone found decent agents worth doing? Or are we about to put on another show to check the boxes.&lt;/p&gt;\n&lt;/div&gt;&lt;!-- SC_ON --&gt;",
+          "link": "https://www.reddit.com/r/sysadmin/comments/1kyctdd/leadership_wants_all_departments_implementing/",
+          "numberOfComments": 441,
+          "flair": null,
+          "upVotes": 664,
+          "upVoteRatio": 0.95,
+          "isVideo": false,
+          "isAd": false,
+          "over18": false,
+          "thumbnailUrl": "self",
+          "createdAt": "2025-05-29T14:52:53.000Z",
+          "scrapedAt": "2025-06-04T02:30:16.743Z",
+          "dataType": "post"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_musx798",
+          "parsedId": "musx798",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kxwt4p/anyone_else_dealing_with_shrinking_teams_and/musx798/",
+          "postId": "t3_1kxwt4p",
+          "parentId": "t1_musr3og",
+          "username": "badbash27",
+          "userId": "t2_13cwj6ob",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "Jesus fuck \n\nYou were understaffed 30 people 9 years ago",
+          "createdAt": "2025-05-29T01:00:47.000Z",
+          "scrapedAt": "2025-06-04T02:30:16.627Z",
+          "upVotes": 204,
+          "numberOfreplies": 0,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Jesus fuck &lt;/p&gt;\n\n&lt;p&gt;You were understaffed 30 people 9 years ago&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mut046w",
+          "parsedId": "mut046w",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kxwt4p/anyone_else_dealing_with_shrinking_teams_and/mut046w/",
+          "postId": "t3_1kxwt4p",
+          "parentId": "t1_musr3og",
+          "username": "N3rdyITGuy",
+          "userId": "t2_ivtuvvi1s",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "WTF?! You have to be outsourcing something.",
+          "createdAt": "2025-05-29T01:17:22.000Z",
+          "scrapedAt": "2025-06-04T02:30:16.627Z",
+          "upVotes": 72,
+          "numberOfreplies": 2,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;WTF?! You have to be outsourcing something.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_muw6nl7",
+          "parsedId": "muw6nl7",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kyctdd/leadership_wants_all_departments_implementing/muw6nl7/",
+          "postId": "t3_1kyctdd",
+          "parentId": "t3_1kyctdd",
+          "username": "ExcitingTabletop",
+          "userId": "t2_o0pnichj",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "Show to check the boxes. Add blinky lights for bonus points. \n\nYour CEO doesn't know what AI is, let alone agentic AI. But she needs talking points hopefully for owner or board, worse case so she can make LinkedIn posts or brag at events. \n\nNote she didn't specify that the AI had to be useful. Just that you did it.",
+          "createdAt": "2025-05-29T14:55:43.000Z",
+          "scrapedAt": "2025-06-04T02:30:16.844Z",
+          "upVotes": 916,
+          "numberOfreplies": 13,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Show to check the boxes. Add blinky lights for bonus points. &lt;/p&gt;\n\n&lt;p&gt;Your CEO doesn&amp;#39;t know what AI is, let alone agentic AI. But she needs talking points hopefully for owner or board, worse case so she can make LinkedIn posts or brag at events. &lt;/p&gt;\n\n&lt;p&gt;Note she didn&amp;#39;t specify that the AI had to be useful. Just that you did it.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mut3eah",
+          "parsedId": "mut3eah",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kxwt4p/anyone_else_dealing_with_shrinking_teams_and/mut3eah/",
+          "postId": "t3_1kxwt4p",
+          "parentId": "t1_mut046w",
+          "username": "Sasataf12",
+          "userId": "t2_3kqu7imr",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "Right! Either that or their 9 person team has a very, very specific scope, e.g. only looks after specific GPOs.",
+          "createdAt": "2025-05-29T01:35:55.000Z",
+          "scrapedAt": "2025-06-04T02:30:16.627Z",
+          "upVotes": 60,
+          "numberOfreplies": 1,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Right! Either that or their 9 person team has a very, very specific scope, e.g. only looks after specific GPOs.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_muw7u2s",
+          "parsedId": "muw7u2s",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kyctdd/leadership_wants_all_departments_implementing/muw7u2s/",
+          "postId": "t3_1kyctdd",
+          "parentId": "t1_muw6nl7",
+          "username": "MandaloreZA",
+          "userId": "t2_dpzls",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "RGB strips on the server rack that change color based on the load got me an extra few k of budget.",
+          "createdAt": "2025-05-29T15:01:15.000Z",
+          "scrapedAt": "2025-06-04T02:30:16.844Z",
+          "upVotes": 640,
+          "numberOfreplies": 8,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;RGB strips on the server rack that change color based on the load got me an extra few k of budget.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mut3lac",
+          "parsedId": "mut3lac",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kxwt4p/anyone_else_dealing_with_shrinking_teams_and/mut3lac/",
+          "postId": "t3_1kxwt4p",
+          "parentId": "t1_mut3eah",
+          "username": "N3rdyITGuy",
+          "userId": "t2_ivtuvvi1s",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "Has to be! Those are incredible numbers.",
+          "createdAt": "2025-05-29T01:36:59.000Z",
+          "scrapedAt": "2025-06-04T02:30:16.627Z",
+          "upVotes": 17,
+          "numberOfreplies": 0,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Has to be! Those are incredible numbers.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_muw8bt2",
+          "parsedId": "muw8bt2",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kyctdd/leadership_wants_all_departments_implementing/muw8bt2/",
+          "postId": "t3_1kyctdd",
+          "parentId": "t1_muw7u2s",
+          "username": "ExcitingTabletop",
+          "userId": "t2_o0pnichj",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "This right here is the kind of technical and strategic brilliance that OP needs to learn from.\n\nSlap on an \"AI controller\" on a RP4 for the lights and you're going places. Mind, you don't need AI to control the lights. But if it has AI whatever installs, and the light controllers installed, it's an AI controller.\n\nIf you can find a use for AI, that's great. If you can find a productive use for 10 AI deployments per month, that's even better if implausible. But that isn't the metric, and OP is missing that point.",
+          "createdAt": "2025-05-29T15:03:33.000Z",
+          "scrapedAt": "2025-06-04T02:30:16.844Z",
+          "upVotes": 270,
+          "numberOfreplies": 5,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;This right here is the kind of technical and strategic brilliance that OP needs to learn from.&lt;/p&gt;\n\n&lt;p&gt;Slap on an &amp;quot;AI controller&amp;quot; on a RP4 for the lights and you&amp;#39;re going places. Mind, you don&amp;#39;t need AI to control the lights. But if it has AI whatever installs, and the light controllers installed, it&amp;#39;s an AI controller.&lt;/p&gt;\n\n&lt;p&gt;If you can find a use for AI, that&amp;#39;s great. If you can find a productive use for 10 AI deployments per month, that&amp;#39;s even better if implausible. But that isn&amp;#39;t the metric, and OP is missing that point.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_muwd42j",
+          "parsedId": "muwd42j",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kyctdd/leadership_wants_all_departments_implementing/muwd42j/",
+          "postId": "t3_1kyctdd",
+          "parentId": "t1_muw8bt2",
+          "username": "Profvarg",
+          "userId": "t2_te97h",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "Write AI on the case of the RP4 with a sharpie",
+          "createdAt": "2025-05-29T15:26:01.000Z",
+          "scrapedAt": "2025-06-04T02:30:16.844Z",
+          "upVotes": 116,
+          "numberOfreplies": 4,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Write AI on the case of the RP4 with a sharpie&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mvqk99i",
+          "parsedId": "mvqk99i",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1l20x7i/goodbye_vmware/mvqk99i/",
+          "postId": "t3_1l20x7i",
+          "parentId": "t1_mvpxyjq",
+          "username": "I_love_quiche",
+          "userId": "t2_86r34",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "What did your team switch to and what are the edge cases that made the switch rough?",
+          "createdAt": "2025-06-03T08:46:00.000Z",
+          "scrapedAt": "2025-06-04T02:30:16.646Z",
+          "upVotes": 1,
+          "numberOfreplies": 2,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;What did your team switch to and what are the edge cases that made the switch rough?&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      },
+      {
+        "json": {
+          "id": "t1_mutvtz4",
+          "parsedId": "mutvtz4",
+          "url": "https://www.reddit.com/r/sysadmin/comments/1kxwt4p/anyone_else_dealing_with_shrinking_teams_and/mutvtz4/",
+          "postId": "t3_1kxwt4p",
+          "parentId": "t1_mut046w",
+          "username": "doyouvoodoo",
+          "userId": "t2_5v5r47ra",
+          "category": "sysadmin",
+          "communityName": "r/sysadmin",
+          "body": "We have a centralized (on-site) helpdesk to handle the lowest level issues (password resets, storage qouta questions, etc.)\n\nWe also have a 7 person operations team (on-site) that handles manually booting powered down systems, initiating manual pxe boots when needed, and perform in house hardware warranty repairs.\n\nThe 9 person team I am in manages all academic computing resources at a University that our students directly use for their education. We also manage similar resources for various research projects and for extension.\n\nOn the client side this includes all teaching labs that contain computing resources across all disciplines. OS's (Mac, Windows, Linux), AWS Appstream, Apporto, and guacamole. If a student and/or faculty member has an issue on a lab machine, that's us.\n\nOn top of the students, staff are also able to utilize labs that they have physical access to (roughly 9k secondary users).\n\nSoftware packages include over 500 titles, ranging from Open Source to National Instruments and VR.\n\nEach of the individual lab (ranging from 1 to 172 machines) software loads are subject to change quarterly.\n\nWe utilize Jamf (MacOs), Puppet (Linux), and MECM (Windows) to manage our environment, and have a very strict policy of standardized images so the desktop experience is the same across all labs with the same OS and only the software varies.\n\nOn MECM, we have PatchMyPC implemented to reduce manual application packaging, and for major software titles, we can generally only update them annually unless something breaks.  \nAll of our Windows updates are automated through MECM (and as many possible 3rd party updates through PMPC).\n\nTo keep up with everything, we have built out extensive automation to the point that when something big eventually breaks, we won't have the manpower to address it in a reasonable time. \n\nBut we'll cross that bridge when we get to it.",
+          "createdAt": "2025-05-29T04:38:45.000Z",
+          "scrapedAt": "2025-06-04T02:30:16.627Z",
+          "upVotes": 39,
+          "numberOfreplies": 3,
+          "html": "&lt;div class=\"md\"&gt;&lt;p&gt;We have a centralized (on-site) helpdesk to handle the lowest level issues (password resets, storage qouta questions, etc.)&lt;/p&gt;\n\n&lt;p&gt;We also have a 7 person operations team (on-site) that handles manually booting powered down systems, initiating manual pxe boots when needed, and perform in house hardware warranty repairs.&lt;/p&gt;\n\n&lt;p&gt;The 9 person team I am in manages all academic computing resources at a University that our students directly use for their education. We also manage similar resources for various research projects and for extension.&lt;/p&gt;\n\n&lt;p&gt;On the client side this includes all teaching labs that contain computing resources across all disciplines. OS&amp;#39;s (Mac, Windows, Linux), AWS Appstream, Apporto, and guacamole. If a student and/or faculty member has an issue on a lab machine, that&amp;#39;s us.&lt;/p&gt;\n\n&lt;p&gt;On top of the students, staff are also able to utilize labs that they have physical access to (roughly 9k secondary users).&lt;/p&gt;\n\n&lt;p&gt;Software packages include over 500 titles, ranging from Open Source to National Instruments and VR.&lt;/p&gt;\n\n&lt;p&gt;Each of the individual lab (ranging from 1 to 172 machines) software loads are subject to change quarterly.&lt;/p&gt;\n\n&lt;p&gt;We utilize Jamf (MacOs), Puppet (Linux), and MECM (Windows) to manage our environment, and have a very strict policy of standardized images so the desktop experience is the same across all labs with the same OS and only the software varies.&lt;/p&gt;\n\n&lt;p&gt;On MECM, we have PatchMyPC implemented to reduce manual application packaging, and for major software titles, we can generally only update them annually unless something breaks.&lt;br/&gt;\nAll of our Windows updates are automated through MECM (and as many possible 3rd party updates through PMPC).&lt;/p&gt;\n\n&lt;p&gt;To keep up with everything, we have built out extensive automation to the point that when something big eventually breaks, we won&amp;#39;t have the manpower to address it in a reasonable time. &lt;/p&gt;\n\n&lt;p&gt;But we&amp;#39;ll cross that bridge when we get to it.&lt;/p&gt;\n&lt;/div&gt;",
+          "dataType": "comment"
+        }
+      }
+    ],
+    "Analyze with OpenAI": [
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors is a nightmare, trying to coordinate them all is a full-time job on its own.\",\n  \"summary\": \"Struggling with vendor management complexity\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"The quote highlights the overwhelming challenge of managing numerous vendors, indicating the significant time and effort required.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors is a nightmare, trying to coordinate them all is a full-time job in itself.\",\n  \"summary\": \"Struggling with vendor overload and coordination\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"The quote highlights the challenge of managing numerous vendors, indicating the complexity and time-consuming nature of vendor coordination.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare, especially when they all blame each other for issues.\",\n  \"summary\": \"Struggles with managing multiple vendors and accountability\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"This quote highlights the frustration of vendor management and the lack of accountability among multiple vendors, indicating a common challenge in dealing with vendor sprawl.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare, especially when issues arise and everyone starts pointing fingers.\",\n  \"summary\": \"Struggles with managing multiple vendors and accountability\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"This quote highlights the common challenge of vendor management and the lack of accountability when issues occur, emphasizing the complexity and frustration of dealing with multiple vendors.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare, trying to consolidate but it's a slow process.\",\n  \"summary\": \"Struggling with vendor overload and consolidation challenges\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"The quote highlights the struggle of managing multiple vendors and the slow process of consolidation, indicating a significant pain point.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors is a nightmare, each pushing their own agenda.\",\n  \"summary\": \"Struggling with vendor overload and conflicting agendas\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"This quote highlights the challenges of managing vendor relationships and the pressure from multiple vendors, indicating a significant pain point.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors is a nightmare, trying to coordinate them all is a full-time job in itself.\",\n  \"summary\": \"Struggling with vendor overload and coordination\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"The quote highlights the overwhelming task of managing multiple vendors, indicating the complexity and challenges faced in vendor coordination.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors has become a nightmare, each pushing their own solutions.\",\n  \"summary\": \"Struggling with vendor overload and conflicting solutions\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"This quote highlights the challenge of managing conflicting vendor solutions and the overwhelming nature of dealing with multiple vendors.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors is a nightmare, each pushing their own agenda.\",\n  \"summary\": \"Struggle with vendor management and conflicting agendas\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"This quote highlights the challenges of managing multiple vendors and the conflicts that arise from their competing interests.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors is a nightmare, trying to keep track of all the different sales reps and solutions they offer is overwhelming.\",\n  \"summary\": \"Struggling with vendor management and overload\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"The quote directly addresses the challenges of managing multiple vendors and the overwhelming nature of dealing with various sales representatives and solutions.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors is a nightmare, each pushing their own solutions.\",\n  \"summary\": \"Struggling with vendor overload and conflicting solutions\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"This quote highlights the challenge of managing conflicting vendor solutions and the overwhelming nature of dealing with multiple vendors.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for our infrastructure is causing major vendor fatigue and inefficiencies in vendor management.\",\n  \"summary\": \"Vendor fatigue from managing multiple vendors\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"The quote directly addresses the challenges of handling multiple vendors, highlighting the impact on efficiency and fatigue.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare, especially when issues arise and everyone points fingers at each other.\",\n  \"summary\": \"Vendor overload causing accountability issues among multiple vendors\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"This quote highlights the common frustration of accountability gaps and finger-pointing in a multi-vendor environment, emphasizing the challenges of managing vendor relationships.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors is a nightmare, each one pushing for more sales.\",\n  \"summary\": \"Vendor overload causing sales pressure\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"Highlighting the overwhelming pressure from vendors to increase sales, a common struggle in managing multiple vendor relationships.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors has become a nightmare, trying to juggle all their demands and sales pitches.\",\n  \"summary\": \"Struggling with vendor overload and sales pressure\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"The quote highlights the overwhelming challenge of managing various vendors and their sales tactics, indicating a significant pain point.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors is a nightmare, each pushing their own solutions.\",\n  \"summary\": \"Struggling with vendor overload and conflicting solutions\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"This quote highlights the challenge of managing conflicting vendor solutions and the overwhelming nature of dealing with multiple vendors.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare that never ends.\",\n  \"summary\": \"Struggling with vendor overload\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"The quote directly expresses frustration with managing multiple vendors, highlighting the ongoing challenge and complexity involved.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors has become a nightmare, trying to consolidate but it's a slow process.\",\n  \"summary\": \"Vendor overload causing consolidation challenges\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"The struggle to manage numerous vendors and the slow progress towards consolidation highlights the complexity and frustration in vendor management.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare to coordinate.\",\n  \"summary\": \"Struggling with vendor management complexity\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"The quote highlights the challenge of managing various vendors, indicating potential inefficiencies and coordination difficulties.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare, trying to consolidate but it's a slow process.\",\n  \"summary\": \"Struggling with vendor overload and consolidation challenges\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"The quote highlights the struggle of managing multiple vendors and the slow process of consolidation, indicating a significant pain point.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors has become a nightmare, each pushing their own agenda.\",\n  \"summary\": \"Struggling with vendor overload and conflicting agendas\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"The quote highlights the challenge of managing multiple vendors and the struggle to align their priorities, indicating a significant issue with vendor management.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors is a nightmare, trying to keep them all in line and on schedule is impossible.\",\n  \"summary\": \"Struggling with vendor management and coordination\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"The quote highlights the challenges of managing multiple vendors efficiently, indicating a significant pain point in vendor overload.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors is a nightmare, trying to consolidate but it's a slow process.\",\n  \"summary\": \"Vendor overload causing consolidation challenges\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"The struggle to manage vendor sprawl and consolidate relationships is a significant operational hurdle.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors is a nightmare, each pushing their own agenda.\",\n  \"summary\": \"Struggling with vendor overload and conflicting agendas\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"The quote highlights the challenge of managing vendor relationships and the pressure from different vendors, indicating a significant pain point in vendor management.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare.\",\n  \"summary\": \"Struggling with vendor overload\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"Highlighting the challenges and complexities of managing numerous technology vendors, indicating potential inefficiencies and complications in vendor relationships.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare.\",\n  \"summary\": \"Struggling with vendor management complexity\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"Highlights the challenges and complexities of managing multiple vendors for various services.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare, especially when issues arise and everyone starts pointing fingers.\",\n  \"summary\": \"Struggles with managing multiple vendors and accountability\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"This quote highlights the common challenge of vendor accountability and coordination in complex IT environments.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare, trying to consolidate but it's a slow process.\",\n  \"summary\": \"Struggling with vendor overload and consolidation challenges\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"The quote highlights the struggle of managing multiple vendors and the slow process of consolidation, indicating a significant pain point.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors has become a nightmare, juggling sales calls and account managers constantly.\",\n  \"summary\": \"Struggling with vendor overload and sales pressure\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"The quote highlights the overwhelming challenge of managing numerous vendors and the constant pressure from sales interactions, indicating a significant pain point in vendor management.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors is a nightmare, each pushing their own agenda.\",\n  \"summary\": \"Struggling with vendor overload and conflicting agendas\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"The quote highlights the challenge of managing vendor relationships and the pressure from different vendors, indicating a significant pain point in vendor overload.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare, especially when issues arise and everyone points fingers at each other.\",\n  \"summary\": \"Vendor overload causing accountability issues among multiple vendors\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"This quote highlights the challenge of managing accountability and coordination among multiple vendors, a common pain point in complex infrastructure environments.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare, especially when things go wrong.\",\n  \"summary\": \"Struggling with vendor management complexity\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"Highlights the challenges and complexities of managing multiple vendors, especially during critical incidents.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors has become a nightmare, trying to juggle all their demands and sales pitches.\",\n  \"summary\": \"Struggling with vendor overload and sales pressure\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"The quote highlights the overwhelming challenge of managing multiple vendors and the constant pressure from sales pitches.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare.\",\n  \"summary\": \"Struggling with vendor overload\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"Highlighting the challenges and complexities of managing multiple technology vendors.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors is a nightmare, each one pushing their own agenda.\",\n  \"summary\": \"Struggling with vendor overload and conflicting agendas\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"The quote highlights the challenges of managing vendor relationships and the pressure from multiple vendors.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare.\",\n  \"summary\": \"Struggling with vendor management complexity\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"Highlights the challenges and complexities of managing multiple technology vendors.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare to coordinate.\",\n  \"summary\": \"Struggling with vendor management complexity\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"The quote highlights the challenge of managing various vendors, indicating potential inefficiencies and coordination issues.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is overwhelming and time-consuming.\",\n  \"summary\": \"Struggling with vendor management complexity\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"Highlighting the challenges of managing various vendors and the associated time drain.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors is a nightmare, trying to coordinate them all is a full-time job in itself.\",\n  \"summary\": \"Struggling with vendor overload and coordination\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"The quote highlights the significant challenge of managing multiple vendors and the complexity of coordination, emphasizing the overwhelming nature of vendor overload.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare.\",\n  \"summary\": \"Vendor overload causing operational challenges\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"Highlighting the operational nightmare of managing multiple vendors, indicating potential inefficiencies and complexities in vendor relationships.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare.\",\n  \"summary\": \"Struggling with vendor overload\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"The quote directly expresses frustration with managing multiple vendors, indicating a significant challenge.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare.\",\n  \"summary\": \"Struggling with vendor management complexity\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"Highlights the challenges and complexities of managing multiple technology vendors.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors is a nightmare, trying to coordinate them all is a full-time job in itself.\",\n  \"summary\": \"Struggling with vendor management complexity\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"This quote highlights the significant challenge of managing multiple vendors efficiently, impacting operational effectiveness.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare to coordinate.\",\n  \"summary\": \"Struggling with vendor management complexity\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"Highlighting the challenge of managing various vendors and the coordination difficulties it brings.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare, especially when they all point fingers at each other for issues.\",\n  \"summary\": \"Struggling with vendor management and accountability\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"This quote highlights the frustration of managing multiple vendors and the lack of accountability, which is a common pain point in vendor overload situations.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors is a nightmare, each pushing their own agenda.\",\n  \"summary\": \"Struggling with vendor overload and conflicting agendas\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"The quote highlights the challenge of managing vendor relationships and the pressure from multiple vendors, indicating a significant pain point.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare\",\n  \"summary\": \"Struggling with vendor management complexity\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"Highlighting the challenges and complexities of managing multiple vendors for various services, indicating potential inefficiencies and frustrations.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare.\",\n  \"summary\": \"Struggling with vendor management complexity\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"Highlights the challenges and complexities of managing multiple technology vendors.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare, trying to consolidate but it's a slow process.\",\n  \"summary\": \"Struggling with vendor overload and consolidation challenges\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"The quote highlights the struggle of managing multiple vendors and the slow process of consolidation, indicating a significant pain point.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare, trying to consolidate but it's a slow process.\",\n  \"summary\": \"Struggling with vendor consolidation\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"The quote highlights the challenge of managing multiple vendors and the slow process of consolidation, indicating a significant pain point.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors is a nightmare, each one pushing their own agenda.\",\n  \"summary\": \"Struggling with vendor overload and conflicting agendas\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"This quote highlights the challenge of managing vendor relationships and the pressure from multiple vendors, impacting decision-making and operations.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors is a nightmare, each pushing their own agenda.\",\n  \"summary\": \"Struggling with vendor overload and conflicting agendas\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"This quote highlights the challenges of managing vendor relationships and the struggle of dealing with conflicting priorities from different vendors.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare.\",\n  \"summary\": \"Struggling with vendor management complexity\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"Highlighting the challenges and complexities of managing multiple technology vendors, indicating potential inefficiencies and complications.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors is a nightmare, each one pushing their own agenda.\",\n  \"summary\": \"Struggling with vendor overload and conflicting agendas\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"Highlights the challenge of managing vendor relationships and the pressure from multiple vendors.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors is a nightmare, each pushing their own agenda.\",\n  \"summary\": \"Struggling with vendor overload and conflicting agendas\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"The quote highlights the challenge of managing conflicting vendor interests, a common issue in vendor overload scenarios.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare, especially when issues arise and everyone starts pointing fingers.\",\n  \"summary\": \"Struggles with managing multiple vendors and accountability\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"This quote highlights the challenges of vendor management, accountability, and finger-pointing when issues occur, emphasizing the complexity and frustration of dealing with multiple vendors.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors is a nightmare, each pushing their own agenda.\",\n  \"summary\": \"Struggling with vendor overload and conflicting agendas\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"The quote highlights the challenges of managing vendor relationships and the struggle of dealing with conflicting priorities from different vendors.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare.\",\n  \"summary\": \"Struggling with vendor management complexity\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"Highlights the challenges and complexities of managing multiple technology vendors.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare, especially when issues arise and everyone starts pointing fingers.\",\n  \"summary\": \"Struggles with managing multiple vendors and accountability\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"This quote highlights the complexity and challenges of vendor management, especially during troubleshooting and issue resolution.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors is a nightmare, each pushing their own agenda.\",\n  \"summary\": \"Struggling with vendor overload and conflicting agendas\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"This quote highlights the challenge of managing vendor relationships and the pressure from multiple vendors, indicating a significant pain point.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors is a nightmare, each one pushing their own agenda.\",\n  \"summary\": \"Struggling with vendor overload and conflicting agendas\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"This quote highlights the challenge of managing vendor relationships and the pressure from multiple vendors, indicating a significant pain point.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors is a nightmare, each one pushing their own agenda.\",\n  \"summary\": \"Struggle with vendor overload and conflicting agendas\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"The quote highlights the challenge of managing vendor relationships and the pressure from multiple vendors.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors is a nightmare, trying to consolidate but it's a slow process.\",\n  \"summary\": \"Vendor overload causing consolidation challenges\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"The quote directly addresses the challenge of managing multiple vendors and the struggle to consolidate, indicating a significant pain point.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare, especially when they all point fingers at each other.\",\n  \"summary\": \"Vendor management challenges with multiple vendors blaming each other\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"Highlights the complexity and frustration of managing multiple vendors and the lack of accountability in vendor relationships.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare, each blaming the other when issues arise.\",\n  \"summary\": \"Struggles with managing multiple vendors and accountability\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"Highlights the challenges of vendor management and the complexities of accountability in a multi-vendor environment.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare, trying to consolidate but it's a slow process.\",\n  \"summary\": \"Struggling with vendor overload and consolidation challenges\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"The quote highlights the struggle of managing multiple vendors and the slow process of consolidation, indicating a significant pain point.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors is a nightmare, trying to coordinate them all is a full-time job in itself.\",\n  \"summary\": \"Struggling with vendor management complexity\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"This quote highlights the significant challenge of managing multiple vendors efficiently, impacting operational effectiveness.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare, trying to consolidate but it's a slow process.\",\n  \"summary\": \"Struggling with vendor overload and consolidation challenges\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"The quote highlights the struggle of managing multiple vendors and the slow process of consolidation, indicating a significant pain point.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors for different services is a nightmare.\",\n  \"summary\": \"Struggling with vendor management complexity\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"Highlighting the challenges and complexities of managing multiple technology vendors, indicating potential inefficiencies and frustrations.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors has become a nightmare, each pushing their own agenda.\",\n  \"summary\": \"Vendor overload causing conflicts with multiple vendors.\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"The quote highlights the challenge of managing conflicting interests and agendas from various vendors, indicating a significant struggle in vendor management.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors is a nightmare, trying to coordinate them all is a full-time job on its own.\",\n  \"summary\": \"Struggling with vendor overload and coordination\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 7,\n  \"analysis\": \"The quote highlights the significant challenge of managing multiple vendors and the complexity it adds to daily operations.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors is a nightmare, each pushing their own solutions.\",\n  \"summary\": \"Struggling with vendor overload and conflicting solutions\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"This quote highlights the challenge of managing conflicting vendor solutions and the overwhelming nature of dealing with multiple vendors.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"quote\": \"Dealing with multiple vendors is a nightmare, each pushing their own agenda.\",\n  \"summary\": \"Struggling with vendor overload and conflicting agendas\",\n  \"theme\": \"Vendor Overload\",\n  \"signalScore\": 8,\n  \"analysis\": \"This quote highlights the challenge of managing vendor relationships and the conflicting priorities that come with dealing with multiple vendors.\"\n}",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      }
+    ]
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-01T23:35:03.404Z",
+      "createdAt": "2026-01-01T23:35:03.404Z",
+      "role": "workflow:owner",
+      "workflowId": "l41gb5i54xBBbCDf",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [
+    {
+      "updatedAt": "2026-01-01T23:34:57.104Z",
+      "createdAt": "2026-01-01T23:34:57.104Z",
+      "id": "cWvn38zmhXZXXPxj",
+      "name": "Client Work"
+    },
+    {
+      "updatedAt": "2026-01-01T03:42:22.588Z",
+      "createdAt": "2026-01-01T03:42:22.588Z",
+      "id": "qYEpcppqDWzmBx4r",
+      "name": "LLM Used"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-11T02:27:33.023Z",
+  "versionId": "70d1c302-2b6b-4518-924d-05a9d3c38ede"
+}
