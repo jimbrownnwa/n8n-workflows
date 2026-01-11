@@ -1,0 +1,570 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-01-10T18:47:30.000Z",
+    "createdAt": "2026-01-10T18:47:26.472Z",
+    "versionId": "42ea644d-085b-4a65-8622-da2759ef219f",
+    "workflowId": "SHWQRCZC7TL4CDMk",
+    "nodes": [
+      {
+        "parameters": {
+          "resource": "databasePage",
+          "operation": "getAll",
+          "databaseId": {
+            "__rl": true,
+            "value": "2e4f2f77-bba7-801a-a4ec-c0f089830493",
+            "mode": "list",
+            "cachedResultName": "Projects",
+            "cachedResultUrl": "https://www.notion.so/2e4f2f77bba7801aa4ecc0f089830493"
+          },
+          "filterType": "manual",
+          "filters": {
+            "conditions": [
+              {
+                "key": "Status|select",
+                "condition": "equals",
+                "selectValue": "Active"
+              },
+              {
+                "key": "Status|select",
+                "condition": "equals",
+                "selectValue": "Waiting"
+              },
+              {
+                "key": "Status|select",
+                "condition": "equals",
+                "selectValue": "Blocked"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.notion",
+        "typeVersion": 2.2,
+        "position": [
+          0,
+          192
+        ],
+        "id": "c634076a-c22c-4d08-8f6b-d6b8980a0a30",
+        "name": "Get Projects",
+        "credentials": {
+          "notionApi": {
+            "id": "1MLEZcGgowzdt5uf",
+            "name": "Notion account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "claude-3-5-haiku-20241022",
+            "mode": "list",
+            "cachedResultName": "claude-3-5-haiku-20241022"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=The Weekly Review Prompt\nYou are a personal productivity assistant conducting a weekly review. Analyze the following data and generate an insightful summary.\n\n{{ $json.context }}\n\nTOTAL CAPTURES THIS WEEK: {{ $json.total_captures }}\n\nINSTRUCTIONS:\nCreate a weekly review with EXACTLY this format. Keep it under 250 words total.\n\n---\n\n📅 **Week in Review**\n\n**📊 Quick Stats:**\n- Items captured: [number]\n- Breakdown: [x people, y projects, z ideas, w admin]\n\n**🎯 What Moved Forward:**\n- [Project or area that made progress]\n- [Another win or completion]\n\n**🔴 Open Loops (needs attention):**\n1. [Something blocked, stalled, or waiting too long]\n2. [Another concern]\n\n**💡 Patterns I Notice:**\n[One observation about themes, recurring topics, or where energy is going]\n\n**📌 Suggested Focus for Next Week:**\n1. [Specific action for highest priority item]\n2. [Second priority]\n3. [Third priority]\n\n**🔧 Items Needing Review:**\n[List any items still marked \"Needs Review\" or flag if none]\n\n---\n\nRULES:\n- Be analytical, not motivational\n- Call out projects that haven't had action in over a week\n- Note if capture volume was unusually high or low\n- Suggest concrete next actions, not vague intentions\n- If something looks stuck, say so directly\n- Keep language concise and actionable\n"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.anthropic",
+        "typeVersion": 1,
+        "position": [
+          672,
+          96
+        ],
+        "id": "33d94972-12fc-40ac-9df3-9a1041313ce1",
+        "name": "Message a model",
+        "credentials": {
+          "anthropicApi": {
+            "id": "QIUyAAWFmOxaIZc6",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "select": "channel",
+          "channelId": {
+            "__rl": true,
+            "value": "C0A82N7UPUL",
+            "mode": "list",
+            "cachedResultName": "daily-digest"
+          },
+          "text": "={{ $json.content[0].text }}",
+          "otherOptions": {}
+        },
+        "type": "n8n-nodes-base.slack",
+        "typeVersion": 2.4,
+        "position": [
+          1024,
+          96
+        ],
+        "id": "64202c7d-781a-4cf5-b932-8a11e6418b6b",
+        "name": "Send a message",
+        "webhookId": "15b0d077-4bbf-429f-bd98-c1bd27d3ce39",
+        "credentials": {
+          "slackApi": {
+            "id": "pBtkFKk519i0rGOe",
+            "name": "NWA Shop Local"
+          }
+        }
+      },
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3.2,
+        "position": [
+          224,
+          96
+        ],
+        "id": "31de0c30-3a0a-4c1b-a764-05634c5bd666",
+        "name": "Merge"
+      },
+      {
+        "parameters": {
+          "jsCode": "// Weekly Review prep: normalize Merge output into LLM-ready inputs\nconst items = $input.all().map(i => i.json);\n\nconst isLog = (x) => x.property_filed_to && x.property_created?.start;\nconst isProject = (x) => x.property_next_action || x.property_created_time || (x.property_tags && x.property_status);\n\nconst logs = items.filter(isLog);\nconst projects = items.filter(isProject);\n\n// ---- stats from capture log ----\nconst counts = { people: 0, projects: 0, ideas: 0, admin: 0, needs_review: 0, other: 0 };\n\nfor (const l of logs) {\n  const dest = String(l.property_filed_to ?? \"\").toLowerCase();\n  const conf = Number(l.property_confidence ?? 0);\n\n  if (dest === \"people\") counts.people++;\n  else if (dest === \"projects\") counts.projects++;\n  else if (dest === \"ideas\") counts.ideas++;\n  else if (dest === \"admin\") counts.admin++;\n  else if (dest === \"needs_review\") counts.needs_review++;\n  else counts.other++;\n\n  // If you treat low confidence as \"Needs Review\", count it too:\n  if (conf < 0.6) counts.needs_review++;\n}\n\nconst total_captures = logs.length;\n\n// ---- build readable context for LLM ----\nfunction fmtDate(iso) {\n  if (!iso) return \"\";\n  const d = new Date(iso);\n  return isNaN(d) ? \"\" : d.toISOString().slice(0, 10);\n}\n\nconst captures_text = logs\n  .sort((a,b) => new Date(a.property_created.start) - new Date(b.property_created.start))\n  .map(l => {\n    const dest = l.property_filed_to;\n    const created = l.property_created?.start;\n    const conf = Number(l.property_confidence ?? 0);\n    const title = (l.name || l.property_original_text || \"\").trim();\n    const link = l.property_destination_url || l.url || \"\";\n    return `- [${dest}] ${title}${link ? ` (${link})` : \"\"} — ${fmtDate(created)} — conf ${conf}`;\n  })\n  .join(\"\\n\");\n\nconst projects_text = projects\n  .map(p => {\n    const name = (p.property_name || p.name || \"\").trim();\n    const status = p.property_status || \"\";\n    const next = (p.property_next_action || \"\").trim();\n    const created = p.property_created_time || \"\";\n    const last = p.property_last_touched || \"\";\n    const link = p.url || \"\";\n    return `- ${name} [${status}]${link ? ` (${link})` : \"\"}\\n  next: ${next || \"(none)\"}\\n  created: ${fmtDate(created)}  last_touched: ${fmtDate(last) || \"(unknown)\"}`;\n  })\n  .join(\"\\n\");\n\n// ---- stale projects (no last_touched, so fall back to created_time) ----\nconst now = Date.now();\nconst daysBetween = (iso) => {\n  if (!iso) return null;\n  const t = new Date(iso).getTime();\n  if (isNaN(t)) return null;\n  return Math.floor((now - t) / (1000 * 60 * 60 * 24));\n};\n\nconst stale_projects = projects\n  .map(p => {\n    const last = p.property_last_touched || p.property_created_time;\n    const age = daysBetween(last);\n    return { name: p.property_name || p.name, age, url: p.url };\n  })\n  .filter(x => x.age != null && x.age > 7)\n  .sort((a,b) => b.age - a.age);\n\nconst needs_review_items = logs.filter(l => {\n  const dest = String(l.property_filed_to ?? \"\").toLowerCase();\n  const conf = Number(l.property_confidence ?? 0);\n  return dest === \"needs_review\" || conf < 0.6;\n}).map(l => ({\n  name: l.name || l.property_original_text,\n  url: l.property_destination_url || l.url || \"\"\n}));\n\nconst context =\n`CAPTURES (last 7 days):\n${captures_text || \"(none)\"}\n\nPROJECTS (status-filtered):\n${projects_text || \"(none)\"}\n\nSTALE PROJECTS (>7 days since last touch/created):\n${stale_projects.length ? stale_projects.map(s => `- ${s.name} (${s.age} days) ${s.url || \"\"}`).join(\"\\n\") : \"(none)\"}\n\nNEEDS REVIEW:\n${needs_review_items.length ? needs_review_items.map(n => `- ${n.name} ${n.url || \"\"}`).join(\"\\n\") : \"(none)\"}\n`;\n\nreturn [{\n  json: {\n    context,\n    total_captures,\n    breakdown: counts,\n    stale_projects,\n    needs_review_items\n  }\n}];\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          448,
+          96
+        ],
+        "id": "2b59c944-0e7f-4c11-b841-b16affb858db",
+        "name": "Code in JavaScript"
+      },
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "weeks",
+                "triggerAtHour": 16
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.3,
+        "position": [
+          -224,
+          96
+        ],
+        "id": "2fe8441c-f546-4117-aeea-5005f2527b28",
+        "name": "Schedule Trigger"
+      },
+      {
+        "parameters": {
+          "resource": "databasePage",
+          "operation": "getAll",
+          "databaseId": {
+            "__rl": true,
+            "value": "2e4f2f77-bba7-8031-a788-f0fe245329ac",
+            "mode": "list",
+            "cachedResultName": "Inbox Log",
+            "cachedResultUrl": "https://www.notion.so/2e4f2f77bba78031a788f0fe245329ac"
+          },
+          "filterType": "manual",
+          "filters": {
+            "conditions": [
+              {
+                "key": "Created|date",
+                "condition": "past_week"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.notion",
+        "typeVersion": 2.2,
+        "position": [
+          0,
+          0
+        ],
+        "id": "336482f6-3803-488d-91f6-bcbac9ae36fc",
+        "name": "Get Inbox",
+        "credentials": {
+          "notionApi": {
+            "id": "1MLEZcGgowzdt5uf",
+            "name": "Notion account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Get Projects": {
+        "main": [
+          [
+            {
+              "node": "Merge",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Message a model": {
+        "main": [
+          [
+            {
+              "node": "Send a message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Merge": {
+        "main": [
+          [
+            {
+              "node": "Code in JavaScript",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Code in JavaScript": {
+        "main": [
+          [
+            {
+              "node": "Message a model",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Schedule Trigger": {
+        "main": [
+          [
+            {
+              "node": "Get Projects",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Get Inbox",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Inbox": {
+        "main": [
+          [
+            {
+              "node": "Merge",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "James Brown",
+    "name": "Version 42ea644d",
+    "description": "",
+    "autosaved": false
+  },
+  "activeVersionId": "42ea644d-085b-4a65-8622-da2759ef219f",
+  "connections": {
+    "Get Projects": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Projects",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Inbox",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Inbox": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-10T18:23:39.387Z",
+  "id": "SHWQRCZC7TL4CDMk",
+  "isArchived": false,
+  "meta": null,
+  "name": "Second Brain:Weekly Digest",
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "2e4f2f77-bba7-801a-a4ec-c0f089830493",
+          "mode": "list",
+          "cachedResultName": "Projects",
+          "cachedResultUrl": "https://www.notion.so/2e4f2f77bba7801aa4ecc0f089830493"
+        },
+        "filterType": "manual",
+        "filters": {
+          "conditions": [
+            {
+              "key": "Status|select",
+              "condition": "equals",
+              "selectValue": "Active"
+            },
+            {
+              "key": "Status|select",
+              "condition": "equals",
+              "selectValue": "Waiting"
+            },
+            {
+              "key": "Status|select",
+              "condition": "equals",
+              "selectValue": "Blocked"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        192
+      ],
+      "id": "c634076a-c22c-4d08-8f6b-d6b8980a0a30",
+      "name": "Get Projects",
+      "credentials": {
+        "notionApi": {
+          "id": "1MLEZcGgowzdt5uf",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-3-5-haiku-20241022",
+          "mode": "list",
+          "cachedResultName": "claude-3-5-haiku-20241022"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=The Weekly Review Prompt\nYou are a personal productivity assistant conducting a weekly review. Analyze the following data and generate an insightful summary.\n\n{{ $json.context }}\n\nTOTAL CAPTURES THIS WEEK: {{ $json.total_captures }}\n\nINSTRUCTIONS:\nCreate a weekly review with EXACTLY this format. Keep it under 250 words total.\n\n---\n\n📅 **Week in Review**\n\n**📊 Quick Stats:**\n- Items captured: [number]\n- Breakdown: [x people, y projects, z ideas, w admin]\n\n**🎯 What Moved Forward:**\n- [Project or area that made progress]\n- [Another win or completion]\n\n**🔴 Open Loops (needs attention):**\n1. [Something blocked, stalled, or waiting too long]\n2. [Another concern]\n\n**💡 Patterns I Notice:**\n[One observation about themes, recurring topics, or where energy is going]\n\n**📌 Suggested Focus for Next Week:**\n1. [Specific action for highest priority item]\n2. [Second priority]\n3. [Third priority]\n\n**🔧 Items Needing Review:**\n[List any items still marked \"Needs Review\" or flag if none]\n\n---\n\nRULES:\n- Be analytical, not motivational\n- Call out projects that haven't had action in over a week\n- Note if capture volume was unusually high or low\n- Suggest concrete next actions, not vague intentions\n- If something looks stuck, say so directly\n- Keep language concise and actionable\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        672,
+        96
+      ],
+      "id": "33d94972-12fc-40ac-9df3-9a1041313ce1",
+      "name": "Message a model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "QIUyAAWFmOxaIZc6",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0A82N7UPUL",
+          "mode": "list",
+          "cachedResultName": "daily-digest"
+        },
+        "text": "={{ $json.content[0].text }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        1024,
+        96
+      ],
+      "id": "64202c7d-781a-4cf5-b932-8a11e6418b6b",
+      "name": "Send a message",
+      "webhookId": "15b0d077-4bbf-429f-bd98-c1bd27d3ce39",
+      "credentials": {
+        "slackApi": {
+          "id": "pBtkFKk519i0rGOe",
+          "name": "NWA Shop Local"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        224,
+        96
+      ],
+      "id": "31de0c30-3a0a-4c1b-a764-05634c5bd666",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Weekly Review prep: normalize Merge output into LLM-ready inputs\nconst items = $input.all().map(i => i.json);\n\nconst isLog = (x) => x.property_filed_to && x.property_created?.start;\nconst isProject = (x) => x.property_next_action || x.property_created_time || (x.property_tags && x.property_status);\n\nconst logs = items.filter(isLog);\nconst projects = items.filter(isProject);\n\n// ---- stats from capture log ----\nconst counts = { people: 0, projects: 0, ideas: 0, admin: 0, needs_review: 0, other: 0 };\n\nfor (const l of logs) {\n  const dest = String(l.property_filed_to ?? \"\").toLowerCase();\n  const conf = Number(l.property_confidence ?? 0);\n\n  if (dest === \"people\") counts.people++;\n  else if (dest === \"projects\") counts.projects++;\n  else if (dest === \"ideas\") counts.ideas++;\n  else if (dest === \"admin\") counts.admin++;\n  else if (dest === \"needs_review\") counts.needs_review++;\n  else counts.other++;\n\n  // If you treat low confidence as \"Needs Review\", count it too:\n  if (conf < 0.6) counts.needs_review++;\n}\n\nconst total_captures = logs.length;\n\n// ---- build readable context for LLM ----\nfunction fmtDate(iso) {\n  if (!iso) return \"\";\n  const d = new Date(iso);\n  return isNaN(d) ? \"\" : d.toISOString().slice(0, 10);\n}\n\nconst captures_text = logs\n  .sort((a,b) => new Date(a.property_created.start) - new Date(b.property_created.start))\n  .map(l => {\n    const dest = l.property_filed_to;\n    const created = l.property_created?.start;\n    const conf = Number(l.property_confidence ?? 0);\n    const title = (l.name || l.property_original_text || \"\").trim();\n    const link = l.property_destination_url || l.url || \"\";\n    return `- [${dest}] ${title}${link ? ` (${link})` : \"\"} — ${fmtDate(created)} — conf ${conf}`;\n  })\n  .join(\"\\n\");\n\nconst projects_text = projects\n  .map(p => {\n    const name = (p.property_name || p.name || \"\").trim();\n    const status = p.property_status || \"\";\n    const next = (p.property_next_action || \"\").trim();\n    const created = p.property_created_time || \"\";\n    const last = p.property_last_touched || \"\";\n    const link = p.url || \"\";\n    return `- ${name} [${status}]${link ? ` (${link})` : \"\"}\\n  next: ${next || \"(none)\"}\\n  created: ${fmtDate(created)}  last_touched: ${fmtDate(last) || \"(unknown)\"}`;\n  })\n  .join(\"\\n\");\n\n// ---- stale projects (no last_touched, so fall back to created_time) ----\nconst now = Date.now();\nconst daysBetween = (iso) => {\n  if (!iso) return null;\n  const t = new Date(iso).getTime();\n  if (isNaN(t)) return null;\n  return Math.floor((now - t) / (1000 * 60 * 60 * 24));\n};\n\nconst stale_projects = projects\n  .map(p => {\n    const last = p.property_last_touched || p.property_created_time;\n    const age = daysBetween(last);\n    return { name: p.property_name || p.name, age, url: p.url };\n  })\n  .filter(x => x.age != null && x.age > 7)\n  .sort((a,b) => b.age - a.age);\n\nconst needs_review_items = logs.filter(l => {\n  const dest = String(l.property_filed_to ?? \"\").toLowerCase();\n  const conf = Number(l.property_confidence ?? 0);\n  return dest === \"needs_review\" || conf < 0.6;\n}).map(l => ({\n  name: l.name || l.property_original_text,\n  url: l.property_destination_url || l.url || \"\"\n}));\n\nconst context =\n`CAPTURES (last 7 days):\n${captures_text || \"(none)\"}\n\nPROJECTS (status-filtered):\n${projects_text || \"(none)\"}\n\nSTALE PROJECTS (>7 days since last touch/created):\n${stale_projects.length ? stale_projects.map(s => `- ${s.name} (${s.age} days) ${s.url || \"\"}`).join(\"\\n\") : \"(none)\"}\n\nNEEDS REVIEW:\n${needs_review_items.length ? needs_review_items.map(n => `- ${n.name} ${n.url || \"\"}`).join(\"\\n\") : \"(none)\"}\n`;\n\nreturn [{\n  json: {\n    context,\n    total_captures,\n    breakdown: counts,\n    stale_projects,\n    needs_review_items\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        96
+      ],
+      "id": "2b59c944-0e7f-4c11-b841-b16affb858db",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtHour": 16
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -224,
+        96
+      ],
+      "id": "2fe8441c-f546-4117-aeea-5005f2527b28",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "2e4f2f77-bba7-8031-a788-f0fe245329ac",
+          "mode": "list",
+          "cachedResultName": "Inbox Log",
+          "cachedResultUrl": "https://www.notion.so/2e4f2f77bba78031a788f0fe245329ac"
+        },
+        "filterType": "manual",
+        "filters": {
+          "conditions": [
+            {
+              "key": "Created|date",
+              "condition": "past_week"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "336482f6-3803-488d-91f6-bcbac9ae36fc",
+      "name": "Get Inbox",
+      "credentials": {
+        "notionApi": {
+          "id": "1MLEZcGgowzdt5uf",
+          "name": "Notion account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-10T18:23:39.390Z",
+      "createdAt": "2026-01-10T18:23:39.390Z",
+      "role": "workflow:owner",
+      "workflowId": "SHWQRCZC7TL4CDMk",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-01-10T18:47:39.142Z",
+  "versionId": "42ea644d-085b-4a65-8622-da2759ef219f"
+}
