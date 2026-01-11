@@ -1,0 +1,2991 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-01-11T01:54:23.000Z",
+    "createdAt": "2026-01-11T01:54:19.772Z",
+    "versionId": "36b16f52-251e-4602-8c1c-323178c7aabd",
+    "workflowId": "d1bCnzNC8O1fDrl3",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "customer-inquiry",
+          "responseMode": "responseNode",
+          "options": {
+            "responseHeaders": {
+              "entries": [
+                {
+                  "name": "Access-Control-Allow-Origin",
+                  "value": "*"
+                },
+                {
+                  "name": "Access-Control-Allow-Methods",
+                  "value": "POST, OPTIONS"
+                },
+                {
+                  "name": "Access-Control-Allow-Headers",
+                  "value": "Content-Type"
+                }
+              ]
+            }
+          }
+        },
+        "id": "2f22256a-9098-4a08-aa13-ddbf7f1a6936",
+        "name": "Inquiry Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          960,
+          320
+        ],
+        "webhookId": "customer-inquiry"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "condition-name",
+                "leftValue": "={{ $json.body.name }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty"
+                }
+              },
+              {
+                "id": "condition-email",
+                "leftValue": "={{ $json.body.email }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty"
+                }
+              },
+              {
+                "id": "condition-message",
+                "leftValue": "={{ $json.body.message }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "551bbd5e-f932-499f-b852-d417ab9c26dd",
+        "name": "Validate Input",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          1216,
+          320
+        ]
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={\n  \"success\": false,\n  \"error\": \"Missing required fields\",\n  \"message\": \"Please provide name, email, and message fields.\",\n  \"required_fields\": [\"name\", \"email\", \"message\"]\n}",
+          "options": {
+            "responseCode": 400
+          }
+        },
+        "id": "3157790f-d4a6-4514-abf1-fbd2af968e36",
+        "name": "Error Response",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.5,
+        "position": [
+          1376,
+          544
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "set-name",
+                "name": "name",
+                "value": "={{ $json.body.name }}",
+                "type": "string"
+              },
+              {
+                "id": "set-email",
+                "name": "email",
+                "value": "={{ $json.body.email }}",
+                "type": "string"
+              },
+              {
+                "id": "set-company",
+                "name": "company",
+                "value": "={{ $json.body.company }}",
+                "type": "string"
+              },
+              {
+                "id": "set-message",
+                "name": "message",
+                "value": "={{ $json.body.message }}",
+                "type": "string"
+              },
+              {
+                "id": "set-inquiry-id",
+                "name": "inquiry_id",
+                "value": "=INQ-{{ $now.format('yyyy-MM') }}-{{ String(Math.floor(Math.random() * 99999)).padStart(5, '0') }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "f8d0879c-d58a-43af-8787-97fa6d1de02d",
+        "name": "Normalize Input",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          1456,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "value": "gpt-5.2",
+            "mode": "list",
+            "cachedResultName": "gpt-5.2"
+          },
+          "options": {
+            "temperature": 0.3
+          }
+        },
+        "id": "9d156e96-ef7f-4448-b74c-1d9fcd21511d",
+        "name": "OpenAI Classifier Model",
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1.2,
+        "position": [
+          1648,
+          560
+        ],
+        "credentials": {
+          "openAiApi": {
+            "id": "6sKwLZ4CBgrhQ8HO",
+            "name": "Hostinger n8n"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "model": {
+            "mode": "list",
+            "value": "gpt-4o-mini"
+          },
+          "options": {
+            "temperature": 0.2
+          }
+        },
+        "id": "f2073c3d-f6eb-4363-b1c1-1b0cd76e5674",
+        "name": "OpenAI Enrich Model",
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1.2,
+        "position": [
+          2640,
+          576
+        ],
+        "credentials": {
+          "openAiApi": {
+            "id": "6sKwLZ4CBgrhQ8HO",
+            "name": "Hostinger n8n"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsonSchemaExample": "{\n  \"urgency_level\": \"high\",\n  \"sentiment\": \"frustrated\",\n  \"summary\": \"Customer experiencing API integration errors in production\",\n  \"key_entities\": [\"API\", \"500 error\", \"production\"]\n}"
+        },
+        "id": "6757c64a-a3b1-495e-aaf7-c89a6058b9ec",
+        "name": "Structured Output Parser",
+        "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+        "typeVersion": 1.3,
+        "position": [
+          2848,
+          576
+        ]
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.category }}",
+                      "rightValue": "sales",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "id": "6f175cfc-77c3-412a-8706-318f145381be"
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Sales"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.category }}",
+                      "rightValue": "technical_support",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "id": "eb695140-09ab-42d5-8880-1a9f3c56e0a1"
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Technical Support"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.category }}",
+                      "rightValue": "billing",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "id": "03b7a450-31ea-45ce-aaa4-ecf0812a310e"
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Billing"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.category }}",
+                      "rightValue": "escalation",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "id": "1131379c-75de-421f-a66c-08ea6a773d6b"
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Escalation"
+              }
+            ]
+          },
+          "options": {
+            "fallbackOutput": "extra"
+          }
+        },
+        "id": "7364e9ae-5164-4511-8242-67d68c4e45ee",
+        "name": "Route by Category",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.2,
+        "position": [
+          3216,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "sales-team",
+                "name": "assigned_team",
+                "value": "Sales Team",
+                "type": "string"
+              },
+              {
+                "id": "sales-tier",
+                "name": "tier",
+                "value": "Tier 1",
+                "type": "string"
+              },
+              {
+                "id": "sales-response-time",
+                "name": "estimated_response_time",
+                "value": "4 hours",
+                "type": "string"
+              },
+              {
+                "id": "sales-priority",
+                "name": "priority_score",
+                "value": "={{ $json.urgency_level === 'critical' ? 95 : $json.urgency_level === 'high' ? 75 : $json.urgency_level === 'medium' ? 50 : 25 }}",
+                "type": "number"
+              }
+            ]
+          },
+          "includeOtherFields": true,
+          "options": {}
+        },
+        "id": "a0099d50-48b3-41ca-9418-b0f2ff8e791e",
+        "name": "Assign Sales",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          3488,
+          -80
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "tech-team",
+                "name": "assigned_team",
+                "value": "={{ $json.urgency_level === 'critical' || $json.urgency_level === 'high' ? 'Technical Support - Tier 2' : 'Technical Support - Tier 1' }}",
+                "type": "string"
+              },
+              {
+                "id": "tech-tier",
+                "name": "tier",
+                "value": "={{ $json.urgency_level === 'critical' || $json.urgency_level === 'high' ? 'Tier 2' : 'Tier 1' }}",
+                "type": "string"
+              },
+              {
+                "id": "tech-response-time",
+                "name": "estimated_response_time",
+                "value": "={{ $json.urgency_level === 'critical' ? '30 minutes' : $json.urgency_level === 'high' ? '2 hours' : '8 hours' }}",
+                "type": "string"
+              },
+              {
+                "id": "tech-priority",
+                "name": "priority_score",
+                "value": "={{ $json.urgency_level === 'critical' ? 100 : $json.urgency_level === 'high' ? 85 : $json.urgency_level === 'medium' ? 60 : 35 }}",
+                "type": "number"
+              }
+            ]
+          },
+          "includeOtherFields": true,
+          "options": {}
+        },
+        "id": "627d4712-eecd-42f5-881d-538fb77f42b1",
+        "name": "Assign Tech Support",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          3488,
+          112
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "billing-team",
+                "name": "assigned_team",
+                "value": "Billing Department",
+                "type": "string"
+              },
+              {
+                "id": "billing-tier",
+                "name": "tier",
+                "value": "Tier 1",
+                "type": "string"
+              },
+              {
+                "id": "billing-response-time",
+                "name": "estimated_response_time",
+                "value": "24 hours",
+                "type": "string"
+              },
+              {
+                "id": "billing-priority",
+                "name": "priority_score",
+                "value": "={{ $json.urgency_level === 'critical' ? 90 : $json.urgency_level === 'high' ? 70 : $json.urgency_level === 'medium' ? 45 : 20 }}",
+                "type": "number"
+              }
+            ]
+          },
+          "includeOtherFields": true,
+          "options": {}
+        },
+        "id": "fd3f6636-47ee-4f46-9b87-48b63e85a67e",
+        "name": "Assign Billing",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          3488,
+          288
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "escalation-team",
+                "name": "assigned_team",
+                "value": "Customer Success - Executive Escalation",
+                "type": "string"
+              },
+              {
+                "id": "escalation-tier",
+                "name": "tier",
+                "value": "Executive",
+                "type": "string"
+              },
+              {
+                "id": "escalation-response-time",
+                "name": "estimated_response_time",
+                "value": "1 hour",
+                "type": "string"
+              },
+              {
+                "id": "escalation-priority",
+                "name": "priority_score",
+                "value": 100,
+                "type": "number"
+              }
+            ]
+          },
+          "includeOtherFields": true,
+          "options": {}
+        },
+        "id": "ab03b3a2-2659-4f15-8728-f17fcdef3a5c",
+        "name": "Assign Escalation",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          3488,
+          480
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "general-team",
+                "name": "assigned_team",
+                "value": "Customer Support - General",
+                "type": "string"
+              },
+              {
+                "id": "general-tier",
+                "name": "tier",
+                "value": "Tier 1",
+                "type": "string"
+              },
+              {
+                "id": "general-response-time",
+                "name": "estimated_response_time",
+                "value": "24 hours",
+                "type": "string"
+              },
+              {
+                "id": "general-priority",
+                "name": "priority_score",
+                "value": "={{ $json.urgency_level === 'critical' ? 80 : $json.urgency_level === 'high' ? 60 : $json.urgency_level === 'medium' ? 40 : 20 }}",
+                "type": "number"
+              }
+            ]
+          },
+          "includeOtherFields": true,
+          "options": {}
+        },
+        "id": "045247a4-1c07-4978-9092-551e2bf205c6",
+        "name": "Assign General",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          3488,
+          672
+        ]
+      },
+      {
+        "parameters": {
+          "model": {
+            "mode": "list",
+            "value": "gpt-4o-mini"
+          },
+          "options": {
+            "temperature": 0.7
+          }
+        },
+        "id": "9dbed653-81fb-4531-8781-963c3ee9360e",
+        "name": "OpenAI Response Model",
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1.2,
+        "position": [
+          3808,
+          576
+        ],
+        "credentials": {
+          "openAiApi": {
+            "id": "6sKwLZ4CBgrhQ8HO",
+            "name": "Hostinger n8n"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "append",
+          "documentId": {
+            "__rl": true,
+            "value": "1fDjgAINDs3JgdAn4Dtg4Kgar0pm4p7DjBGQEX59xJ2g",
+            "mode": "list",
+            "cachedResultName": "Customer Inquiry Router",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fDjgAINDs3JgdAn4Dtg4Kgar0pm4p7DjBGQEX59xJ2g/edit?usp=drivesdk"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "gid=0",
+            "mode": "list",
+            "cachedResultName": "Sheet1",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fDjgAINDs3JgdAn4Dtg4Kgar0pm4p7DjBGQEX59xJ2g/edit#gid=0"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Inquiry ID": "={{ $json.inquiry_id }}",
+              "Received At": "={{ $json.received_at }}",
+              "Name": "={{ $json.name }}",
+              "Email": "={{ $json.email }}",
+              "Company": "={{ $json.company }}",
+              "Message": "={{ $json.original_message.substring(0, 500) }}",
+              "Category": "={{ $json.category }}",
+              "Urgency": "={{ $json.urgency_level }}",
+              "Sentiment": "={{ $json.sentiment }}",
+              "Summary": "={{ $json.summary }}",
+              "Priority Score": "={{ $json.priority_score }}",
+              "Est. Response Time": "={{ $json.estimated_response_time }}",
+              "Suggested Response": "={{ $json.suggested_response.substring(0, 500) }}",
+              "Processed At": "={{ $json.processed_at }}",
+              "Assigned Team ": "={{ $json.assigned_team }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "Inquiry ID",
+                "displayName": "Inquiry ID",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Received At",
+                "displayName": "Received At",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Name",
+                "displayName": "Name",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Email",
+                "displayName": "Email",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Company",
+                "displayName": "Company",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Message",
+                "displayName": "Message",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Category",
+                "displayName": "Category",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Urgency",
+                "displayName": "Urgency",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Sentiment",
+                "displayName": "Sentiment",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Summary",
+                "displayName": "Summary",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Assigned Team ",
+                "displayName": "Assigned Team ",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Priority Score",
+                "displayName": "Priority Score",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Est. Response Time",
+                "displayName": "Est. Response Time",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Suggested Response",
+                "displayName": "Suggested Response",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Processed At",
+                "displayName": "Processed At",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "id": "b86bee5c-97b0-463d-9b30-841cd8981d5c",
+        "name": "Log to Google Sheets",
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.5,
+        "position": [
+          4336,
+          288
+        ],
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "eOPhFUrfwo2AgnTD",
+            "name": "NWA Boost:Google Sheets"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ JSON.stringify($json) }}",
+          "options": {
+            "responseCode": 200,
+            "responseHeaders": {
+              "entries": [
+                {
+                  "name": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "name": "Access-Control-Allow-Origin",
+                  "value": "*"
+                }
+              ]
+            }
+          }
+        },
+        "id": "de218175-8962-4bba-8060-d01baaf76722",
+        "name": "Respond to Webhook",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.5,
+        "position": [
+          4768,
+          288
+        ]
+      },
+      {
+        "parameters": {
+          "content": "## AI Customer Inquiry Router: https://aigs-customer.netlify.app/\n### AiGS n8n Demo Workflow\n\nThis workflow demonstrates how n8n can power intelligent customer inquiry routing:\n\n1. **Webhook** receives customer inquiries from a frontend application\n2. **AI Classification** categorizes the inquiry (Sales, Technical Support, Billing, etc.)\n3. **Sentiment & Urgency Analysis** extracts key signals from the message\n4. **Smart Routing** assigns to the appropriate team based on category and urgency\n5. **AI Response Generation** creates a suggested reply for agents\n6. **Logging** records all data for audit and analytics\n\n**Setup Required:**\n- OpenAI API credentials\n- Google Sheets credentials (optional, for logging)\n- Update credential IDs in the workflow",
+          "height": 508,
+          "width": 816,
+          "color": 4
+        },
+        "id": "3fe6759c-6cf0-4c42-a3d4-0edf717bfa87",
+        "name": "Intro Note",
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          640,
+          -464
+        ]
+      },
+      {
+        "parameters": {
+          "content": "### AI Classification\n\nCategories:\n- **sales** - Pricing, demos, partnerships\n- **technical_support** - Bugs, API, errors\n- **billing** - Invoices, payments, refunds\n- **general_inquiry** - Product questions\n- **escalation** - Complaints, legal, cancellation",
+          "height": 416,
+          "width": 368,
+          "color": 5
+        },
+        "id": "99f2a6e3-b1e2-47d5-83d3-22e421b9bb92",
+        "name": "Classification Info",
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          1648,
+          -496
+        ]
+      },
+      {
+        "parameters": {
+          "content": "### Smart Routing Logic\n\nRouting considers:\n- Category → Team assignment\n- Urgency → Tier escalation\n- Sentiment → Priority adjustment\n\nEscalations automatically route to executive team.",
+          "height": 276,
+          "width": 280,
+          "color": 3
+        },
+        "id": "dff5d621-2f63-4864-95d1-c537ae04a6f6",
+        "name": "Routing Info",
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          3392,
+          -464
+        ]
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "=Analyze this customer inquiry and extract structured information.\n\nCustomer Name: {{ $('Normalize Input').item.json.name }}\nCompany: {{ $('Normalize Input').item.json.company }}\nCategory: {{ $json.Category }}\n\nCustomer Message:\n\"{{ $('Normalize Input').item.json.message }}\"\n\nProvide your analysis as JSON with these exact fields:\n- urgency_level: one of \"low\", \"medium\", \"high\", or \"critical\"\n- sentiment: one of \"positive\", \"neutral\", \"frustrated\", or \"angry\"\n- summary: A single sentence summarizing the core issue (max 100 characters)\n- key_entities: An array of specific product names, error codes, or references mentioned (empty array if none)\n",
+          "hasOutputParser": true,
+          "messages": {
+            "messageValues": [
+              {
+                "message": "You are a customer service analyst. Extract structured data from customer inquiries. Be concise and accurate. Always respond with valid JSON matching the requested schema."
+              }
+            ]
+          },
+          "batching": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.chainLlm",
+        "typeVersion": 1.8,
+        "position": [
+          2656,
+          288
+        ],
+        "id": "569ae15b-0e27-4b85-afe3-a14b2a824302",
+        "name": "Basic LLM Chain"
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "=Write a brief, professional suggested response to this customer inquiry.\n\nCategory: {{ $json.category }}\nAssigned Team: {{ $json.assigned_team }}\nUrgency: {{ $json.urgency_level }}\nCustomer Sentiment: {{ $json.sentiment }}\nSummary: {{ $json.summary }}\n\nOriginal Customer Message:\n\"{{ $json.message }}\"\n\nWrite a 2-3 sentence response that:\n1. Acknowledges their specific issue\n2. Sets appropriate expectations based on the urgency (response time: {{ $json.estimated_response_time }})\n3. Offers a helpful next step or reassurance\n\nKeep it warm but professional. Do not include any placeholders like [Name] - write it ready to send.",
+          "messages": {
+            "messageValues": [
+              {
+                "message": "You are a skilled customer service agent for a B2B software company. Write concise, empathetic, and professional responses. Never be dismissive of customer concerns. Match your tone to the urgency - be more urgent for critical issues, more relaxed for general inquiries."
+              }
+            ]
+          },
+          "batching": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.chainLlm",
+        "typeVersion": 1.8,
+        "position": [
+          3728,
+          288
+        ],
+        "id": "cd2d1228-64d4-4ffe-abd2-d48fe4709cbb",
+        "name": "Generate Response"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "bddc0286-c96a-4312-a7f1-3c45bb7c7cb1",
+                "name": "category",
+                "value": "sales",
+                "type": "string"
+              }
+            ]
+          },
+          "includeOtherFields": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          2144,
+          -48
+        ],
+        "id": "4ba3c3ec-6d07-404e-b55b-199af3283ade",
+        "name": "Sales Category"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "4392713c-5707-40aa-a718-6c0b9aac04be",
+                "name": "category",
+                "value": "technical support",
+                "type": "string"
+              }
+            ]
+          },
+          "includeOtherFields": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          2144,
+          128
+        ],
+        "id": "36faf9d1-41ca-4ad0-b565-54c272d6d531",
+        "name": "TechSupport Cat",
+        "alwaysOutputData": false
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "16747940-5dd7-4478-b975-9d6e0e980dd4",
+                "name": "category",
+                "value": "billing",
+                "type": "string"
+              }
+            ]
+          },
+          "includeOtherFields": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          2144,
+          288
+        ],
+        "id": "13427900-f52c-4aa9-b361-47e7f8691400",
+        "name": "Billing Cat"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "d51c1bb1-5f0a-4f99-a7b6-1e0e54a7c69c",
+                "name": "category",
+                "value": "general inquiry",
+                "type": "string"
+              }
+            ]
+          },
+          "includeOtherFields": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          2144,
+          464
+        ],
+        "id": "36e81824-81f4-45ad-b9a8-c1b204f309b2",
+        "name": "General Inquiry Cat"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "d1913796-2862-4e78-b563-8a03ab1de9c1",
+                "name": "category",
+                "value": "escalation",
+                "type": "string"
+              }
+            ]
+          },
+          "includeOtherFields": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          2144,
+          656
+        ],
+        "id": "3533f214-d5a0-4b5a-880e-7c772fb71e57",
+        "name": "Escalation Cat"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "4ecf7a68-cdeb-4dae-8a63-16e9bfee08c1",
+                "name": "category",
+                "value": "other",
+                "type": "string"
+              }
+            ]
+          },
+          "includeOtherFields": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          2144,
+          848
+        ],
+        "id": "e86fbd9c-8970-4515-bc31-41d368c51608",
+        "name": "Other Cat"
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $input.item.json;\n\n// Get the suggested response from Generate Response output\nconst suggestedResponse = input.text || 'Thank you for contacting us. A team member will respond shortly.';\n\n// Get normalized data\nconst normalizedData = $('Normalize Input').item.json;\n\n// Get enriched data from the Code node\nconst enrichedData = $('Normalize Data').item.json;\n\n// Determine which Assign node ran and get that data\nlet assignData = {};\n\ntry {\n  assignData = $('Assign Sales').item.json;\n} catch (e) {\n  // not this branch\n}\n\ntry {\n  assignData = $('Assign Tech Support').item.json;\n} catch (e) {\n  // not this branch\n}\n\ntry {\n  assignData = $('Assign Billing').item.json;\n} catch (e) {\n  // not this branch\n}\n\ntry {\n  assignData = $('Assign Escalation').item.json;\n} catch (e) {\n  // not this branch\n}\n\ntry {\n  assignData = $('Assign General').item.json;\n} catch (e) {\n  // not this branch\n}\n\nreturn {\n  inquiry_id: normalizedData.inquiry_id,\n  name: normalizedData.name,\n  email: normalizedData.email,\n  company: normalizedData.company,\n  original_message: normalizedData.message,\n  received_at: normalizedData.received_at || '',\n  category: enrichedData.category,\n  urgency_level: enrichedData.urgency_level,\n  sentiment: enrichedData.sentiment,\n  summary: enrichedData.summary,\n  key_entities: enrichedData.key_entities,\n  assigned_team: assignData.assigned_team || 'General Support',\n  tier: assignData.tier || 'Tier 1',\n  estimated_response_time: assignData.estimated_response_time || '24 hours',\n  priority_score: assignData.priority_score || 50,\n  suggested_response: suggestedResponse,\n  processed_at: new Date().toISOString()\n};"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          4080,
+          288
+        ],
+        "id": "6b34d4fd-60f0-4699-8ac2-70da7a86988b",
+        "name": "Combine Final Data"
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $input.item.json;\nconst normalizedData = $('Normalize Input').item.json;\n\n// Determine category by checking which AI Classifier output was used\n// We can check the execution path\nlet category = 'other';\n\ntry {\n  $('Sales Category').item;\n  category = 'sales';\n} catch (e) {}\n\ntry {\n  $('TechSupport Cat').item;\n  category = 'technical_support';\n} catch (e) {}\n\ntry {\n  $('Billing Cat').item;\n  category = 'billing';\n} catch (e) {}\n\ntry {\n  $('General Inquiry Cat').item;\n  category = 'general_inquiry';\n} catch (e) {}\n\ntry {\n  $('Escalation Cat').item;\n  category = 'escalation';\n} catch (e) {}\n\nconst llmOutput = input.output || input;\n\nreturn {\n  inquiry_id: normalizedData.inquiry_id,\n  name: normalizedData.name,\n  email: normalizedData.email,\n  company: normalizedData.company,\n  message: normalizedData.message,\n  received_at: normalizedData.received_at || '',\n  category: category,\n  urgency_level: llmOutput.urgency_level || 'medium',\n  sentiment: llmOutput.sentiment || 'neutral',\n  summary: llmOutput.summary || 'Customer inquiry received',\n  key_entities: llmOutput.key_entities || []\n};"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          3008,
+          288
+        ],
+        "id": "b31a196d-c52b-4d8b-9f40-144519a07eb8",
+        "name": "Normalize Data"
+      },
+      {
+        "parameters": {
+          "jsCode": "const data = $('Combine Final Data').item.json;\n\n// Helper function to format category for display\nfunction formatCategory(cat) {\n  if (!cat) return 'Unknown';\n  return cat\n    .split('_')\n    .map(word => word.charAt(0).toUpperCase() + word.slice(1))\n    .join(' ');\n}\n\nreturn {\n  success: true,\n  inquiry_id: data.inquiry_id,\n  classification: {\n    category: data.category,\n    category_display: formatCategory(data.category),\n    urgency: data.urgency_level,\n    sentiment: data.sentiment\n  },\n  routing: {\n    assigned_team: data.assigned_team,\n    tier: data.tier,\n    estimated_response_time: data.estimated_response_time,\n    priority_score: data.priority_score\n  },\n  ai_summary: data.summary,\n  suggested_response: data.suggested_response,\n  processed_at: data.processed_at\n};"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          4544,
+          288
+        ],
+        "id": "a52b23e2-a534-429f-a183-c587c296ff49",
+        "name": "Prepare Webhook Response"
+      },
+      {
+        "parameters": {
+          "inputText": "={{ $json.message }}",
+          "categories": {
+            "categories": [
+              {
+                "category": "sales",
+                "description": "Pricing inquiries, demo requests, new business opportunities, partnership discussions, quotes, purchasing questions"
+              },
+              {
+                "category": "technical_support",
+                "description": "Bug reports, API issues, integration problems, error messages, troubleshooting, system outages, technical questions"
+              },
+              {
+                "category": "billing",
+                "description": "Invoice questions, payment issues, subscription changes, refund requests, account billing, payment methods"
+              },
+              {
+                "category": "general_inquiry",
+                "description": "Product questions, feature requests, general information requests, how-to questions, documentation needs"
+              },
+              {
+                "category": "escalation",
+                "description": "Complaints, threats to cancel service, legal mentions, executive escalation requests, dissatisfaction with service, urgent unresolved issues"
+              }
+            ]
+          },
+          "options": {
+            "fallback": "other",
+            "systemPromptTemplate": "You are a customer service classification system. Classify the customer inquiry into exactly one of these categories: {categories}. Respond only with the JSON classification, no explanation."
+          }
+        },
+        "id": "2240476f-0d25-42cc-9086-710baf3a4434",
+        "name": "AI Classifiers",
+        "type": "@n8n/n8n-nodes-langchain.textClassifier",
+        "typeVersion": 1.1,
+        "position": [
+          1744,
+          240
+        ]
+      }
+    ],
+    "connections": {
+      "Inquiry Webhook": {
+        "main": [
+          [
+            {
+              "node": "Validate Input",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Validate Input": {
+        "main": [
+          [
+            {
+              "node": "Normalize Input",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Error Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Normalize Input": {
+        "main": [
+          [
+            {
+              "node": "AI Classifiers",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenAI Classifier Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Classifiers",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Route by Category": {
+        "main": [
+          [
+            {
+              "node": "Assign Sales",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Assign Tech Support",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Assign Billing",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Assign Escalation",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Assign General",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Assign Sales": {
+        "main": [
+          [
+            {
+              "node": "Generate Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Assign Tech Support": {
+        "main": [
+          [
+            {
+              "node": "Generate Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Assign Billing": {
+        "main": [
+          [
+            {
+              "node": "Generate Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Assign Escalation": {
+        "main": [
+          [
+            {
+              "node": "Generate Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Assign General": {
+        "main": [
+          [
+            {
+              "node": "Generate Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Log to Google Sheets": {
+        "main": [
+          [
+            {
+              "node": "Prepare Webhook Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenAI Enrich Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "Basic LLM Chain",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Basic LLM Chain": {
+        "main": [
+          [
+            {
+              "node": "Normalize Data",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Structured Output Parser": {
+        "ai_outputParser": [
+          [
+            {
+              "node": "Basic LLM Chain",
+              "type": "ai_outputParser",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenAI Response Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "Generate Response",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generate Response": {
+        "main": [
+          [
+            {
+              "node": "Combine Final Data",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Sales Category": {
+        "main": [
+          [
+            {
+              "node": "Basic LLM Chain",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "TechSupport Cat": {
+        "main": [
+          [
+            {
+              "node": "Basic LLM Chain",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Billing Cat": {
+        "main": [
+          [
+            {
+              "node": "Basic LLM Chain",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "General Inquiry Cat": {
+        "main": [
+          [
+            {
+              "node": "Basic LLM Chain",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Escalation Cat": {
+        "main": [
+          [
+            {
+              "node": "Basic LLM Chain",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Other Cat": {
+        "main": [
+          [
+            {
+              "node": "Basic LLM Chain",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Combine Final Data": {
+        "main": [
+          [
+            {
+              "node": "Log to Google Sheets",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Normalize Data": {
+        "main": [
+          [
+            {
+              "node": "Route by Category",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prepare Webhook Response": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "AI Classifiers": {
+        "main": [
+          [
+            {
+              "node": "Sales Category",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "TechSupport Cat",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Billing Cat",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "General Inquiry Cat",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Escalation Cat",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Other Cat",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "James Brown",
+    "name": "Version 36b16f52",
+    "description": "",
+    "autosaved": false
+  },
+  "activeVersionId": "36b16f52-251e-4602-8c1c-323178c7aabd",
+  "connections": {
+    "Inquiry Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Input": {
+      "main": [
+        [
+          {
+            "node": "Normalize Input",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Input": {
+      "main": [
+        [
+          {
+            "node": "AI Classifiers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Classifier Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Classifiers",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Category": {
+      "main": [
+        [
+          {
+            "node": "Assign Sales",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Assign Tech Support",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Assign Billing",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Assign Escalation",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Assign General",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assign Sales": {
+      "main": [
+        [
+          {
+            "node": "Generate Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assign Tech Support": {
+      "main": [
+        [
+          {
+            "node": "Generate Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assign Billing": {
+      "main": [
+        [
+          {
+            "node": "Generate Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assign Escalation": {
+      "main": [
+        [
+          {
+            "node": "Generate Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assign General": {
+      "main": [
+        [
+          {
+            "node": "Generate Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log to Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Prepare Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Enrich Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Normalize Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Response Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate Response",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Response": {
+      "main": [
+        [
+          {
+            "node": "Combine Final Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sales Category": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TechSupport Cat": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Billing Cat": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "General Inquiry Cat": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Escalation Cat": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Other Cat": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Final Data": {
+      "main": [
+        [
+          {
+            "node": "Log to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Data": {
+      "main": [
+        [
+          {
+            "node": "Route by Category",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Webhook Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Classifiers": {
+      "main": [
+        [
+          {
+            "node": "Sales Category",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "TechSupport Cat",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Billing Cat",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "General Inquiry Cat",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Escalation Cat",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Other Cat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2025-12-29T20:49:41.576Z",
+  "id": "d1bCnzNC8O1fDrl3",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "AI Customer Inquiry Router - AiGS Demo",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "customer-inquiry",
+        "responseMode": "responseNode",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "POST, OPTIONS"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type"
+              }
+            ]
+          }
+        }
+      },
+      "id": "2f22256a-9098-4a08-aa13-ddbf7f1a6936",
+      "name": "Inquiry Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        960,
+        320
+      ],
+      "webhookId": "customer-inquiry"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "condition-name",
+              "leftValue": "={{ $json.body.name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            },
+            {
+              "id": "condition-email",
+              "leftValue": "={{ $json.body.email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            },
+            {
+              "id": "condition-message",
+              "leftValue": "={{ $json.body.message }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "551bbd5e-f932-499f-b852-d417ab9c26dd",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1216,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"error\": \"Missing required fields\",\n  \"message\": \"Please provide name, email, and message fields.\",\n  \"required_fields\": [\"name\", \"email\", \"message\"]\n}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "3157790f-d4a6-4514-abf1-fbd2af968e36",
+      "name": "Error Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1376,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "set-name",
+              "name": "name",
+              "value": "={{ $json.body.name }}",
+              "type": "string"
+            },
+            {
+              "id": "set-email",
+              "name": "email",
+              "value": "={{ $json.body.email }}",
+              "type": "string"
+            },
+            {
+              "id": "set-company",
+              "name": "company",
+              "value": "={{ $json.body.company }}",
+              "type": "string"
+            },
+            {
+              "id": "set-message",
+              "name": "message",
+              "value": "={{ $json.body.message }}",
+              "type": "string"
+            },
+            {
+              "id": "set-inquiry-id",
+              "name": "inquiry_id",
+              "value": "=INQ-{{ $now.format('yyyy-MM') }}-{{ String(Math.floor(Math.random() * 99999)).padStart(5, '0') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f8d0879c-d58a-43af-8787-97fa6d1de02d",
+      "name": "Normalize Input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1456,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5.2",
+          "mode": "list",
+          "cachedResultName": "gpt-5.2"
+        },
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "id": "9d156e96-ef7f-4448-b74c-1d9fcd21511d",
+      "name": "OpenAI Classifier Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1648,
+        560
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "6sKwLZ4CBgrhQ8HO",
+          "name": "Hostinger n8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "f2073c3d-f6eb-4363-b1c1-1b0cd76e5674",
+      "name": "OpenAI Enrich Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        2640,
+        576
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "6sKwLZ4CBgrhQ8HO",
+          "name": "Hostinger n8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"urgency_level\": \"high\",\n  \"sentiment\": \"frustrated\",\n  \"summary\": \"Customer experiencing API integration errors in production\",\n  \"key_entities\": [\"API\", \"500 error\", \"production\"]\n}"
+      },
+      "id": "6757c64a-a3b1-495e-aaf7-c89a6058b9ec",
+      "name": "Structured Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2848,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "sales",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "6f175cfc-77c3-412a-8706-318f145381be"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Sales"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "technical_support",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "eb695140-09ab-42d5-8880-1a9f3c56e0a1"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Technical Support"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "billing",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "03b7a450-31ea-45ce-aaa4-ecf0812a310e"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Billing"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "escalation",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "1131379c-75de-421f-a66c-08ea6a773d6b"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Escalation"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "7364e9ae-5164-4511-8242-67d68c4e45ee",
+      "name": "Route by Category",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        3216,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "sales-team",
+              "name": "assigned_team",
+              "value": "Sales Team",
+              "type": "string"
+            },
+            {
+              "id": "sales-tier",
+              "name": "tier",
+              "value": "Tier 1",
+              "type": "string"
+            },
+            {
+              "id": "sales-response-time",
+              "name": "estimated_response_time",
+              "value": "4 hours",
+              "type": "string"
+            },
+            {
+              "id": "sales-priority",
+              "name": "priority_score",
+              "value": "={{ $json.urgency_level === 'critical' ? 95 : $json.urgency_level === 'high' ? 75 : $json.urgency_level === 'medium' ? 50 : 25 }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "a0099d50-48b3-41ca-9418-b0f2ff8e791e",
+      "name": "Assign Sales",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3488,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "tech-team",
+              "name": "assigned_team",
+              "value": "={{ $json.urgency_level === 'critical' || $json.urgency_level === 'high' ? 'Technical Support - Tier 2' : 'Technical Support - Tier 1' }}",
+              "type": "string"
+            },
+            {
+              "id": "tech-tier",
+              "name": "tier",
+              "value": "={{ $json.urgency_level === 'critical' || $json.urgency_level === 'high' ? 'Tier 2' : 'Tier 1' }}",
+              "type": "string"
+            },
+            {
+              "id": "tech-response-time",
+              "name": "estimated_response_time",
+              "value": "={{ $json.urgency_level === 'critical' ? '30 minutes' : $json.urgency_level === 'high' ? '2 hours' : '8 hours' }}",
+              "type": "string"
+            },
+            {
+              "id": "tech-priority",
+              "name": "priority_score",
+              "value": "={{ $json.urgency_level === 'critical' ? 100 : $json.urgency_level === 'high' ? 85 : $json.urgency_level === 'medium' ? 60 : 35 }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "627d4712-eecd-42f5-881d-538fb77f42b1",
+      "name": "Assign Tech Support",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3488,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "billing-team",
+              "name": "assigned_team",
+              "value": "Billing Department",
+              "type": "string"
+            },
+            {
+              "id": "billing-tier",
+              "name": "tier",
+              "value": "Tier 1",
+              "type": "string"
+            },
+            {
+              "id": "billing-response-time",
+              "name": "estimated_response_time",
+              "value": "24 hours",
+              "type": "string"
+            },
+            {
+              "id": "billing-priority",
+              "name": "priority_score",
+              "value": "={{ $json.urgency_level === 'critical' ? 90 : $json.urgency_level === 'high' ? 70 : $json.urgency_level === 'medium' ? 45 : 20 }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "fd3f6636-47ee-4f46-9b87-48b63e85a67e",
+      "name": "Assign Billing",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3488,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "escalation-team",
+              "name": "assigned_team",
+              "value": "Customer Success - Executive Escalation",
+              "type": "string"
+            },
+            {
+              "id": "escalation-tier",
+              "name": "tier",
+              "value": "Executive",
+              "type": "string"
+            },
+            {
+              "id": "escalation-response-time",
+              "name": "estimated_response_time",
+              "value": "1 hour",
+              "type": "string"
+            },
+            {
+              "id": "escalation-priority",
+              "name": "priority_score",
+              "value": 100,
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "ab03b3a2-2659-4f15-8728-f17fcdef3a5c",
+      "name": "Assign Escalation",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3488,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "general-team",
+              "name": "assigned_team",
+              "value": "Customer Support - General",
+              "type": "string"
+            },
+            {
+              "id": "general-tier",
+              "name": "tier",
+              "value": "Tier 1",
+              "type": "string"
+            },
+            {
+              "id": "general-response-time",
+              "name": "estimated_response_time",
+              "value": "24 hours",
+              "type": "string"
+            },
+            {
+              "id": "general-priority",
+              "name": "priority_score",
+              "value": "={{ $json.urgency_level === 'critical' ? 80 : $json.urgency_level === 'high' ? 60 : $json.urgency_level === 'medium' ? 40 : 20 }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "045247a4-1c07-4978-9092-551e2bf205c6",
+      "name": "Assign General",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3488,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {
+          "temperature": 0.7
+        }
+      },
+      "id": "9dbed653-81fb-4531-8781-963c3ee9360e",
+      "name": "OpenAI Response Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        3808,
+        576
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "6sKwLZ4CBgrhQ8HO",
+          "name": "Hostinger n8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1fDjgAINDs3JgdAn4Dtg4Kgar0pm4p7DjBGQEX59xJ2g",
+          "mode": "list",
+          "cachedResultName": "Customer Inquiry Router",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fDjgAINDs3JgdAn4Dtg4Kgar0pm4p7DjBGQEX59xJ2g/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fDjgAINDs3JgdAn4Dtg4Kgar0pm4p7DjBGQEX59xJ2g/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Inquiry ID": "={{ $json.inquiry_id }}",
+            "Received At": "={{ $json.received_at }}",
+            "Name": "={{ $json.name }}",
+            "Email": "={{ $json.email }}",
+            "Company": "={{ $json.company }}",
+            "Message": "={{ $json.original_message.substring(0, 500) }}",
+            "Category": "={{ $json.category }}",
+            "Urgency": "={{ $json.urgency_level }}",
+            "Sentiment": "={{ $json.sentiment }}",
+            "Summary": "={{ $json.summary }}",
+            "Priority Score": "={{ $json.priority_score }}",
+            "Est. Response Time": "={{ $json.estimated_response_time }}",
+            "Suggested Response": "={{ $json.suggested_response.substring(0, 500) }}",
+            "Processed At": "={{ $json.processed_at }}",
+            "Assigned Team ": "={{ $json.assigned_team }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Inquiry ID",
+              "displayName": "Inquiry ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Received At",
+              "displayName": "Received At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Urgency",
+              "displayName": "Urgency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Sentiment",
+              "displayName": "Sentiment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Assigned Team ",
+              "displayName": "Assigned Team ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Priority Score",
+              "displayName": "Priority Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Est. Response Time",
+              "displayName": "Est. Response Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Suggested Response",
+              "displayName": "Suggested Response",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Processed At",
+              "displayName": "Processed At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "b86bee5c-97b0-463d-9b30-841cd8981d5c",
+      "name": "Log to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        4336,
+        288
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "eOPhFUrfwo2AgnTD",
+          "name": "NWA Boost:Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "de218175-8962-4bba-8060-d01baaf76722",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        4768,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## AI Customer Inquiry Router: https://aigs-customer.netlify.app/\n### AiGS n8n Demo Workflow\n\nThis workflow demonstrates how n8n can power intelligent customer inquiry routing:\n\n1. **Webhook** receives customer inquiries from a frontend application\n2. **AI Classification** categorizes the inquiry (Sales, Technical Support, Billing, etc.)\n3. **Sentiment & Urgency Analysis** extracts key signals from the message\n4. **Smart Routing** assigns to the appropriate team based on category and urgency\n5. **AI Response Generation** creates a suggested reply for agents\n6. **Logging** records all data for audit and analytics\n\n**Setup Required:**\n- OpenAI API credentials\n- Google Sheets credentials (optional, for logging)\n- Update credential IDs in the workflow",
+        "height": 508,
+        "width": 816,
+        "color": 4
+      },
+      "id": "3fe6759c-6cf0-4c42-a3d4-0edf717bfa87",
+      "name": "Intro Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        640,
+        -464
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### AI Classification\n\nCategories:\n- **sales** - Pricing, demos, partnerships\n- **technical_support** - Bugs, API, errors\n- **billing** - Invoices, payments, refunds\n- **general_inquiry** - Product questions\n- **escalation** - Complaints, legal, cancellation",
+        "height": 416,
+        "width": 368,
+        "color": 5
+      },
+      "id": "99f2a6e3-b1e2-47d5-83d3-22e421b9bb92",
+      "name": "Classification Info",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1648,
+        -496
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Smart Routing Logic\n\nRouting considers:\n- Category → Team assignment\n- Urgency → Tier escalation\n- Sentiment → Priority adjustment\n\nEscalations automatically route to executive team.",
+        "height": 276,
+        "width": 280,
+        "color": 3
+      },
+      "id": "dff5d621-2f63-4864-95d1-c537ae04a6f6",
+      "name": "Routing Info",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3392,
+        -464
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze this customer inquiry and extract structured information.\n\nCustomer Name: {{ $('Normalize Input').item.json.name }}\nCompany: {{ $('Normalize Input').item.json.company }}\nCategory: {{ $json.Category }}\n\nCustomer Message:\n\"{{ $('Normalize Input').item.json.message }}\"\n\nProvide your analysis as JSON with these exact fields:\n- urgency_level: one of \"low\", \"medium\", \"high\", or \"critical\"\n- sentiment: one of \"positive\", \"neutral\", \"frustrated\", or \"angry\"\n- summary: A single sentence summarizing the core issue (max 100 characters)\n- key_entities: An array of specific product names, error codes, or references mentioned (empty array if none)\n",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a customer service analyst. Extract structured data from customer inquiries. Be concise and accurate. Always respond with valid JSON matching the requested schema."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.8,
+      "position": [
+        2656,
+        288
+      ],
+      "id": "569ae15b-0e27-4b85-afe3-a14b2a824302",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Write a brief, professional suggested response to this customer inquiry.\n\nCategory: {{ $json.category }}\nAssigned Team: {{ $json.assigned_team }}\nUrgency: {{ $json.urgency_level }}\nCustomer Sentiment: {{ $json.sentiment }}\nSummary: {{ $json.summary }}\n\nOriginal Customer Message:\n\"{{ $json.message }}\"\n\nWrite a 2-3 sentence response that:\n1. Acknowledges their specific issue\n2. Sets appropriate expectations based on the urgency (response time: {{ $json.estimated_response_time }})\n3. Offers a helpful next step or reassurance\n\nKeep it warm but professional. Do not include any placeholders like [Name] - write it ready to send.",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a skilled customer service agent for a B2B software company. Write concise, empathetic, and professional responses. Never be dismissive of customer concerns. Match your tone to the urgency - be more urgent for critical issues, more relaxed for general inquiries."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.8,
+      "position": [
+        3728,
+        288
+      ],
+      "id": "cd2d1228-64d4-4ffe-abd2-d48fe4709cbb",
+      "name": "Generate Response"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bddc0286-c96a-4312-a7f1-3c45bb7c7cb1",
+              "name": "category",
+              "value": "sales",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2144,
+        -48
+      ],
+      "id": "4ba3c3ec-6d07-404e-b55b-199af3283ade",
+      "name": "Sales Category"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4392713c-5707-40aa-a718-6c0b9aac04be",
+              "name": "category",
+              "value": "technical support",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2144,
+        128
+      ],
+      "id": "36faf9d1-41ca-4ad0-b565-54c272d6d531",
+      "name": "TechSupport Cat",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "16747940-5dd7-4478-b975-9d6e0e980dd4",
+              "name": "category",
+              "value": "billing",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2144,
+        288
+      ],
+      "id": "13427900-f52c-4aa9-b361-47e7f8691400",
+      "name": "Billing Cat"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d51c1bb1-5f0a-4f99-a7b6-1e0e54a7c69c",
+              "name": "category",
+              "value": "general inquiry",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2144,
+        464
+      ],
+      "id": "36e81824-81f4-45ad-b9a8-c1b204f309b2",
+      "name": "General Inquiry Cat"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d1913796-2862-4e78-b563-8a03ab1de9c1",
+              "name": "category",
+              "value": "escalation",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2144,
+        656
+      ],
+      "id": "3533f214-d5a0-4b5a-880e-7c772fb71e57",
+      "name": "Escalation Cat"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4ecf7a68-cdeb-4dae-8a63-16e9bfee08c1",
+              "name": "category",
+              "value": "other",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2144,
+        848
+      ],
+      "id": "e86fbd9c-8970-4515-bc31-41d368c51608",
+      "name": "Other Cat"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.item.json;\n\n// Get the suggested response from Generate Response output\nconst suggestedResponse = input.text || 'Thank you for contacting us. A team member will respond shortly.';\n\n// Get normalized data\nconst normalizedData = $('Normalize Input').item.json;\n\n// Get enriched data from the Code node\nconst enrichedData = $('Normalize Data').item.json;\n\n// Determine which Assign node ran and get that data\nlet assignData = {};\n\ntry {\n  assignData = $('Assign Sales').item.json;\n} catch (e) {\n  // not this branch\n}\n\ntry {\n  assignData = $('Assign Tech Support').item.json;\n} catch (e) {\n  // not this branch\n}\n\ntry {\n  assignData = $('Assign Billing').item.json;\n} catch (e) {\n  // not this branch\n}\n\ntry {\n  assignData = $('Assign Escalation').item.json;\n} catch (e) {\n  // not this branch\n}\n\ntry {\n  assignData = $('Assign General').item.json;\n} catch (e) {\n  // not this branch\n}\n\nreturn {\n  inquiry_id: normalizedData.inquiry_id,\n  name: normalizedData.name,\n  email: normalizedData.email,\n  company: normalizedData.company,\n  original_message: normalizedData.message,\n  received_at: normalizedData.received_at || '',\n  category: enrichedData.category,\n  urgency_level: enrichedData.urgency_level,\n  sentiment: enrichedData.sentiment,\n  summary: enrichedData.summary,\n  key_entities: enrichedData.key_entities,\n  assigned_team: assignData.assigned_team || 'General Support',\n  tier: assignData.tier || 'Tier 1',\n  estimated_response_time: assignData.estimated_response_time || '24 hours',\n  priority_score: assignData.priority_score || 50,\n  suggested_response: suggestedResponse,\n  processed_at: new Date().toISOString()\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4080,
+        288
+      ],
+      "id": "6b34d4fd-60f0-4699-8ac2-70da7a86988b",
+      "name": "Combine Final Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.item.json;\nconst normalizedData = $('Normalize Input').item.json;\n\n// Determine category by checking which AI Classifier output was used\n// We can check the execution path\nlet category = 'other';\n\ntry {\n  $('Sales Category').item;\n  category = 'sales';\n} catch (e) {}\n\ntry {\n  $('TechSupport Cat').item;\n  category = 'technical_support';\n} catch (e) {}\n\ntry {\n  $('Billing Cat').item;\n  category = 'billing';\n} catch (e) {}\n\ntry {\n  $('General Inquiry Cat').item;\n  category = 'general_inquiry';\n} catch (e) {}\n\ntry {\n  $('Escalation Cat').item;\n  category = 'escalation';\n} catch (e) {}\n\nconst llmOutput = input.output || input;\n\nreturn {\n  inquiry_id: normalizedData.inquiry_id,\n  name: normalizedData.name,\n  email: normalizedData.email,\n  company: normalizedData.company,\n  message: normalizedData.message,\n  received_at: normalizedData.received_at || '',\n  category: category,\n  urgency_level: llmOutput.urgency_level || 'medium',\n  sentiment: llmOutput.sentiment || 'neutral',\n  summary: llmOutput.summary || 'Customer inquiry received',\n  key_entities: llmOutput.key_entities || []\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3008,
+        288
+      ],
+      "id": "b31a196d-c52b-4d8b-9f40-144519a07eb8",
+      "name": "Normalize Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $('Combine Final Data').item.json;\n\n// Helper function to format category for display\nfunction formatCategory(cat) {\n  if (!cat) return 'Unknown';\n  return cat\n    .split('_')\n    .map(word => word.charAt(0).toUpperCase() + word.slice(1))\n    .join(' ');\n}\n\nreturn {\n  success: true,\n  inquiry_id: data.inquiry_id,\n  classification: {\n    category: data.category,\n    category_display: formatCategory(data.category),\n    urgency: data.urgency_level,\n    sentiment: data.sentiment\n  },\n  routing: {\n    assigned_team: data.assigned_team,\n    tier: data.tier,\n    estimated_response_time: data.estimated_response_time,\n    priority_score: data.priority_score\n  },\n  ai_summary: data.summary,\n  suggested_response: data.suggested_response,\n  processed_at: data.processed_at\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4544,
+        288
+      ],
+      "id": "a52b23e2-a534-429f-a183-c587c296ff49",
+      "name": "Prepare Webhook Response"
+    },
+    {
+      "parameters": {
+        "inputText": "={{ $json.message }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "sales",
+              "description": "Pricing inquiries, demo requests, new business opportunities, partnership discussions, quotes, purchasing questions"
+            },
+            {
+              "category": "technical_support",
+              "description": "Bug reports, API issues, integration problems, error messages, troubleshooting, system outages, technical questions"
+            },
+            {
+              "category": "billing",
+              "description": "Invoice questions, payment issues, subscription changes, refund requests, account billing, payment methods"
+            },
+            {
+              "category": "general_inquiry",
+              "description": "Product questions, feature requests, general information requests, how-to questions, documentation needs"
+            },
+            {
+              "category": "escalation",
+              "description": "Complaints, threats to cancel service, legal mentions, executive escalation requests, dissatisfaction with service, urgent unresolved issues"
+            }
+          ]
+        },
+        "options": {
+          "fallback": "other",
+          "systemPromptTemplate": "You are a customer service classification system. Classify the customer inquiry into exactly one of these categories: {categories}. Respond only with the JSON classification, no explanation."
+        }
+      },
+      "id": "2240476f-0d25-42cc-9086-710baf3a4434",
+      "name": "AI Classifiers",
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "typeVersion": 1.1,
+      "position": [
+        1744,
+        240
+      ]
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2025-12-29T20:49:41.578Z",
+      "createdAt": "2025-12-29T20:49:41.578Z",
+      "role": "workflow:owner",
+      "workflowId": "d1bCnzNC8O1fDrl3",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [
+    {
+      "updatedAt": "2025-12-29T20:41:42.653Z",
+      "createdAt": "2025-12-29T20:41:42.653Z",
+      "id": "8trbYAXZqY5I4uHV",
+      "name": "AiGS Demo"
+    },
+    {
+      "updatedAt": "2025-12-29T20:41:42.665Z",
+      "createdAt": "2025-12-29T20:41:42.665Z",
+      "id": "9UD9jscTxK5UqGCn",
+      "name": "AI"
+    },
+    {
+      "updatedAt": "2025-12-29T20:41:42.668Z",
+      "createdAt": "2025-12-29T20:41:42.668Z",
+      "id": "xGywimDgQqpLwh8b",
+      "name": "Customer Service"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2026-01-11T01:54:19.771Z",
+  "versionId": "36b16f52-251e-4602-8c1c-323178c7aabd"
+}
