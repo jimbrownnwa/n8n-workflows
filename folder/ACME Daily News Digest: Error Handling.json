@@ -1,0 +1,589 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-01-11T02:00:27.000Z",
+    "createdAt": "2026-01-11T02:00:23.818Z",
+    "versionId": "3c5cd06a-f2e5-41f7-8456-30a76bc7bb82",
+    "workflowId": "hPNAxDZJU5QxfDtl",
+    "nodes": [
+      {
+        "parameters": {},
+        "id": "b6dbf6fd-30c4-4052-8bbd-0da518384a71",
+        "name": "Error Trigger",
+        "type": "n8n-nodes-base.errorTrigger",
+        "typeVersion": 1,
+        "position": [
+          1968,
+          576
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "workflow_name",
+                "name": "workflow_name",
+                "value": "={{ $json.workflow.name }}",
+                "type": "string"
+              },
+              {
+                "id": "workflow_id",
+                "name": "workflow_id",
+                "value": "={{ $json.workflow.id }}",
+                "type": "string"
+              },
+              {
+                "id": "execution_id",
+                "name": "execution_id",
+                "value": "={{ $json.execution.id }}",
+                "type": "string"
+              },
+              {
+                "id": "error_message",
+                "name": "error_message",
+                "value": "={{ $json.execution.lastNodeExecuted ? $json.execution.lastNodeExecuted + ': ' + ($json.execution.error?.message || 'Unknown error') : 'Unknown error occurred' }}",
+                "type": "string"
+              },
+              {
+                "id": "failed_node",
+                "name": "failed_node",
+                "value": "={{ $json.execution.lastNodeExecuted || 'Unknown' }}",
+                "type": "string"
+              },
+              {
+                "id": "timestamp",
+                "name": "timestamp",
+                "value": "={{ $now.toISO() }}",
+                "type": "string"
+              },
+              {
+                "id": "execution_url",
+                "name": "execution_url",
+                "value": "={{ $execution.resumeUrl }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "c1373923-739f-41e0-8d4d-6e1de0c61a71",
+        "name": "Format Error Data",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.3,
+        "position": [
+          2192,
+          576
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "append",
+          "documentId": {
+            "__rl": true,
+            "value": "1SpU0ySdDVgqCXy7pdVDA2t31RG9_ZSKPz1YtT1iALyY",
+            "mode": "list",
+            "cachedResultName": "diviup Daily Digest",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SpU0ySdDVgqCXy7pdVDA2t31RG9_ZSKPz1YtT1iALyY/edit?usp=drivesdk"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 543839344,
+            "mode": "list",
+            "cachedResultName": "Daily Log Failure",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SpU0ySdDVgqCXy7pdVDA2t31RG9_ZSKPz1YtT1iALyY/edit#gid=543839344"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Timestamp": "={{ $json.timestamp }}",
+              "Status": "Failed",
+              "Workflow": "={{ $json.workflow_name }}",
+              "Workflow ID": "={{ $json.workflow_id }}",
+              "Failed Node": "={{ $json.failed_node }}",
+              "Error Message": "={{ $json.error_message }}",
+              "Execution ID": "={{ $json.execution_id }}",
+              "Execution Mode": "Daily Trigger"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "Timestamp",
+                "displayName": "Timestamp",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Status",
+                "displayName": "Status",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Workflow",
+                "displayName": "Workflow",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Workflow ID",
+                "displayName": "Workflow ID",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Failed Node",
+                "displayName": "Failed Node",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Error Message",
+                "displayName": "Error Message",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Execution ID",
+                "displayName": "Execution ID",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Execution Mode",
+                "displayName": "Execution Mode",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "id": "e5537bec-682c-45c0-883c-d5456e3f19f3",
+        "name": "Log Error to Google Sheets",
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.4,
+        "position": [
+          2400,
+          672
+        ],
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "eOPhFUrfwo2AgnTD",
+            "name": "NWA Boost:Google Sheets"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "sendTo": "jimbrown131@gmail.com",
+          "subject": "={{ $json.subject }}",
+          "message": "={{ $json.htmlBody }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.1,
+        "position": [
+          2624,
+          480
+        ],
+        "id": "e437f75c-b726-4a05-b654-f0b0c244fc87",
+        "name": "Send a message",
+        "webhookId": "726eb8b7-1802-4c7e-91a8-067d755a84fc",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "dmIKVw4RuLHhcC3Y",
+            "name": "Nwa Boost:Gmail"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Get the error data\nconst errorData = $input.first().json;\n\n// Format timestamp to be more readable\nconst timestamp = new Date(errorData.timestamp).toLocaleString('en-US', {\n  weekday: 'long',\n  year: 'numeric',\n  month: 'long',\n  day: 'numeric',\n  hour: '2-digit',\n  minute: '2-digit',\n  timeZone: 'America/Chicago'\n});\n\n// Build HTML email\nconst htmlBody = `\n<!DOCTYPE html>\n<html>\n<head>\n  <style>\n    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }\n    .container { max-width: 600px; margin: 0 auto; padding: 20px; }\n    .alert-box { background: #fff5f5; border-left: 5px solid #e74c3c; padding: 20px; margin: 20px 0; border-radius: 4px; }\n    .alert-icon { font-size: 24px; margin-bottom: 10px; }\n    .intro { font-size: 16px; margin-bottom: 20px; }\n    .details { background: white; border: 1px solid #ddd; padding: 15px; border-radius: 4px; margin: 20px 0; }\n    .details h3 { margin-top: 0; color: #e74c3c; }\n    ul { padding-left: 20px; }\n    li { margin: 10px 0; }\n    .label { font-weight: bold; color: #555; }\n    .value { font-family: 'Courier New', monospace; background: #f5f5f5; padding: 2px 6px; border-radius: 3px; }\n    .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; }\n    .button { display: inline-block; background: #fff; color: black; padding: 10px 20px; text-decoration: none; border-radius: 4px; border-color: black; margin-top: 15px; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"alert-box\">\n      <div class=\"alert-icon\">🚨</div>\n      <h2 style=\"margin: 0 0 10px 0; color: #e74c3c;\">Workflow Execution Failed</h2>\n      <p class=\"intro\">\n        The <strong>${errorData.workflow_name}</strong> workflow encountered an error and was unable to complete successfully. \n        Please review the details below and take appropriate action.\n      </p>\n    </div>\n\n    <div class=\"details\">\n      <h3>Error Details</h3>\n      <ul>\n        <li>\n          <span class=\"label\">Workflow:</span> \n          <span class=\"value\">${errorData.workflow_name}</span>\n        </li>\n        <li>\n          <span class=\"label\">Failed Node:</span> \n          <span class=\"value\">${errorData.failed_node}</span>\n        </li>\n        <li>\n          <span class=\"label\">Error Message:</span> \n          <span class=\"value\">${errorData.error_message}</span>\n        </li>\n        <li>\n          <span class=\"label\">Timestamp:</span> \n          <span class=\"value\">${timestamp}</span>\n        </li>\n        <li>\n          <span class=\"label\">Execution ID:</span> \n          <span class=\"value\">${errorData.execution_id}</span>\n        </li>\n      </ul>\n    </div>\n\n    <div style=\"text-align: center;\">\n      <a href=\"${errorData.execution_url}\" class=\"button\">View Full Execution Details</a>\n    </div>\n\n    <div class=\"footer\">\n      <p><strong>Next Steps:</strong></p>\n      <ol>\n        <li>Click the button above to view complete execution logs</li>\n        <li>Verify all API credentials and connections are valid</li>\n        <li>Check for any external service disruptions</li>\n        <li>Review the failed node configuration</li>\n        <li>Contact support if the issue persists</li>\n      </ol>\n      <p style=\"margin-top: 20px;\">\n        This is an automated notification from your n8n workflow automation system.\n      </p>\n    </div>\n  </div>\n</body>\n</html>\n`;\n\n// Return formatted email data\nreturn {\n  json: {\n    subject: `🚨 ${errorData.workflow_name} Failed - ${new Date(errorData.timestamp).toLocaleDateString()}`,\n    htmlBody: htmlBody,\n    textBody: `Workflow Failed: ${errorData.workflow_name}\\n\\nFailed Node: ${errorData.failed_node}\\nError: ${errorData.error_message}\\nTime: ${timestamp}\\n\\nView details: ${errorData.execution_url}`\n  }\n};"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2400,
+          448
+        ],
+        "id": "0d2173dc-5e69-43db-905c-d2539d48775e",
+        "name": "Format Output"
+      }
+    ],
+    "connections": {
+      "Error Trigger": {
+        "main": [
+          [
+            {
+              "node": "Format Error Data",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Format Error Data": {
+        "main": [
+          [
+            {
+              "node": "Log Error to Google Sheets",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Format Output",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Format Output": {
+        "main": [
+          [
+            {
+              "node": "Send a message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "James Brown",
+    "name": "Version 3c5cd06a",
+    "description": "",
+    "autosaved": false
+  },
+  "activeVersionId": "3c5cd06a-f2e5-41f7-8456-30a76bc7bb82",
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Format Error Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Error Data": {
+      "main": [
+        [
+          {
+            "node": "Log Error to Google Sheets",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Format Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Output": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-01T03:44:20.944Z",
+  "id": "hPNAxDZJU5QxfDtl",
+  "isArchived": false,
+  "meta": null,
+  "name": "ACME Daily News Digest: Error Handling",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "b6dbf6fd-30c4-4052-8bbd-0da518384a71",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        1968,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "workflow_name",
+              "name": "workflow_name",
+              "value": "={{ $json.workflow.name }}",
+              "type": "string"
+            },
+            {
+              "id": "workflow_id",
+              "name": "workflow_id",
+              "value": "={{ $json.workflow.id }}",
+              "type": "string"
+            },
+            {
+              "id": "execution_id",
+              "name": "execution_id",
+              "value": "={{ $json.execution.id }}",
+              "type": "string"
+            },
+            {
+              "id": "error_message",
+              "name": "error_message",
+              "value": "={{ $json.execution.lastNodeExecuted ? $json.execution.lastNodeExecuted + ': ' + ($json.execution.error?.message || 'Unknown error') : 'Unknown error occurred' }}",
+              "type": "string"
+            },
+            {
+              "id": "failed_node",
+              "name": "failed_node",
+              "value": "={{ $json.execution.lastNodeExecuted || 'Unknown' }}",
+              "type": "string"
+            },
+            {
+              "id": "timestamp",
+              "name": "timestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "execution_url",
+              "name": "execution_url",
+              "value": "={{ $execution.resumeUrl }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c1373923-739f-41e0-8d4d-6e1de0c61a71",
+      "name": "Format Error Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [
+        2192,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1SpU0ySdDVgqCXy7pdVDA2t31RG9_ZSKPz1YtT1iALyY",
+          "mode": "list",
+          "cachedResultName": "diviup Daily Digest",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SpU0ySdDVgqCXy7pdVDA2t31RG9_ZSKPz1YtT1iALyY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 543839344,
+          "mode": "list",
+          "cachedResultName": "Daily Log Failure",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SpU0ySdDVgqCXy7pdVDA2t31RG9_ZSKPz1YtT1iALyY/edit#gid=543839344"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $json.timestamp }}",
+            "Status": "Failed",
+            "Workflow": "={{ $json.workflow_name }}",
+            "Workflow ID": "={{ $json.workflow_id }}",
+            "Failed Node": "={{ $json.failed_node }}",
+            "Error Message": "={{ $json.error_message }}",
+            "Execution ID": "={{ $json.execution_id }}",
+            "Execution Mode": "Daily Trigger"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Workflow",
+              "displayName": "Workflow",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Workflow ID",
+              "displayName": "Workflow ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Failed Node",
+              "displayName": "Failed Node",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Error Message",
+              "displayName": "Error Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Execution ID",
+              "displayName": "Execution ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Execution Mode",
+              "displayName": "Execution Mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "e5537bec-682c-45c0-883c-d5456e3f19f3",
+      "name": "Log Error to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [
+        2400,
+        672
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "eOPhFUrfwo2AgnTD",
+          "name": "NWA Boost:Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "jimbrown131@gmail.com",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.htmlBody }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2624,
+        480
+      ],
+      "id": "e437f75c-b726-4a05-b654-f0b0c244fc87",
+      "name": "Send a message",
+      "webhookId": "726eb8b7-1802-4c7e-91a8-067d755a84fc",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "dmIKVw4RuLHhcC3Y",
+          "name": "Nwa Boost:Gmail"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the error data\nconst errorData = $input.first().json;\n\n// Format timestamp to be more readable\nconst timestamp = new Date(errorData.timestamp).toLocaleString('en-US', {\n  weekday: 'long',\n  year: 'numeric',\n  month: 'long',\n  day: 'numeric',\n  hour: '2-digit',\n  minute: '2-digit',\n  timeZone: 'America/Chicago'\n});\n\n// Build HTML email\nconst htmlBody = `\n<!DOCTYPE html>\n<html>\n<head>\n  <style>\n    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }\n    .container { max-width: 600px; margin: 0 auto; padding: 20px; }\n    .alert-box { background: #fff5f5; border-left: 5px solid #e74c3c; padding: 20px; margin: 20px 0; border-radius: 4px; }\n    .alert-icon { font-size: 24px; margin-bottom: 10px; }\n    .intro { font-size: 16px; margin-bottom: 20px; }\n    .details { background: white; border: 1px solid #ddd; padding: 15px; border-radius: 4px; margin: 20px 0; }\n    .details h3 { margin-top: 0; color: #e74c3c; }\n    ul { padding-left: 20px; }\n    li { margin: 10px 0; }\n    .label { font-weight: bold; color: #555; }\n    .value { font-family: 'Courier New', monospace; background: #f5f5f5; padding: 2px 6px; border-radius: 3px; }\n    .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; }\n    .button { display: inline-block; background: #fff; color: black; padding: 10px 20px; text-decoration: none; border-radius: 4px; border-color: black; margin-top: 15px; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"alert-box\">\n      <div class=\"alert-icon\">🚨</div>\n      <h2 style=\"margin: 0 0 10px 0; color: #e74c3c;\">Workflow Execution Failed</h2>\n      <p class=\"intro\">\n        The <strong>${errorData.workflow_name}</strong> workflow encountered an error and was unable to complete successfully. \n        Please review the details below and take appropriate action.\n      </p>\n    </div>\n\n    <div class=\"details\">\n      <h3>Error Details</h3>\n      <ul>\n        <li>\n          <span class=\"label\">Workflow:</span> \n          <span class=\"value\">${errorData.workflow_name}</span>\n        </li>\n        <li>\n          <span class=\"label\">Failed Node:</span> \n          <span class=\"value\">${errorData.failed_node}</span>\n        </li>\n        <li>\n          <span class=\"label\">Error Message:</span> \n          <span class=\"value\">${errorData.error_message}</span>\n        </li>\n        <li>\n          <span class=\"label\">Timestamp:</span> \n          <span class=\"value\">${timestamp}</span>\n        </li>\n        <li>\n          <span class=\"label\">Execution ID:</span> \n          <span class=\"value\">${errorData.execution_id}</span>\n        </li>\n      </ul>\n    </div>\n\n    <div style=\"text-align: center;\">\n      <a href=\"${errorData.execution_url}\" class=\"button\">View Full Execution Details</a>\n    </div>\n\n    <div class=\"footer\">\n      <p><strong>Next Steps:</strong></p>\n      <ol>\n        <li>Click the button above to view complete execution logs</li>\n        <li>Verify all API credentials and connections are valid</li>\n        <li>Check for any external service disruptions</li>\n        <li>Review the failed node configuration</li>\n        <li>Contact support if the issue persists</li>\n      </ol>\n      <p style=\"margin-top: 20px;\">\n        This is an automated notification from your n8n workflow automation system.\n      </p>\n    </div>\n  </div>\n</body>\n</html>\n`;\n\n// Return formatted email data\nreturn {\n  json: {\n    subject: `🚨 ${errorData.workflow_name} Failed - ${new Date(errorData.timestamp).toLocaleDateString()}`,\n    htmlBody: htmlBody,\n    textBody: `Workflow Failed: ${errorData.workflow_name}\\n\\nFailed Node: ${errorData.failed_node}\\nError: ${errorData.error_message}\\nTime: ${timestamp}\\n\\nView details: ${errorData.execution_url}`\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2400,
+        448
+      ],
+      "id": "0d2173dc-5e69-43db-905c-d2539d48775e",
+      "name": "Format Output"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-01T03:44:20.946Z",
+      "createdAt": "2026-01-01T03:44:20.946Z",
+      "role": "workflow:owner",
+      "workflowId": "hPNAxDZJU5QxfDtl",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [
+    {
+      "updatedAt": "2026-01-01T03:44:17.802Z",
+      "createdAt": "2026-01-01T03:44:17.802Z",
+      "id": "u891HoU79W6IIPHH",
+      "name": "Error Handling"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-11T02:00:23.817Z",
+  "versionId": "3c5cd06a-f2e5-41f7-8456-30a76bc7bb82"
+}
