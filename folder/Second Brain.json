@@ -1,0 +1,1440 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-01-10T03:14:46.000Z",
+    "createdAt": "2026-01-10T03:09:41.161Z",
+    "versionId": "7259005f-7062-4c92-95ed-d494ad023d1c",
+    "workflowId": "N3GnIEhfgQ3lbAwD",
+    "nodes": [
+      {
+        "parameters": {
+          "trigger": [
+            "app_mention"
+          ],
+          "channelId": {
+            "__rl": true,
+            "value": "C0A7Q3DESFM",
+            "mode": "list",
+            "cachedResultName": "sd-brain"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.slackTrigger",
+        "typeVersion": 1,
+        "position": [
+          -800,
+          128
+        ],
+        "id": "079f6d39-9dce-4cb0-87a6-93fdb8030525",
+        "name": "Slack Trigger",
+        "webhookId": "4324b402-aef7-4b06-be41-0b483c137407",
+        "credentials": {
+          "slackApi": {
+            "id": "pBtkFKk519i0rGOe",
+            "name": "NWA Shop Local"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Get the raw text string from Claude's response\nconst rawText = $input.first().json.content[0].text;\n\n// Parse the JSON string into an object\nlet parsed;\ntry {\n  parsed = JSON.parse(rawText);\n} catch (e) {\n  throw new Error('Failed to parse Claude JSON: ' + e.message);\n}\n\n// Return as n8n-friendly JSON\nreturn [\n  {\n    json: parsed\n  }\n];\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -224,
+          128
+        ],
+        "id": "4e33ff00-fcb0-4b86-8d5c-dffa29340bd5",
+        "name": "Code in JavaScript"
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "claude-3-5-haiku-20241022",
+            "mode": "list",
+            "cachedResultName": "claude-3-5-haiku-20241022"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=You are a classification system for a personal knowledge management system. Your job is to analyze the user's captured thought and return structured JSON.\n\nINPUT:\n{{ $json.text }}\n\nINSTRUCTIONS:\n1. Determine which category this belongs to:\n   - \"people\" - information about a person, relationship update, something someone said\n   - \"projects\" - a project, task with multiple steps, ongoing work\n   - \"ideas\" - a thought, insight, concept, something to explore later\n   - \"admin\" - a simple errand, one-off task, something with a due date\n\n2. Extract the relevant fields based on category\n\n3. Assign a confidence score (0.0 to 1.0):\n   - 0.9-1.0: Very clear category, obvious classification\n   - 0.7-0.89: Fairly confident, good match\n   - 0.5-0.69: Uncertain, could be multiple categories\n   - Below 0.5: Very unclear, needs human review\n\n4. If confidence is below 0.6, set destination to \"needs_review\"\n\nOUTPUT FORMAT (return ONLY this JSON, no other text):\n\nFor PEOPLE:\n{\n  \"destination\": \"people\",\n  \"confidence\": 0.85,\n  \"data\": {\n    \"name\": \"Person's Name\",\n    \"context\": \"How you know them or their role\",\n    \"follow_ups\": \"Things to remember for next time\",\n    \"tags\": [\"work\", \"friend\"]\n  }\n}\n\nFor PROJECTS:\n{\n  \"destination\": \"projects\",\n  \"confidence\": 0.85,\n  \"data\": {\n    \"name\": \"Project Name\",\n    \"status\": \"active\",\n    \"next_action\": \"Specific next action to take\",\n    \"notes\": \"Additional context\",\n    \"tags\": [\"work\"]\n  }\n}\n\nFor IDEAS:\n{\n  \"destination\": \"ideas\",\n  \"confidence\": 0.85,\n  \"data\": {\n    \"name\": \"Idea Title\",\n    \"one_liner\": \"Core insight in one sentence\",\n    \"notes\": \"Elaboration if provided\",\n    \"tags\": [\"product\"]\n  }\n}\n\nFor ADMIN:\n{\n  \"destination\": \"admin\",\n  \"confidence\": 0.85,\n  \"data\": {\n    \"name\": \"Task name\",\n    \"due_date\": \"2024-01-15 or null if not specified\",\n    \"notes\": \"Additional context\"\n  }\n}\n\nFor UNCLEAR (confidence below 0.6):\n{\n  \"destination\": \"needs_review\",\n  \"confidence\": 0.45,\n  \"data\": {\n    \"original_text\": \"The original message\",\n    \"possible_categories\": [\"projects\", \"admin\"],\n    \"reason\": \"Could be a project or a simple task\"\n  }\n}\n\nRULES:\n- \"next_action\" must be specific and executable. \"Work on website\" is bad. \"Email Sarah to confirm deadline\" is good.\n- If a person's name is mentioned, consider if this is really about that person or about a project/task involving them\n- Status options for projects: \"active\", \"waiting\", \"blocked\", \"someday\"\n- Extract dates when mentioned and format as YYYY-MM-DD\n- If no clear tags apply, use an empty array []\n- Always return valid JSON with no markdown formatting\n"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.anthropic",
+        "typeVersion": 1,
+        "position": [
+          -576,
+          128
+        ],
+        "id": "9909f9ea-9d6d-414f-b290-7c143d65304a",
+        "name": "Classify Message",
+        "credentials": {
+          "anthropicApi": {
+            "id": "QIUyAAWFmOxaIZc6",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "expression",
+          "numberOutputs": 5,
+          "output": "={{ (() => {\n  const dest = String($json.destination ?? '').trim().toLowerCase();\n  const conf = Number($json.confidence ?? 0);\n\n  if (conf < 0.6 || dest === 'needs_review') return 4;\n\n  if (dest === 'people' && conf > 0.59) return 0;\n  if (dest === 'projects' && conf > 0.59) return 1;\n  if (dest === 'ideas' && conf > 0.59) return 2;\n  if (dest === 'admin' && conf > 0.59) return 3;\n\n  return 4;\n})()\n }}"
+        },
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.4,
+        "position": [
+          0,
+          80
+        ],
+        "id": "22273426-1bdd-421c-9550-20ad69893ec1",
+        "name": "Switch"
+      },
+      {
+        "parameters": {
+          "resource": "databasePage",
+          "databaseId": {
+            "__rl": true,
+            "value": "2e4f2f77bba78000a7a9d58439ea317c",
+            "mode": "id"
+          },
+          "title": "={{ $json.data.name }}",
+          "propertiesUi": {
+            "propertyValues": [
+              {
+                "key": "Context|rich_text",
+                "textContent": "={{ $json.data.context }}"
+              },
+              {
+                "key": "Follow Ups|rich_text",
+                "textContent": "={{ $json.data.follow_ups }}"
+              },
+              {
+                "key": "Tags|multi_select",
+                "multiSelectValue": "={{ $json.data.tags }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.notion",
+        "typeVersion": 2.2,
+        "position": [
+          224,
+          -160
+        ],
+        "id": "bc1df072-c985-4294-9834-3e0502c86211",
+        "name": "People",
+        "credentials": {
+          "notionApi": {
+            "id": "1MLEZcGgowzdt5uf",
+            "name": "Notion account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "databasePage",
+          "databaseId": {
+            "__rl": true,
+            "value": "2e4f2f77bba78019b693d90f9050c847",
+            "mode": "id"
+          },
+          "title": "={{ $json.data.name }}",
+          "propertiesUi": {
+            "propertyValues": [
+              {
+                "key": "Notes|rich_text",
+                "textContent": "={{ $json.data.notes }}"
+              },
+              {
+                "key": "One Liner|rich_text",
+                "textContent": "={{ $json.data.one_liner }}"
+              },
+              {
+                "key": "Tags|multi_select",
+                "multiSelectValue": "={{ $json.data.tags }}"
+              },
+              {
+                "key": "Date|date",
+                "date": "={{ $now }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.notion",
+        "typeVersion": 2.2,
+        "position": [
+          224,
+          224
+        ],
+        "id": "4d57fce4-d3a8-4f05-a59d-76c93f37f6f5",
+        "name": "Ideas",
+        "credentials": {
+          "notionApi": {
+            "id": "1MLEZcGgowzdt5uf",
+            "name": "Notion account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "databasePage",
+          "databaseId": {
+            "__rl": true,
+            "value": "2e4f2f77bba7801aa4ecc0f089830493",
+            "mode": "id"
+          },
+          "title": "={{ $json.data.name }}",
+          "propertiesUi": {
+            "propertyValues": [
+              {
+                "key": "Next Action|rich_text",
+                "textContent": "={{ $json.data.next_action }}"
+              },
+              {
+                "key": "Notes|rich_text",
+                "textContent": "={{ $json.data.notes }}"
+              },
+              {
+                "key": "tags|multi_select",
+                "multiSelectValue": "={{ $json.data.tags }}"
+              },
+              {
+                "key": "Status|select",
+                "selectValue": "={{ $json.data.status }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.notion",
+        "typeVersion": 2.2,
+        "position": [
+          224,
+          32
+        ],
+        "id": "2939454e-23b8-4095-98bb-deef859040c4",
+        "name": "Projects",
+        "credentials": {
+          "notionApi": {
+            "id": "1MLEZcGgowzdt5uf",
+            "name": "Notion account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "databasePage",
+          "databaseId": {
+            "__rl": true,
+            "value": "2e4f2f77bba780c38c57dbcfd1525ab6",
+            "mode": "id"
+          },
+          "title": "={{ $json.data.name }}",
+          "propertiesUi": {
+            "propertyValues": [
+              {
+                "key": "Notes|rich_text",
+                "textContent": "={{ $json.data.notes }}"
+              },
+              {
+                "key": "Status|select",
+                "selectValue": "Todo"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.notion",
+        "typeVersion": 2.2,
+        "position": [
+          224,
+          416
+        ],
+        "id": "543ce4c9-482b-4ded-afee-97ccd3034ad5",
+        "name": "Admin",
+        "credentials": {
+          "notionApi": {
+            "id": "1MLEZcGgowzdt5uf",
+            "name": "Notion account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "databasePage",
+          "databaseId": {
+            "__rl": true,
+            "value": "2e4f2f77bba78031a788f0fe245329ac",
+            "mode": "id"
+          },
+          "title": "={{ $json.name }}",
+          "propertiesUi": {
+            "propertyValues": [
+              {
+                "key": "Filed To|select",
+                "selectValue": "ideas"
+              },
+              {
+                "key": "Destination Name|rich_text",
+                "textContent": "={{ $('Code in JavaScript').item.json.data.name }}"
+              },
+              {
+                "key": "Destination URL|url",
+                "urlValue": "={{ $json.url }}"
+              },
+              {
+                "key": "Confidence|number",
+                "numberValue": "={{ $('Code in JavaScript').item.json.confidence }}"
+              },
+              {
+                "key": "Status|select",
+                "selectValue": "filed"
+              },
+              {
+                "key": "Slack Thread TS|rich_text",
+                "textContent": "={{ $('Slack Trigger').item.json.ts }}"
+              },
+              {
+                "key": "Notion Record ID|rich_text",
+                "textContent": "={{ $json.id }}"
+              },
+              {
+                "key": "Created|date",
+                "date": "={{ $now }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.notion",
+        "typeVersion": 2.2,
+        "position": [
+          448,
+          224
+        ],
+        "id": "01abbd20-d4c5-4b78-b07d-878e26501ed9",
+        "name": "Log",
+        "credentials": {
+          "notionApi": {
+            "id": "1MLEZcGgowzdt5uf",
+            "name": "Notion account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "databasePage",
+          "databaseId": {
+            "__rl": true,
+            "value": "2e4f2f77bba78031a788f0fe245329ac",
+            "mode": "id"
+          },
+          "title": "={{ $json.name }}",
+          "propertiesUi": {
+            "propertyValues": [
+              {
+                "key": "Confidence|number",
+                "numberValue": "={{ $('Code in JavaScript').item.json.confidence }}"
+              },
+              {
+                "key": "Filed To|select",
+                "selectValue": "admin"
+              },
+              {
+                "key": "Destination Name|rich_text",
+                "textContent": "={{ $('Code in JavaScript').item.json.destination }}"
+              },
+              {
+                "key": "Destination URL|url",
+                "urlValue": "={{ $json.url }}"
+              },
+              {
+                "key": "Notion Record ID|rich_text",
+                "textContent": "={{ $json.id }}"
+              },
+              {
+                "key": "Slack Thread TS|rich_text",
+                "textContent": "={{ $('Slack Trigger').item.json.ts }}"
+              },
+              {
+                "key": "Status|select",
+                "selectValue": "filed"
+              },
+              {
+                "key": "Created|date",
+                "date": "={{ $now }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.notion",
+        "typeVersion": 2.2,
+        "position": [
+          448,
+          416
+        ],
+        "id": "47915f71-c8f5-41b8-b18c-3124d9263f81",
+        "name": "Log1",
+        "credentials": {
+          "notionApi": {
+            "id": "1MLEZcGgowzdt5uf",
+            "name": "Notion account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "databasePage",
+          "databaseId": {
+            "__rl": true,
+            "value": "2e4f2f77bba78031a788f0fe245329ac",
+            "mode": "id"
+          },
+          "title": "={{ $('Slack Trigger').item.json.text }}",
+          "propertiesUi": {
+            "propertyValues": [
+              {
+                "key": "Filed To|select",
+                "selectValue": "projects"
+              },
+              {
+                "key": "Destination Name|rich_text",
+                "textContent": "={{ $('Code in JavaScript').item.json.destination }}"
+              },
+              {
+                "key": "Destination URL|url",
+                "urlValue": "={{ $json.url }}"
+              },
+              {
+                "key": "Confidence|number",
+                "numberValue": "={{ $('Code in JavaScript').item.json.confidence }}"
+              },
+              {
+                "key": "Status|select",
+                "selectValue": "filed"
+              },
+              {
+                "key": "Slack Thread TS|rich_text",
+                "textContent": "={{ $('Slack Trigger').item.json.ts }}"
+              },
+              {
+                "key": "Notion Record ID|rich_text",
+                "textContent": "={{ $json.id }}"
+              },
+              {
+                "key": "Created|date",
+                "date": "={{ $now }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.notion",
+        "typeVersion": 2.2,
+        "position": [
+          432,
+          32
+        ],
+        "id": "767ffe93-e677-432c-9092-e05f38518494",
+        "name": "Log Project",
+        "credentials": {
+          "notionApi": {
+            "id": "1MLEZcGgowzdt5uf",
+            "name": "Notion account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "databasePage",
+          "databaseId": {
+            "__rl": true,
+            "value": "2e4f2f77bba78031a788f0fe245329ac",
+            "mode": "id"
+          },
+          "title": "={{ $('Slack Trigger').item.json.text }}",
+          "propertiesUi": {
+            "propertyValues": [
+              {
+                "key": "Filed To|select",
+                "selectValue": "people"
+              },
+              {
+                "key": "Destination Name|rich_text",
+                "textContent": "={{ $('Code in JavaScript').item.json.destination }}"
+              },
+              {
+                "key": "Destination URL|url",
+                "urlValue": "={{ $json.url }}"
+              },
+              {
+                "key": "Confidence|number",
+                "numberValue": "={{ $('Code in JavaScript').item.json.confidence }}"
+              },
+              {
+                "key": "Status|select",
+                "selectValue": "filed"
+              },
+              {
+                "key": "Created|date",
+                "date": "={{ $now }}"
+              },
+              {
+                "key": "Slack Thread TS|rich_text",
+                "textContent": "={{ $('Slack Trigger').item.json.ts }}"
+              },
+              {
+                "key": "Notion Record ID|rich_text",
+                "textContent": "={{ $json.id }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.notion",
+        "typeVersion": 2.2,
+        "position": [
+          432,
+          -160
+        ],
+        "id": "da3567fb-8d04-4dfc-a2f2-3607f2d457ad",
+        "name": "Create a database page",
+        "credentials": {
+          "notionApi": {
+            "id": "1MLEZcGgowzdt5uf",
+            "name": "Notion account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "select": "channel",
+          "channelId": {
+            "__rl": true,
+            "value": "C0A7Q3DESFM",
+            "mode": "list",
+            "cachedResultName": "sd-brain"
+          },
+          "text": "=✅ Filed as {{ $json.property_destination_name }}  **{{ $json.name }}** \nConfidence: {{ $json.property_confidence }}  \nReply \"fix: [your correction]\" if this is wrong. Example: \"fix: this should be people, not projects\"",
+          "otherOptions": {
+            "thread_ts": {
+              "replyValues": {
+                "thread_ts": "={{ $('Slack Trigger').item.json.ts }}"
+              }
+            }
+          }
+        },
+        "type": "n8n-nodes-base.slack",
+        "typeVersion": 2.4,
+        "position": [
+          688,
+          64
+        ],
+        "id": "43db8fe3-180b-4772-8fb9-fe9b39c54dc1",
+        "name": "Send a message",
+        "webhookId": "57cc93aa-c075-4718-8e97-e4427623fa11",
+        "credentials": {
+          "slackApi": {
+            "id": "pBtkFKk519i0rGOe",
+            "name": "NWA Shop Local"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Slack Trigger": {
+        "main": [
+          [
+            {
+              "node": "Classify Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Classify Message": {
+        "main": [
+          [
+            {
+              "node": "Code in JavaScript",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Code in JavaScript": {
+        "main": [
+          [
+            {
+              "node": "Switch",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Switch": {
+        "main": [
+          [
+            {
+              "node": "People",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Projects",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Ideas",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Admin",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "People": {
+        "main": [
+          [
+            {
+              "node": "Create a database page",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Ideas": {
+        "main": [
+          [
+            {
+              "node": "Log",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Admin": {
+        "main": [
+          [
+            {
+              "node": "Log1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Projects": {
+        "main": [
+          [
+            {
+              "node": "Log Project",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create a database page": {
+        "main": [
+          [
+            {
+              "node": "Send a message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Log Project": {
+        "main": [
+          [
+            {
+              "node": "Send a message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Log": {
+        "main": [
+          [
+            {
+              "node": "Send a message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Log1": {
+        "main": [
+          [
+            {
+              "node": "Send a message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "James Brown",
+    "name": "Version 7259005f",
+    "description": "",
+    "autosaved": false
+  },
+  "activeVersionId": "7259005f-7062-4c92-95ed-d494ad023d1c",
+  "connections": {
+    "Slack Trigger": {
+      "main": [
+        [
+          {
+            "node": "Classify Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classify Message": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "People",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Projects",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ideas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Admin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "People": {
+      "main": [
+        [
+          {
+            "node": "Create a database page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ideas": {
+      "main": [
+        [
+          {
+            "node": "Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Admin": {
+      "main": [
+        [
+          {
+            "node": "Log1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Projects": {
+      "main": [
+        [
+          {
+            "node": "Log Project",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a database page": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Project": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log1": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-09T23:27:28.003Z",
+  "id": "N3GnIEhfgQ3lbAwD",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Second Brain",
+  "nodes": [
+    {
+      "parameters": {
+        "trigger": [
+          "app_mention"
+        ],
+        "channelId": {
+          "__rl": true,
+          "value": "C0A7Q3DESFM",
+          "mode": "list",
+          "cachedResultName": "sd-brain"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.slackTrigger",
+      "typeVersion": 1,
+      "position": [
+        -800,
+        128
+      ],
+      "id": "079f6d39-9dce-4cb0-87a6-93fdb8030525",
+      "name": "Slack Trigger",
+      "webhookId": "4324b402-aef7-4b06-be41-0b483c137407",
+      "credentials": {
+        "slackApi": {
+          "id": "pBtkFKk519i0rGOe",
+          "name": "NWA Shop Local"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the raw text string from Claude's response\nconst rawText = $input.first().json.content[0].text;\n\n// Parse the JSON string into an object\nlet parsed;\ntry {\n  parsed = JSON.parse(rawText);\n} catch (e) {\n  throw new Error('Failed to parse Claude JSON: ' + e.message);\n}\n\n// Return as n8n-friendly JSON\nreturn [\n  {\n    json: parsed\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        128
+      ],
+      "id": "4e33ff00-fcb0-4b86-8d5c-dffa29340bd5",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-3-5-haiku-20241022",
+          "mode": "list",
+          "cachedResultName": "claude-3-5-haiku-20241022"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a classification system for a personal knowledge management system. Your job is to analyze the user's captured thought and return structured JSON.\n\nINPUT:\n{{ $json.text }}\n\nINSTRUCTIONS:\n1. Determine which category this belongs to:\n   - \"people\" - information about a person, relationship update, something someone said\n   - \"projects\" - a project, task with multiple steps, ongoing work\n   - \"ideas\" - a thought, insight, concept, something to explore later\n   - \"admin\" - a simple errand, one-off task, something with a due date\n\n2. Extract the relevant fields based on category\n\n3. Assign a confidence score (0.0 to 1.0):\n   - 0.9-1.0: Very clear category, obvious classification\n   - 0.7-0.89: Fairly confident, good match\n   - 0.5-0.69: Uncertain, could be multiple categories\n   - Below 0.5: Very unclear, needs human review\n\n4. If confidence is below 0.6, set destination to \"needs_review\"\n\nOUTPUT FORMAT (return ONLY this JSON, no other text):\n\nFor PEOPLE:\n{\n  \"destination\": \"people\",\n  \"confidence\": 0.85,\n  \"data\": {\n    \"name\": \"Person's Name\",\n    \"context\": \"How you know them or their role\",\n    \"follow_ups\": \"Things to remember for next time\",\n    \"tags\": [\"work\", \"friend\"]\n  }\n}\n\nFor PROJECTS:\n{\n  \"destination\": \"projects\",\n  \"confidence\": 0.85,\n  \"data\": {\n    \"name\": \"Project Name\",\n    \"status\": \"active\",\n    \"next_action\": \"Specific next action to take\",\n    \"notes\": \"Additional context\",\n    \"tags\": [\"work\"]\n  }\n}\n\nFor IDEAS:\n{\n  \"destination\": \"ideas\",\n  \"confidence\": 0.85,\n  \"data\": {\n    \"name\": \"Idea Title\",\n    \"one_liner\": \"Core insight in one sentence\",\n    \"notes\": \"Elaboration if provided\",\n    \"tags\": [\"product\"]\n  }\n}\n\nFor ADMIN:\n{\n  \"destination\": \"admin\",\n  \"confidence\": 0.85,\n  \"data\": {\n    \"name\": \"Task name\",\n    \"due_date\": \"2024-01-15 or null if not specified\",\n    \"notes\": \"Additional context\"\n  }\n}\n\nFor UNCLEAR (confidence below 0.6):\n{\n  \"destination\": \"needs_review\",\n  \"confidence\": 0.45,\n  \"data\": {\n    \"original_text\": \"The original message\",\n    \"possible_categories\": [\"projects\", \"admin\"],\n    \"reason\": \"Could be a project or a simple task\"\n  }\n}\n\nRULES:\n- \"next_action\" must be specific and executable. \"Work on website\" is bad. \"Email Sarah to confirm deadline\" is good.\n- If a person's name is mentioned, consider if this is really about that person or about a project/task involving them\n- Status options for projects: \"active\", \"waiting\", \"blocked\", \"someday\"\n- Extract dates when mentioned and format as YYYY-MM-DD\n- If no clear tags apply, use an empty array []\n- Always return valid JSON with no markdown formatting\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        -576,
+        128
+      ],
+      "id": "9909f9ea-9d6d-414f-b290-7c143d65304a",
+      "name": "Classify Message",
+      "credentials": {
+        "anthropicApi": {
+          "id": "QIUyAAWFmOxaIZc6",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 5,
+        "output": "={{ (() => {\n  const dest = String($json.destination ?? '').trim().toLowerCase();\n  const conf = Number($json.confidence ?? 0);\n\n  if (conf < 0.6 || dest === 'needs_review') return 4;\n\n  if (dest === 'people' && conf > 0.59) return 0;\n  if (dest === 'projects' && conf > 0.59) return 1;\n  if (dest === 'ideas' && conf > 0.59) return 2;\n  if (dest === 'admin' && conf > 0.59) return 3;\n\n  return 4;\n})()\n }}"
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        80
+      ],
+      "id": "22273426-1bdd-421c-9550-20ad69893ec1",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "2e4f2f77bba78000a7a9d58439ea317c",
+          "mode": "id"
+        },
+        "title": "={{ $json.data.name }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Context|rich_text",
+              "textContent": "={{ $json.data.context }}"
+            },
+            {
+              "key": "Follow Ups|rich_text",
+              "textContent": "={{ $json.data.follow_ups }}"
+            },
+            {
+              "key": "Tags|multi_select",
+              "multiSelectValue": "={{ $json.data.tags }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        -160
+      ],
+      "id": "bc1df072-c985-4294-9834-3e0502c86211",
+      "name": "People",
+      "credentials": {
+        "notionApi": {
+          "id": "1MLEZcGgowzdt5uf",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "2e4f2f77bba78019b693d90f9050c847",
+          "mode": "id"
+        },
+        "title": "={{ $json.data.name }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Notes|rich_text",
+              "textContent": "={{ $json.data.notes }}"
+            },
+            {
+              "key": "One Liner|rich_text",
+              "textContent": "={{ $json.data.one_liner }}"
+            },
+            {
+              "key": "Tags|multi_select",
+              "multiSelectValue": "={{ $json.data.tags }}"
+            },
+            {
+              "key": "Date|date",
+              "date": "={{ $now }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        224
+      ],
+      "id": "4d57fce4-d3a8-4f05-a59d-76c93f37f6f5",
+      "name": "Ideas",
+      "credentials": {
+        "notionApi": {
+          "id": "1MLEZcGgowzdt5uf",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "2e4f2f77bba7801aa4ecc0f089830493",
+          "mode": "id"
+        },
+        "title": "={{ $json.data.name }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Next Action|rich_text",
+              "textContent": "={{ $json.data.next_action }}"
+            },
+            {
+              "key": "Notes|rich_text",
+              "textContent": "={{ $json.data.notes }}"
+            },
+            {
+              "key": "tags|multi_select",
+              "multiSelectValue": "={{ $json.data.tags }}"
+            },
+            {
+              "key": "Status|select",
+              "selectValue": "={{ $json.data.status }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        32
+      ],
+      "id": "2939454e-23b8-4095-98bb-deef859040c4",
+      "name": "Projects",
+      "credentials": {
+        "notionApi": {
+          "id": "1MLEZcGgowzdt5uf",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "2e4f2f77bba780c38c57dbcfd1525ab6",
+          "mode": "id"
+        },
+        "title": "={{ $json.data.name }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Notes|rich_text",
+              "textContent": "={{ $json.data.notes }}"
+            },
+            {
+              "key": "Status|select",
+              "selectValue": "Todo"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        416
+      ],
+      "id": "543ce4c9-482b-4ded-afee-97ccd3034ad5",
+      "name": "Admin",
+      "credentials": {
+        "notionApi": {
+          "id": "1MLEZcGgowzdt5uf",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "2e4f2f77bba78031a788f0fe245329ac",
+          "mode": "id"
+        },
+        "title": "={{ $json.name }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Filed To|select",
+              "selectValue": "ideas"
+            },
+            {
+              "key": "Destination Name|rich_text",
+              "textContent": "={{ $('Code in JavaScript').item.json.data.name }}"
+            },
+            {
+              "key": "Destination URL|url",
+              "urlValue": "={{ $json.url }}"
+            },
+            {
+              "key": "Confidence|number",
+              "numberValue": "={{ $('Code in JavaScript').item.json.confidence }}"
+            },
+            {
+              "key": "Status|select",
+              "selectValue": "filed"
+            },
+            {
+              "key": "Slack Thread TS|rich_text",
+              "textContent": "={{ $('Slack Trigger').item.json.ts }}"
+            },
+            {
+              "key": "Notion Record ID|rich_text",
+              "textContent": "={{ $json.id }}"
+            },
+            {
+              "key": "Created|date",
+              "date": "={{ $now }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        224
+      ],
+      "id": "01abbd20-d4c5-4b78-b07d-878e26501ed9",
+      "name": "Log",
+      "credentials": {
+        "notionApi": {
+          "id": "1MLEZcGgowzdt5uf",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "2e4f2f77bba78031a788f0fe245329ac",
+          "mode": "id"
+        },
+        "title": "={{ $json.name }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Confidence|number",
+              "numberValue": "={{ $('Code in JavaScript').item.json.confidence }}"
+            },
+            {
+              "key": "Filed To|select",
+              "selectValue": "admin"
+            },
+            {
+              "key": "Destination Name|rich_text",
+              "textContent": "={{ $('Code in JavaScript').item.json.destination }}"
+            },
+            {
+              "key": "Destination URL|url",
+              "urlValue": "={{ $json.url }}"
+            },
+            {
+              "key": "Notion Record ID|rich_text",
+              "textContent": "={{ $json.id }}"
+            },
+            {
+              "key": "Slack Thread TS|rich_text",
+              "textContent": "={{ $('Slack Trigger').item.json.ts }}"
+            },
+            {
+              "key": "Status|select",
+              "selectValue": "filed"
+            },
+            {
+              "key": "Created|date",
+              "date": "={{ $now }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        416
+      ],
+      "id": "47915f71-c8f5-41b8-b18c-3124d9263f81",
+      "name": "Log1",
+      "credentials": {
+        "notionApi": {
+          "id": "1MLEZcGgowzdt5uf",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "2e4f2f77bba78031a788f0fe245329ac",
+          "mode": "id"
+        },
+        "title": "={{ $('Slack Trigger').item.json.text }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Filed To|select",
+              "selectValue": "projects"
+            },
+            {
+              "key": "Destination Name|rich_text",
+              "textContent": "={{ $('Code in JavaScript').item.json.destination }}"
+            },
+            {
+              "key": "Destination URL|url",
+              "urlValue": "={{ $json.url }}"
+            },
+            {
+              "key": "Confidence|number",
+              "numberValue": "={{ $('Code in JavaScript').item.json.confidence }}"
+            },
+            {
+              "key": "Status|select",
+              "selectValue": "filed"
+            },
+            {
+              "key": "Slack Thread TS|rich_text",
+              "textContent": "={{ $('Slack Trigger').item.json.ts }}"
+            },
+            {
+              "key": "Notion Record ID|rich_text",
+              "textContent": "={{ $json.id }}"
+            },
+            {
+              "key": "Created|date",
+              "date": "={{ $now }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        432,
+        32
+      ],
+      "id": "767ffe93-e677-432c-9092-e05f38518494",
+      "name": "Log Project",
+      "credentials": {
+        "notionApi": {
+          "id": "1MLEZcGgowzdt5uf",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "2e4f2f77bba78031a788f0fe245329ac",
+          "mode": "id"
+        },
+        "title": "={{ $('Slack Trigger').item.json.text }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Filed To|select",
+              "selectValue": "people"
+            },
+            {
+              "key": "Destination Name|rich_text",
+              "textContent": "={{ $('Code in JavaScript').item.json.destination }}"
+            },
+            {
+              "key": "Destination URL|url",
+              "urlValue": "={{ $json.url }}"
+            },
+            {
+              "key": "Confidence|number",
+              "numberValue": "={{ $('Code in JavaScript').item.json.confidence }}"
+            },
+            {
+              "key": "Status|select",
+              "selectValue": "filed"
+            },
+            {
+              "key": "Created|date",
+              "date": "={{ $now }}"
+            },
+            {
+              "key": "Slack Thread TS|rich_text",
+              "textContent": "={{ $('Slack Trigger').item.json.ts }}"
+            },
+            {
+              "key": "Notion Record ID|rich_text",
+              "textContent": "={{ $json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        432,
+        -160
+      ],
+      "id": "da3567fb-8d04-4dfc-a2f2-3607f2d457ad",
+      "name": "Create a database page",
+      "credentials": {
+        "notionApi": {
+          "id": "1MLEZcGgowzdt5uf",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0A7Q3DESFM",
+          "mode": "list",
+          "cachedResultName": "sd-brain"
+        },
+        "text": "=✅ Filed as {{ $json.property_destination_name }}  **{{ $json.name }}** \nConfidence: {{ $json.property_confidence }}  \nReply \"fix: [your correction]\" if this is wrong. Example: \"fix: this should be people, not projects\"",
+        "otherOptions": {
+          "thread_ts": {
+            "replyValues": {
+              "thread_ts": "={{ $('Slack Trigger').item.json.ts }}"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        688,
+        64
+      ],
+      "id": "43db8fe3-180b-4772-8fb9-fe9b39c54dc1",
+      "name": "Send a message",
+      "webhookId": "57cc93aa-c075-4718-8e97-e4427623fa11",
+      "credentials": {
+        "slackApi": {
+          "id": "pBtkFKk519i0rGOe",
+          "name": "NWA Shop Local"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-09T23:27:28.005Z",
+      "createdAt": "2026-01-09T23:27:28.005Z",
+      "role": "workflow:owner",
+      "workflowId": "N3GnIEhfgQ3lbAwD",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-01-10T03:09:41.159Z",
+  "versionId": "7259005f-7062-4c92-95ed-d494ad023d1c"
+}
