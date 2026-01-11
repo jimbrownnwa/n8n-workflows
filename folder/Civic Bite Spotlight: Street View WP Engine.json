@@ -1,0 +1,440 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Upload image": {
+      "main": [
+        [
+          {
+            "node": "Set featured image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a post": {
+      "main": [
+        [
+          {
+            "node": "Find Pano_ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Identify Most Popular",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Identify Most Popular": {
+      "main": [
+        [
+          {
+            "node": "Write Blog Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Blog Post": {
+      "main": [
+        [
+          {
+            "node": "Format as HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format as HTML": {
+      "main": [
+        [
+          {
+            "node": "Create a post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "New Venues for the Day": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Get Google Street View Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Pano_ID": {
+      "main": [
+        [
+          {
+            "node": "Find Lat and Lng",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Lat and Lng": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Google Street View Image": {
+      "main": [
+        [
+          {
+            "node": "Upload image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-04T17:23:09.690Z",
+  "id": "AEt9PloMUBHGovD9",
+  "isArchived": false,
+  "meta": null,
+  "name": "Civic Bite Spotlight: Street View WP Engine",
+  "nodes": [
+    {
+      "parameters": {
+        "title": "={{ $json.message.content.postTitle }}",
+        "additionalFields": {
+          "content": "={{ $json.message.content.postContent }}",
+          "status": "publish",
+          "categories": [
+            7
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.wordpress",
+      "typeVersion": 1,
+      "position": [
+        5264,
+        512
+      ],
+      "id": "015deeb2-4658-431b-a117-edb35f56d7fc",
+      "name": "Create a post",
+      "credentials": {
+        "wordpressApi": {
+          "id": "BDzYDNG9SadXzoda",
+          "name": "NWA Shop Local Wordpress account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://civicbite.com//wp-json/wp/v2/media",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wordpressApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Disposition",
+              "value": "=attachment; filename=\"{{ $('Identify Most Popular').item.json.message.content.facility }}-{{ $json.mimeType }}.png\""
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "id": "f66c8807-0a2b-4848-bba6-4f250f9acee7",
+      "name": "Upload image",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        6512,
+        512
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "facility"
+            },
+            {
+              "fieldToAggregate": "address"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        3984,
+        512
+      ],
+      "id": "2b651d00-ce7d-4729-b629-342758130c54",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini-2025-04-14",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI-2025-04-14"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a researcher working for a food news blog focused on reporting food inspections and closures in San Diego County. Each day, you will receive a list of approximately five restaurants, each with a name and address, that have been either closed or downgraded due to recent food inspections.\nBegin with a concise checklist (3-7 bullets) of what you will do; keep items conceptual, not implementation-level.\nYour task is to research these restaurants to identify which one is the most popular. Popularity should be assessed using criteria such as:\n- The number of positive online reviews (e.g., Google, Yelp)\n- The quantity and sentiment of online comments\nUtilize your judgment to select the single most popular restaurant from the provided list.\nIf two or more restaurants are equally popular (a tie), choose any one of them and clearly mention the tie in your reasoning.\nIf there is no available data for any of the restaurants, return all fields as null and note this in your reasoning.\nAfter your evaluation, validate that you have selected the restaurant best matching the popularity criteria. If data is ambiguous or missing, self-correct by double-checking or clarifying in your reasoning.\nReturn ONLY the following fields in the specified structured format:\n- Restaurant name {facility}\n- Restaurant address {address}\n- Your reasoning for the selection {reasoning}\n## Output Structure\nReturn your result as a structured JSON:\n{\n\"facility\": \"<Name of most popular restaurant or null>\",\n\"address\": \"<Address of most popular restaurant or null>\",\n\"reasoning\": \"<Description of your decision process explaining which restaurant was chosen, how popularity was measured, or indicating if no data was found>\"\n}\n\nInput:\n{{ $json.facility }}\n{{ $json.address }}\n\nOutput:\n{{ $json.facility }}\n{{ $json.address }}\n",
+              "role": "system"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        4208,
+        512
+      ],
+      "id": "4037e841-df7c-4496-a611-2cedfb5d1928",
+      "name": "Identify Most Popular"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5",
+          "mode": "list",
+          "cachedResultName": "GPT-5"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=# Role and Objective\nYou are a restaurant reviewer for a blog dedicated to writing food reviews and spotlight pieces about restaurants located in San Diego County, CA. Your task is to write engaging articles that inform the public about local restaurant developments.\n\nInput Data:\n {{ $json.message.content.name }}{{ $json.message.content.address }}{{ $json.message.content.reasoning }} \n\n# Instructions\n- You will receive the name and address of a restaurant, along with information explaining why the restaurant was selected.\n- Write an article focusing on the reasons the restaurant was downgraded or closed ({{ $json.Inspection.Specifics }}) based on the inspection specifics. Based on the Inspection specifics, ensure that it is clear, in the article that it is a closure OR a downgrade.\n- Discuss why this downgrade or closure matters to restaurant-goers in San Diego County.\n- Frame your review to educate and engage the local audience while maintaining factual accuracy and a professional, journalistic tone.\n- Use the provided example article as a style model—especially regarding structure, detail, and narrative depth.\n\n# Example Article to Model\n---\nSmash and Stack, the alien-themed smashburger restaurant that opened this summer on Garnet Avenue in San Diego's Pacific Beach, has quietly closed its doors after just a few months in operation.\nHelmed by chef Joel Bautista, a Culinary Institute of Barcelona graduate with experience in Michelin-starred kitchens across Europe and New York, Smash and Stack sought to blend fine-dining precision with fast-casual comfort. The menu centered around crispy-edged smashburgers, waffle fries, and playful desserts like “Cosmic Ice,” wrapped in a space-themed aesthetic that stood out among Garnet Avenue’s many eateries.\nDespite its creative approach, the restaurant faced steep competition in an already saturated burger market. Only weeks after Smash and Stack opened, Los Angeles favorite For The Win launched nearly across the street at 1037 Garnet Avenue, quickly developing a steady following. Pacific Beach already hosts numerous burger options, including Irv’s Burger, Haole Shack, and several bars and restaurants serving similar fare within just a few blocks. Smash and Stack's closure reportedly occurred in late September 2025, marking a brief run for the concept, which debuted in June at 956 Garnet Avenue.\nA handwritten note on the door now indicates that the property is available for lease, and the restaurant’s social media pages have been removed, leaving no public point of contact for the business. The closure adds to a growing list of short-lived ventures on the competitive Garnet Avenue corridor, where strong foot traffic doesn’t always translate into staying power.\n---\n# Output Format\n- The article should follow the narrative style, detail, and structure of the example provided.\n- Include context such as the restaurant’s unique attributes, its significance to the community, and the implications of the inspection downgrade.\nAfter drafting, validate that the article matches the narrative style, fully addresses the inspection downgrade, and logically discusses its community impact in line with the example. Revise if these criteria are not met.\n# Verbosity\n- Write in a highly readable, narrative-driven style with engaging detail, as demonstrated in the example.\n# Stop Condition\n- Consider the article complete when it clearly addresses the inspection downgrade and its impact, consistent with the example structure, and does not omit any provided facts or context.\n\nPlease Output in structured JSON as follows:\n{postTitle}\n{postContent}",
+              "role": "system"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        4560,
+        512
+      ],
+      "id": "e62d9234-0307-4e08-be05-eaf38ad5e763",
+      "name": "Write Blog Post"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5-nano",
+          "mode": "list",
+          "cachedResultName": "GPT-5-NANO"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You will be provided with an article intended for a WordPress blog. Your task is to review and format the article using appropriate HTML.\n\nReturn your output as a structured JSON object with the following fields:\n- `postTitle`: The blog post's title as a string, taken directly from the article. If the article does not provide a title, return an empty string in this field.\n- `postContent`: The main content of the blog post, formatted as an HTML string. If the article does not provide content, return an empty string in this field.\n# Output Format\njson\n{\n\"postTitle\": \"<title string>\",\n\"postContent\": \"<HTML-formatted content string>\"\n}\n\nEnsure that both fields are always present in the output JSON, even if one or both contain empty strings. After formatting the content, validate that the output JSON matches the specified structure before returning it.\nRequest changes (optional)\n\nArticle Input\n{{ $json.message.content.postTitle }}\n{{ $json.message.content.postContent }}\n\nPlease only output the below as structured JSON as follows:\n{postTitle}\n{postContent}\n",
+              "role": "system"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        4912,
+        512
+      ],
+      "id": "1fd402e7-3938-44da-8d19-43e06e78e8d9",
+      "name": "Format as HTML"
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        3760,
+        512
+      ],
+      "id": "8a6991e0-7910-44a3-a985-01b9966d6179",
+      "name": "New Venues for the Day"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4",
+          "mode": "list",
+          "cachedResultName": "GPT-4"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are a compass-bearing calculator. You return only a number representing the compass heading (in degrees from 0 to 360) between two GPS points.\n",
+              "role": "system"
+            },
+            {
+              "content": "=What is the compass heading in degrees from point A ({{ $('Find Pano_ID').item.json.location.lat }}, {{ $('Find Pano_ID').item.json.location.lng }}) to point B ({{ $json.results[0].geometry.location.lat }}, {{ $json.results[0].geometry.bounds.southwest.lng }})? Only return a number."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        5936,
+        512
+      ],
+      "id": "aca2764f-4b05-4a9b-9548-57bcc6821d85",
+      "name": "Message a model"
+    },
+    {
+      "parameters": {
+        "url": "=https://maps.googleapis.com/maps/api/streetview/metadata?location={{ $('Identify Most Popular').item.json.message.content.address }}&key=AIzaSyBqlLIvyRD6WKlXF3rel1bglGLS2fcVybI",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        5488,
+        512
+      ],
+      "id": "f1174ade-1376-462d-85f6-f8f201bd8726",
+      "name": "Find Pano_ID"
+    },
+    {
+      "parameters": {
+        "url": "=https://maps.googleapis.com/maps/api/geocode/json?address={{ $('Identify Most Popular').item.json.message.content.address }}&key=AIzaSyBqlLIvyRD6WKlXF3rel1bglGLS2fcVybI",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        5712,
+        512
+      ],
+      "id": "9eb3d555-f36a-4af2-b767-fff6e152bb52",
+      "name": "Find Lat and Lng"
+    },
+    {
+      "parameters": {
+        "url": "=https://maps.googleapis.com/maps/api/streetview?size=1024x1024&pano={{ $('Find Pano_ID').item.json.pano_id }}&heading={{ $json.message.content }}&pitch=10&fov=70&key=AIzaSyBqlLIvyRD6WKlXF3rel1bglGLS2fcVybI",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        6288,
+        512
+      ],
+      "id": "420b62e8-d667-4de3-8b6d-83bde41b8f9c",
+      "name": "Get Google Street View Image"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://civicbite.com/wp-json/wp/v2/posts/{{ $('Create a post').item.json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wordpressApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "featured_media",
+              "value": "={{ $json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "09fbdeff-4abe-4c2c-869f-7d5baf7ed0c4",
+      "name": "Set featured image",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        6736,
+        512
+      ],
+      "typeVersion": 4.2,
+      "credentials": {
+        "wordpressApi": {
+          "id": "BDzYDNG9SadXzoda",
+          "name": "NWA Shop Local Wordpress account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-04T17:23:09.692Z",
+      "createdAt": "2026-01-04T17:23:09.692Z",
+      "role": "workflow:owner",
+      "workflowId": "AEt9PloMUBHGovD9",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [
+    {
+      "updatedAt": "2026-01-04T17:19:59.865Z",
+      "createdAt": "2026-01-04T17:19:59.865Z",
+      "id": "CFeOyx50eOh0Yvx1",
+      "name": "SD Food"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-11T02:04:05.471Z",
+  "versionId": "5ff8bc08-561a-4a92-b410-4a1c6ba746f6"
+}
