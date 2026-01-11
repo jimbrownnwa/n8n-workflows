@@ -1,0 +1,626 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-01-11T01:56:21.000Z",
+    "createdAt": "2026-01-11T01:56:19.305Z",
+    "versionId": "2ee02ea2-08bc-4c19-a512-b148cec48e80",
+    "workflowId": "eXzqwojdyENdTRIq",
+    "nodes": [
+      {
+        "parameters": {
+          "path": "onboarding/status",
+          "responseMode": "responseNode",
+          "options": {
+            "responseHeaders": {
+              "entries": [
+                {
+                  "name": "Access-Control-Allow-Origin",
+                  "value": "*"
+                },
+                {
+                  "name": "Access-Control-Allow-Methods",
+                  "value": "GET, OPTIONS"
+                },
+                {
+                  "name": "Access-Control-Allow-Headers",
+                  "value": "Content-Type"
+                }
+              ]
+            }
+          }
+        },
+        "id": "a430b7e8-c3a0-4c6b-aa50-d839c4537326",
+        "name": "Status Polling Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          0,
+          0
+        ],
+        "webhookId": "onboarding-status"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "cond-id",
+                "leftValue": "={{ $json.query.id }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "22fa5fdb-55af-4f9d-ab94-e4cfdc90c4ac",
+        "name": "Validate ID Provided",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          224,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "{\n  \"success\": false,\n  \"error\": \"Missing onboarding ID\",\n  \"message\": \"Please provide an 'id' query parameter (e.g., ?id=ONB-2025-00001)\"\n}",
+          "options": {
+            "responseCode": 400
+          }
+        },
+        "id": "e3d11659-0cd2-4f71-b7d8-ec9d7fa1b74e",
+        "name": "Missing ID Response",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.5,
+        "position": [
+          448,
+          192
+        ]
+      },
+      {
+        "parameters": {
+          "documentId": {
+            "__rl": true,
+            "value": "1fK3eXCC2K4Ff3s-dqmolRsAJ85khUcXRjb5G-hzMVig",
+            "mode": "list",
+            "cachedResultName": "Status",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fK3eXCC2K4Ff3s-dqmolRsAJ85khUcXRjb5G-hzMVig/edit?usp=drivesdk"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "gid=0",
+            "mode": "list",
+            "cachedResultName": "Sheet1",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fK3eXCC2K4Ff3s-dqmolRsAJ85khUcXRjb5G-hzMVig/edit#gid=0"
+          },
+          "filtersUI": {
+            "values": [
+              {
+                "lookupColumn": "onboarding_id",
+                "lookupValue": "={{ $json.query.id }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "770ce1dd-1026-41a6-9d22-d4d163c66318",
+        "name": "Lookup Status in Sheet",
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.5,
+        "position": [
+          448,
+          0
+        ],
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "eOPhFUrfwo2AgnTD",
+            "name": "NWA Boost:Google Sheets"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "cond-found",
+                "leftValue": "={{ $json.onboarding_id }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "7857b305-ca52-4429-9be7-cf4359747d62",
+        "name": "Check If Found",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          672,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={\n  \"success\": false,\n  \"error\": \"Onboarding not found\",\n  \"message\": \"No onboarding found with ID: {{ $('Status Polling Webhook').item.json.query.id }}\"\n}",
+          "options": {
+            "responseCode": 404
+          }
+        },
+        "id": "2d51bd3e-7c1c-47b5-9e3e-d9f0a3b55884",
+        "name": "Not Found Response",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.5,
+        "position": [
+          880,
+          192
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const data = $input.item.json;\n\n// Build status response\nreturn {\n  success: true,\n  onboarding_id: data.onboarding_id,\n  employee_name: data.employee_name,\n  employee_email: data.employee_email,\n  department: data.department,\n  status: data.status,\n  progress_percent: parseInt(data.progress_percent) || 0,\n  current_step: data.current_step,\n  steps: {\n    google_workspace: data.google_workspace || 'pending',\n    slack: data.slack || 'pending',\n    jira: data.jira || 'pending',\n    welcome_pdf: data.welcome_pdf || 'pending',\n    notion_page: data.notion_page || 'pending',\n    calendar_events: data.calendar_events || 'pending',\n    email_newhire: data.email_newhire || 'pending',\n    notify_manager: data.notify_manager || 'pending',\n    notify_it: data.notify_it || 'pending'\n  },\n  started_at: data.started_at,\n  completed_at: data.completed_at || null,\n  error_message: data.error_message || null\n};"
+        },
+        "id": "748562aa-d5c4-43af-a774-5ddb8e678b06",
+        "name": "Format Status Response",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          880,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ JSON.stringify($json) }}",
+          "options": {
+            "responseCode": 200
+          }
+        },
+        "id": "f5c349e4-bf80-42c8-9aaf-799614f6688e",
+        "name": "Status Response",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.5,
+        "position": [
+          1104,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "content": "## Status Polling Endpoint Details\n\nFrontend calls this every 2 seconds to get current onboarding status.\n\n**GET** `/webhook/onboarding/status?id=ONB-2025-XXXXX`\n\n**Response:**\n```json\n{\n  \"success\": true,\n  \"onboarding_id\": \"ONB-2025-00001\",\n  \"status\": \"provisioning\",\n  \"progress_percent\": 25,\n  \"current_step\": \"Creating Slack account...\",\n  \"steps\": {\n    \"google_workspace\": \"complete\",\n    \"slack\": \"pending\",\n    ...\n  }\n}\n```",
+          "height": 340,
+          "width": 360,
+          "color": 6
+        },
+        "id": "889aed8d-6cc7-43fb-a2aa-f12fd7932e5f",
+        "name": "Info Note",
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          -48,
+          224
+        ]
+      }
+    ],
+    "connections": {
+      "Status Polling Webhook": {
+        "main": [
+          [
+            {
+              "node": "Validate ID Provided",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Validate ID Provided": {
+        "main": [
+          [
+            {
+              "node": "Lookup Status in Sheet",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Missing ID Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Lookup Status in Sheet": {
+        "main": [
+          [
+            {
+              "node": "Check If Found",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check If Found": {
+        "main": [
+          [
+            {
+              "node": "Format Status Response",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Not Found Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Format Status Response": {
+        "main": [
+          [
+            {
+              "node": "Status Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "James Brown",
+    "name": "Version 2ee02ea2",
+    "description": "",
+    "autosaved": false
+  },
+  "activeVersionId": "2ee02ea2-08bc-4c19-a512-b148cec48e80",
+  "connections": {
+    "Status Polling Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate ID Provided",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate ID Provided": {
+      "main": [
+        [
+          {
+            "node": "Lookup Status in Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Missing ID Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lookup Status in Sheet": {
+      "main": [
+        [
+          {
+            "node": "Check If Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If Found": {
+      "main": [
+        [
+          {
+            "node": "Format Status Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Not Found Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Status Response": {
+      "main": [
+        [
+          {
+            "node": "Status Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-02T18:08:09.811Z",
+  "id": "eXzqwojdyENdTRIq",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Onboarding Status Polling Endpoint - AiGS Demo",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "onboarding/status",
+        "responseMode": "responseNode",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "GET, OPTIONS"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type"
+              }
+            ]
+          }
+        }
+      },
+      "id": "a430b7e8-c3a0-4c6b-aa50-d839c4537326",
+      "name": "Status Polling Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "onboarding-status"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cond-id",
+              "leftValue": "={{ $json.query.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "22fa5fdb-55af-4f9d-ab94-e4cfdc90c4ac",
+      "name": "Validate ID Provided",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": false,\n  \"error\": \"Missing onboarding ID\",\n  \"message\": \"Please provide an 'id' query parameter (e.g., ?id=ONB-2025-00001)\"\n}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "e3d11659-0cd2-4f71-b7d8-ec9d7fa1b74e",
+      "name": "Missing ID Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        448,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1fK3eXCC2K4Ff3s-dqmolRsAJ85khUcXRjb5G-hzMVig",
+          "mode": "list",
+          "cachedResultName": "Status",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fK3eXCC2K4Ff3s-dqmolRsAJ85khUcXRjb5G-hzMVig/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fK3eXCC2K4Ff3s-dqmolRsAJ85khUcXRjb5G-hzMVig/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "onboarding_id",
+              "lookupValue": "={{ $json.query.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "770ce1dd-1026-41a6-9d22-d4d163c66318",
+      "name": "Lookup Status in Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        448,
+        0
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "eOPhFUrfwo2AgnTD",
+          "name": "NWA Boost:Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cond-found",
+              "leftValue": "={{ $json.onboarding_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "7857b305-ca52-4429-9be7-cf4359747d62",
+      "name": "Check If Found",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        672,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"error\": \"Onboarding not found\",\n  \"message\": \"No onboarding found with ID: {{ $('Status Polling Webhook').item.json.query.id }}\"\n}",
+        "options": {
+          "responseCode": 404
+        }
+      },
+      "id": "2d51bd3e-7c1c-47b5-9e3e-d9f0a3b55884",
+      "name": "Not Found Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        880,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.item.json;\n\n// Build status response\nreturn {\n  success: true,\n  onboarding_id: data.onboarding_id,\n  employee_name: data.employee_name,\n  employee_email: data.employee_email,\n  department: data.department,\n  status: data.status,\n  progress_percent: parseInt(data.progress_percent) || 0,\n  current_step: data.current_step,\n  steps: {\n    google_workspace: data.google_workspace || 'pending',\n    slack: data.slack || 'pending',\n    jira: data.jira || 'pending',\n    welcome_pdf: data.welcome_pdf || 'pending',\n    notion_page: data.notion_page || 'pending',\n    calendar_events: data.calendar_events || 'pending',\n    email_newhire: data.email_newhire || 'pending',\n    notify_manager: data.notify_manager || 'pending',\n    notify_it: data.notify_it || 'pending'\n  },\n  started_at: data.started_at,\n  completed_at: data.completed_at || null,\n  error_message: data.error_message || null\n};"
+      },
+      "id": "748562aa-d5c4-43af-a774-5ddb8e678b06",
+      "name": "Format Status Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "f5c349e4-bf80-42c8-9aaf-799614f6688e",
+      "name": "Status Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1104,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Status Polling Endpoint Details\n\nFrontend calls this every 2 seconds to get current onboarding status.\n\n**GET** `/webhook/onboarding/status?id=ONB-2025-XXXXX`\n\n**Response:**\n```json\n{\n  \"success\": true,\n  \"onboarding_id\": \"ONB-2025-00001\",\n  \"status\": \"provisioning\",\n  \"progress_percent\": 25,\n  \"current_step\": \"Creating Slack account...\",\n  \"steps\": {\n    \"google_workspace\": \"complete\",\n    \"slack\": \"pending\",\n    ...\n  }\n}\n```",
+        "height": 340,
+        "width": 360,
+        "color": 6
+      },
+      "id": "889aed8d-6cc7-43fb-a2aa-f12fd7932e5f",
+      "name": "Info Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        224
+      ]
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-02T18:08:09.813Z",
+      "createdAt": "2026-01-02T18:08:09.813Z",
+      "role": "workflow:owner",
+      "workflowId": "eXzqwojdyENdTRIq",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-01-11T01:56:19.304Z",
+  "versionId": "2ee02ea2-08bc-4c19-a512-b148cec48e80"
+}
