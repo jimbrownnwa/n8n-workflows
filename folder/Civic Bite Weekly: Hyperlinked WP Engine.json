@@ -1,0 +1,798 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Set Dates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge → Closures + Downgrades": {
+      "main": [
+        [
+          {
+            "node": "Read Published Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter: B/C (lenient)": {
+      "main": [
+        [
+          {
+            "node": "Merge → Closures + Downgrades",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Filter: Closures": {
+      "main": [
+        [
+          {
+            "node": "Merge → Closures + Downgrades",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Dates": {
+      "main": [
+        [
+          {
+            "node": "HTTP → Downgrades (B & C, week)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Closures Week1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a post": {
+      "main": [
+        [
+          {
+            "node": "Generate image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate image": {
+      "main": [
+        [
+          {
+            "node": "Upload image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload image": {
+      "main": [
+        [
+          {
+            "node": "Set featured image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatted Blog": {
+      "main": [
+        [
+          {
+            "node": "Create a post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "SEO Expert",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "SEO Expert",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SEO Expert": {
+      "main": [
+        [
+          {
+            "node": "Set metatag",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set metatag": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Published Posts": {
+      "main": [
+        [
+          {
+            "node": "Formatted Blog",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Closures Week1": {
+      "main": [
+        [
+          {
+            "node": "Filter: Closures",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP → Downgrades (B & C, week)": {
+      "main": [
+        [
+          {
+            "node": "Filter: B/C (lenient)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Previous Week Dates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Previous Week Dates": {
+      "main": [
+        [
+          {
+            "node": "Closures Week1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP → Downgrades (B & C, week)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set featured image": {
+      "main": [
+        [
+          {
+            "node": "SEO Expert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-04T17:21:38.639Z",
+  "id": "3pN078W66LqdDs5u",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Civic Bite Weekly: Hyperlinked WP Engine",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        2576,
+        320
+      ],
+      "id": "007ae83e-c867-4101-b046-a685242133a6",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {},
+      "id": "4a6ed079-a748-434d-8770-b68a4fb09e21",
+      "name": "Merge → Closures + Downgrades",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [
+        3472,
+        464
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// B/C DOWNGRADES — reads date window from \"Set Dates\" node.\n// Accepts payload JSON under .result or under .body.result or raw array.\n// Filters to Restaurant* only; keeps B/C (or score <= 89); excludes closures; de-dupes by (business,date).\n\n// ---- get date window from Set Dates node ----\nfunction getDateStr(name){\n  const v = $node[\"Set Dates\"]?.json?.[name];\n  return (v == null) ? \"\" : String(v);\n}\n\nconst startDateStr = getDateStr('start_date');\nconst endDateStr = getDateStr('end_date');\n\nif (!startDateStr || !endDateStr) {\n  return [{json:{error:'Missing date window from Set Dates', got:{startDateStr, endDateStr}}}];\n}\n\n// ---- robust date helpers ----\nfunction pad2(n){ n=Number(n); return n<10?'0'+n:String(n); }\nfunction toISO(d){ return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth()+1)}-${pad2(d.getUTCDate())}`; }\nfunction parseDateLoose(s){\n  if (!s) return null;\n  const t=String(s).trim();\n  let m=t.match(/^(\\d{4})[-/](\\d{1,2})[-/](\\d{1,2})$/);\n  if (m) return new Date(Date.UTC(+m[1], +m[2]-1, +m[3]));\n  m=t.match(/^(\\d{1,2})\\/(\\d{1,2})\\/(\\d{4})$/);\n  if (m) return new Date(Date.UTC(+m[3], +m[1]-1, +m[2]));\n  const d=new Date(t);\n  return isNaN(d)?null:new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));\n}\n\nconst startDate = parseDateLoose(startDateStr);\nconst endDate = parseDateLoose(endDateStr);\n\nif (!startDate || !endDate) {\n  return [{json:{error:'Unparseable date(s)', got:{startDateStr, endDateStr}}}];\n}\n\nconst startTS = startDate.getTime();\nconst endTS = endDate.getTime();\nconst inRangeTS = (s)=>{ const d=parseDateLoose(s); if(!d) return false; const ts=d.getTime(); return ts>=startTS && ts<=endTS; };\n\n// ---- parse HTTP payload ----\nfunction parsePayload(item0){\n  const j=item0?.json ?? {};\n  if (typeof j.data === 'string') { try { return JSON.parse(j.data); } catch {} }\n  return j;\n}\nconst raw = parsePayload(items[0]) || {};\nlet businesses = [];\nif (Array.isArray(raw)) businesses = raw;\nelse if (Array.isArray(raw.result)) businesses = raw.result;\nelse if (raw.body && Array.isArray(raw.body.result)) businesses = raw.body.result;\n\n// ---- helpers ----\nfunction isRestaurantFoodFacility(biz){\n  const t = String(biz.business_type ?? biz.facility_type ?? '').toLowerCase();\n  return t.includes('restaurant');\n}\nfunction isClosureStatus(status=''){\n  const s=String(status).toLowerCase();\n  return s.includes('ordered closed')||s.includes('closure')||s==='closed';\n}\nfunction asViolations(arr){ \n  return Array.isArray(arr) ? arr.map(v=>v?.violation_text || v?.violation || String(v)).filter(Boolean) : [];\n}\nfunction letterFromScore(score){\n  const n=Number(score);\n  if (!Number.isFinite(n)) return '';\n  if (n>=90) return 'A'; if (n>=80) return 'B'; return 'C';\n}\nfunction norm(s){ return String(s||'').trim().toLowerCase(); }\nfunction rankRecord(rec){\n  let r=0; const g=String(rec.grade||'').toUpperCase();\n  if (g==='C') r+=6; else if (g==='B') r+=3;\n  if (rec.score!=null && Number.isFinite(Number(rec.score))) r+=Math.max(0,100-Number(rec.score));\n  if (Array.isArray(rec.violations) && rec.violations.length) r+=2;\n  const url=String(rec.detail_url||'').toLowerCase();\n  if (/routine\\.html/.test(url)) r+=5;\n  else if (/environmental\\.html/.test(url)) r+=4;\n  else if (/status_verification\\.html/.test(url)) r+=3;\n  else if (/site_investigation\\.html/.test(url)) r+=2;\n  else if (/reinspection\\.html/.test(url)) r+=1;\n  const status=String(rec.status||'').toLowerCase();\n  if (status==='complete') r+=2;\n  if (status==='approved to reopen') r+=1;\n  return r;\n}\n\n// ---- collect ----\nconst candidates=[];\nfor (const biz of businesses){\n  if (!isRestaurantFoodFacility(biz)) continue;\n  const inspections=Array.isArray(biz.inspections)?biz.inspections:[];\n  for (const ins of inspections){\n    const dateRaw = ins.completed_date || ins.inspection_date || ins.date || '';\n    if (!dateRaw || !inRangeTS(dateRaw)) continue;\n    if (isClosureStatus(ins.status||'')) continue;\n\n    const scoreNum = Number(ins.score);\n    const rawGrade = String(ins.grade ?? biz.grade ?? biz.current_grade ?? '').trim();\n    const letter   = (rawGrade.match(/[ABC]/i)||[''])[0]?.toUpperCase() || letterFromScore(scoreNum);\n    const isBC     = (letter==='B'||letter==='C') || (Number.isFinite(scoreNum)&&scoreNum<=89);\n    if (!isBC) continue;\n\n    const violations = asViolations(ins.violations);\n\n    candidates.push({json:{\n      type:'downgrade',\n      facility: biz.name || '',\n      address: biz.address || '',\n      city: biz.city || '',\n      zip: biz.zip || '',\n      business_id: biz.business_id || null,\n      date: toISO(parseDateLoose(dateRaw)),\n      grade: letter || '',\n      score: Number.isFinite(scoreNum)?scoreNum:null,\n      status: ins.status || '',\n      violations: violations,\n      detail_url: ins.link || null,\n      reinspection: /re-?inspection/i.test(ins.type||'')\n    }});\n  }\n}\n\n// Filter out items with no violations\nconst withViolations = candidates.filter(c => c.json.violations && c.json.violations.length > 0);\n\n// ---- de-dupe by (business,date) keeping strongest ----\nconst groups=new Map();\nfor (const row of withViolations){\n  const j=row.json;\n  const bkey = j.business_id ? `id:${j.business_id}` : `fa:${norm(j.facility)}|${norm(j.address)}|${norm(j.zip)}`;\n  const key = `${bkey}|d:${j.date}`;\n  const cur = groups.get(key);\n  if (!cur || rankRecord(j)>rankRecord(cur.json)) groups.set(key,row);\n}\nconst deduped = Array.from(groups.values()).sort((a,b)=>{\n  const da=a.json.date, db=b.json.date;\n  return da===db ? String(a.json.facility).localeCompare(String(b.json.facility)) : da.localeCompare(db);\n});\n\nconsole.log(`Found ${candidates.length} downgrades, ${withViolations.length} with violations, ${deduped.length} after deduplication`);\n\nif (deduped.length === 0) {\n  console.log(`No B/C downgrades with violations found between ${startDateStr} and ${endDateStr}`);\n  return [];\n}\n\nreturn deduped;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3248,
+        560
+      ],
+      "id": "854493f2-2f64-46dd-be72-456c8a3de55a",
+      "name": "Filter: B/C (lenient)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// CLOSURES — reads date window from \"Set Dates\" node, filters Restaurant*, de-dupes.\n// dates\nfunction getDateStr(name){\n  const v = $node[\"Set Dates\"]?.json?.[name];\n  return (v == null) ? \"\" : String(v);\n}\nfunction pad2(n){ n=Number(n); return n<10?'0'+n:String(n); }\nfunction toISO(d){ return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth()+1)}-${pad2(d.getUTCDate())}`; }\nfunction parseDateLoose(s){\n  if (!s) return null;\n  const t=String(s).trim();\n  let m=t.match(/^(\\d{4})[-/](\\d{1,2})[-/](\\d{1,2})$/);\n  if (m) return new Date(Date.UTC(+m[1], +m[2]-1, +m[3]));\n  m=t.match(/^(\\d{1,2})\\/(\\d{1,2})\\/(\\d{4})$/);\n  if (m) return new Date(Date.UTC(+m[3], +m[1]-1, +m[2]));\n  const d=new Date(t);\n  return isNaN(d)?null:new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));\n}\nconst startDateStr = getDateStr('start_date');\nconst endDateStr = getDateStr('end_date');\nconst startDate = parseDateLoose(startDateStr);\nconst endDate = parseDateLoose(endDateStr);\nconst startTS = startDate?.getTime?.();\nconst endTS = endDate?.getTime?.();\nconst inRangeTS = (s)=>{ const d=parseDateLoose(s); if(!d||startTS==null||endTS==null) return true; const ts=d.getTime(); return ts>=startTS && ts<=endTS; };\n// payload\nfunction parsePayload(item0){\n  const j=item0?.json ?? {};\n  if (typeof j.data === 'string') { try { return JSON.parse(j.data); } catch {} }\n  return j;\n}\nconst raw=parsePayload(items[0])||{};\nlet businesses=[];\nif (Array.isArray(raw)) businesses=raw;\nelse if (Array.isArray(raw.result)) businesses=raw.result;\nelse if (raw.body && Array.isArray(raw.body.result)) businesses=raw.body.result;\n// helpers\nfunction isRestaurantFoodFacility(biz){\n  const t=String(biz.business_type ?? biz.facility_type ?? '').toLowerCase();\n  return t.includes('restaurant');\n}\nfunction isClosureStatus(status=''){\n  const s=String(status).toLowerCase();\n  return s.includes('ordered closed')||s.includes('closure')||s==='closed';\n}\nfunction asViolations(arr){ \n  return Array.isArray(arr)?arr.map(v=>v?.violation_text||v?.violation||String(v)).filter(Boolean):[];\n}\nfunction norm(s){ return String(s||'').trim().toLowerCase(); }\n// collect\nconst out=[];\nfor (const biz of businesses){\n  if (!isRestaurantFoodFacility(biz)) continue;\n  const inspections=Array.isArray(biz.inspections)?biz.inspections:[];\n  for (const ins of inspections){\n    const dateRaw = ins.completed_date || ins.inspection_date || ins.date || '';\n    if (!dateRaw || !inRangeTS(dateRaw)) continue;\n    if (!isClosureStatus(ins.status||'')) continue;\n    \n    const violations = asViolations(ins.violations);\n    \n    out.push({json:{\n      type:'closure',\n      facility: biz.name || '',\n      address: biz.address || '',\n      city: biz.city || '',\n      zip: biz.zip || '',\n      date: toISO(parseDateLoose(dateRaw)),\n      status: ins.status || 'Ordered Closed',\n      score: (ins.score!=null ? Number(ins.score) : null),\n      grade: ins.grade ?? biz.grade ?? biz.current_grade ?? '',\n      violations: violations,\n      detail_url: ins.link || null\n    }});\n  }\n}\n\n// Filter out items with no violations\nconst withViolations = out.filter(o => o.json.violations && o.json.violations.length > 0);\n\n// de-dupe by facility+date+url\nconst seen=new Set();\nconst dedup=withViolations.filter(o=>{\n  const j=o.json, k=`${norm(j.facility)}|${norm(j.address)}|${j.date||''}|${j.detail_url||''}`;\n  if (seen.has(k)) return false; seen.add(k); return true;\n});\n\nconsole.log(`Found ${out.length} closures, ${withViolations.length} with violations, ${dedup.length} after deduplication`);\n\nif (dedup.length === 0) {\n  console.log(`No closures with violations found between ${startDateStr} and ${endDateStr}`);\n  return [];\n}\nreturn dedup;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3248,
+        368
+      ],
+      "id": "de1a00d3-9244-4170-85b2-870670773dc3",
+      "name": "Filter: Closures"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "77f747b8-e8d0-4fe7-8476-19430c1ad0fb",
+              "name": "start_date",
+              "value": "2025-12-22",
+              "type": "string"
+            },
+            {
+              "id": "42c31e22-23bb-4948-9c9e-96863979dbf2",
+              "name": "end_date",
+              "value": "2026-01-03",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2800,
+        320
+      ],
+      "id": "9bbc09fc-6a46-4fb9-9636-b1fecddcae8d",
+      "name": "Set Dates"
+    },
+    {
+      "parameters": {
+        "title": "={{ $json.post.title }}",
+        "additionalFields": {
+          "authorId": 1,
+          "content": "={{ $json.post.content }}",
+          "status": "publish",
+          "categories": [
+            8
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.wordpress",
+      "typeVersion": 1,
+      "position": [
+        4144,
+        464
+      ],
+      "id": "a0899816-b324-4b42-8c57-3067ce626020",
+      "name": "Create a post",
+      "credentials": {
+        "wordpressApi": {
+          "id": "BDzYDNG9SadXzoda",
+          "name": "NWA Shop Local Wordpress account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "model": "=dall-e-3",
+        "prompt": "=Generate a real photo image used as a blog post cover:\n\nImage prompt:\nCreate an image that represents San Diego CA, photography, realistic, sigma 85mm f/1.4",
+        "options": {
+          "size": "1024x1024",
+          "style": "natural"
+        }
+      },
+      "id": "e26d6b69-eca4-4717-aa05-9e27b6a947b9",
+      "name": "Generate image",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [
+        4368,
+        464
+      ],
+      "typeVersion": 1.8
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://civicbite.com//wp-json/wp/v2/media",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wordpressApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Disposition",
+              "value": "=attachment; filename=\"copertina-{{ $json.mimeType }}.png\""
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "id": "0458c05b-b390-4069-99ba-5f5fd9661821",
+      "name": "Upload image",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        4592,
+        464
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "jsCode": "// Preview Blog (SanDiegoville style - HTML format with links to individual posts)\n\n// ---------- Get dates from Set Dates node ----------\nconst setDatesNode = $('Set Dates').first().json;\nconst startISO = setDatesNode.start_date;\nconst endISO = setDatesNode.end_date;\n\n// ---------- Get the MERGED inspection data (not the sheet data) ----------\nconst mergedData = $('Merge → Closures + Downgrades').all();\n\n// ---------- Get published posts from Google Sheet ----------\nconst sheetRows = $('Read Published Posts').all().map(item => item.json);\n\n// Build a lookup map: slug → post URL\nconst slugToUrl = new Map();\nfor (const row of sheetRows) {\n  const slug = String(row.slug || '').trim();\n  const postUrl = String(row.post_URL || '').trim();\n  \n  if (slug && postUrl) {\n    slugToUrl.set(slug, postUrl);\n  }\n}\n\nconsole.log('Sheet lookup map created:', slugToUrl.size, 'entries');\n\n// ---------- knobs (optional) ----------\nconst COLLAPSE_CLOSURES = false;\nconst COLLAPSE_DOWNGRADES = false;\n\n// ---------- helpers ----------\nconst rows = mergedData.map(i=>i.json || {});\nconst norm = (s)=>String(s||'').trim().toLowerCase().replace(/\\s+/g,' ');\n\n// More reliable key generation using business_id when available\nconst keyFor = (r) => {\n  if (r.business_id) {\n    return `id:${r.business_id}`;\n  }\n  // Fallback to facility+address\n  return [norm(r.facility), norm(r.address||''), norm(r.city||''), norm(r.zip||'')].join('|');\n};\n\nconst uniq = (arr)=>Array.from(new Set(arr.filter(Boolean)));\nconst gradeRank = (g)=>({A:1,B:2,C:3})[String(g||'').toUpperCase()] || 0;\n\n// Helper to generate slug from facility (MUST MATCH DAILY WORKFLOW)\nfunction slugify(str){\n  return String(str||'')\n    .toLowerCase()\n    .replace(/&/g,' and ')\n    .replace(/[^a-z0-9]+/g,'-')\n    .replace(/^-+|-+$/g,'')\n    .slice(0,96);\n}\n\n// Remove city/zip if they already appear inside the address string\nfunction addrLineClean(j){\n  let addr = String(j.address||'').trim();\n  const city = String(j.city||'').trim();\n  const zip  = String(j.zip||'').trim();\n  if (city && addr.toLowerCase().includes(city.toLowerCase())) {\n    addr = addr.replace(new RegExp(city.replace(/[-/\\\\^$*+?.()|[\\]{}]/g,'\\\\$&'), 'i'), '').trim();\n  }\n  if (zip && addr.includes(zip)) {\n    addr = addr.replace(zip, '').trim();\n  }\n  // collapse double spaces and stray commas\n  addr = addr.replace(/\\s{2,}/g,' ').replace(/\\s*,\\s*/g, ', ').replace(/^,|,$/g,'').trim();\n  return [addr, city, zip].filter(Boolean).join(' ');\n}\n\nfunction generateSlug(j){\n  const base = `${j.facility||''} ${addrLineClean(j)}`;\n  return slugify(base);\n}\n\n// Helper to create linked or plain facility name\nfunction formatFacilityName(facility, slug) {\n  const url = slugToUrl.get(slug);\n  if (url) {\n    return `<a href=\"${url}\" target=\"_blank\"><strong>${facility}</strong></a>`;\n  }\n  return `<strong>${facility}</strong>`;\n}\n\nfunction humanDate(iso){\n  if(!iso) return '';\n  const [y,m,d] = iso.split('-').map(Number);\n  const dt = new Date(y, m-1, d);\n  return dt.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});\n}\n\nfunction humanRange(a,b){\n  if(!a||!b) return '';\n  const parseLocal = (iso) => {\n    const [y,m,d] = iso.split('-').map(Number);\n    return new Date(y, m-1, d);\n  };\n  \n  const A = parseLocal(a);\n  const B = parseLocal(b);\n  \n  const same = A.getFullYear()===B.getFullYear() && A.getMonth()===B.getMonth();\n  const ma = A.toLocaleDateString('en-US',{month:'long'});\n  const mb = B.toLocaleDateString('en-US',{month:'long'});\n  \n  return same ? `${ma} ${A.getDate()}–${B.getDate()}, ${B.getFullYear()}`\n              : `${ma} ${A.getDate()}, ${A.getFullYear()} – ${mb} ${B.getDate()}, ${B.getFullYear()}`;\n}\n\n// Smart address formatting - only add city/zip if not already in address\nconst addrTuple = (r) => {\n  const addr = String(r.address || '').trim();\n  const city = String(r.city || '').trim();\n  const zip = String(r.zip || '').trim();\n  \n  // Check if address already contains city and zip\n  const hasCity = city && addr.toLowerCase().includes(city.toLowerCase());\n  const hasZip = zip && addr.includes(zip);\n  \n  // If address already has both, just return the address\n  if (hasCity && hasZip) {\n    return addr;\n  }\n  \n  // Otherwise, build the full address\n  const parts = [addr];\n  if (!hasCity && city) parts.push(city);\n  if (!hasZip && zip) parts.push(zip);\n  \n  return parts.filter(Boolean).join(', ');\n};\n\n// Generate Schema.org structured data for weekly roundup\nfunction generateWeeklySchema(startISO, endISO, closuresGrouped, downgradesGrouped, baseUrl = 'https://civicbite.com') {\n  const rangeHuman = humanRange(startISO, endISO);\n  const publishDate = new Date(endISO).toISOString();\n  const modifiedDate = new Date().toISOString();\n  \n  // Create ItemList of all restaurants mentioned\n  const allFacilities = [\n    ...closuresGrouped.map((c, idx) => ({\n      \"@type\": \"ListItem\",\n      \"position\": idx + 1,\n      \"item\": {\n        \"@type\": \"Restaurant\",\n        \"name\": c.facility,\n        \"address\": {\n          \"@type\": \"PostalAddress\",\n          \"streetAddress\": c.address,\n          \"addressLocality\": c.city,\n          \"addressRegion\": \"CA\",\n          \"postalCode\": c.zip,\n          \"addressCountry\": \"US\"\n        }\n      }\n    })),\n    ...downgradesGrouped.map((d, idx) => ({\n      \"@type\": \"ListItem\",\n      \"position\": closuresGrouped.length + idx + 1,\n      \"item\": {\n        \"@type\": \"Restaurant\",\n        \"name\": d.facility,\n        \"address\": {\n          \"@type\": \"PostalAddress\",\n          \"streetAddress\": d.address,\n          \"addressLocality\": d.city,\n          \"addressRegion\": \"CA\",\n          \"postalCode\": d.zip,\n          \"addressCountry\": \"US\"\n        }\n      }\n    }))\n  ];\n  \n  const schema = {\n    \"@context\": \"https://schema.org\",\n    \"@graph\": [\n      // 1. The Weekly Roundup Article\n      {\n        \"@type\": \"NewsArticle\",\n        \"@id\": `${baseUrl}/weekly-roundup-${startISO}/#article`,\n        \"headline\": `San Diego County health inspections: closures & downgrades – ${rangeHuman}`,\n        \"description\": `${closuresGrouped.length} closures and ${downgradesGrouped.length} downgrades reported from ${rangeHuman}`,\n        \"datePublished\": publishDate,\n        \"dateModified\": modifiedDate,\n        \"author\": {\n          \"@type\": \"Organization\",\n          \"@id\": `${baseUrl}/#organization`\n        },\n        \"publisher\": {\n          \"@type\": \"Organization\",\n          \"@id\": `${baseUrl}/#organization`\n        },\n        \"articleSection\": \"Weekly Roundup\",\n        \"keywords\": \"San Diego County, health inspections, restaurant closures, health downgrades, weekly roundup\",\n        \"about\": {\n          \"@type\": \"ItemList\",\n          \"@id\": `${baseUrl}/weekly-roundup-${startISO}/#itemlist`,\n          \"numberOfItems\": allFacilities.length,\n          \"itemListElement\": allFacilities\n        }\n      },\n      \n      // 2. The ItemList of restaurants\n      {\n        \"@type\": \"ItemList\",\n        \"@id\": `${baseUrl}/weekly-roundup-${startISO}/#itemlist`,\n        \"name\": `San Diego County Health Inspections ${rangeHuman}`,\n        \"description\": `List of ${closuresGrouped.length} closures and ${downgradesGrouped.length} downgrades`,\n        \"numberOfItems\": allFacilities.length,\n        \"itemListElement\": allFacilities\n      },\n      \n      // 3. Your Organization\n      {\n        \"@type\": \"Organization\",\n        \"@id\": `${baseUrl}/#organization`,\n        \"name\": \"Civic Bite\",\n        \"url\": baseUrl,\n        \"logo\": {\n          \"@type\": \"ImageObject\",\n          \"url\": `${baseUrl}/wp-content/uploads/civic-bite-logo.png`\n        },\n        \"description\": \"San Diego County restaurant health inspection reports and news\"\n      }\n    ]\n  };\n  \n  return `<script type=\"application/ld+json\">\\n${JSON.stringify(schema, null, 2)}\\n</script>`;\n}\n\n// ---------- split ----------\nconst closuresRaw   = rows.filter(r=>r.type==='closure');\nconst downgradesRaw = rows.filter(r=>r.type==='downgrade');\n\nconsole.log('=== RAW DATA ===');\nconsole.log('Total closures items:', closuresRaw.length);\nconsole.log('Total downgrades items:', downgradesRaw.length);\n\n// ---------- group closures by facility+address (or business_id) ----------\nconst cMap = new Map();\nfor (const r of closuresRaw) {\n  const k = keyFor(r);\n  if (!cMap.has(k)) cMap.set(k, {\n    facility: r.facility||'', \n    address: r.address||'', \n    city: r.city||'', \n    zip: r.zip||'', \n    slug: generateSlug(r),\n    incidents: []\n  });\n  cMap.get(k).incidents.push({\n    date: r.date,\n    reasons: Array.isArray(r.violations)? r.violations : [],\n    status: r.status || 'Ordered Closed',\n    detail_url: r.detail_url || null\n  });\n}\nlet closuresGrouped = Array.from(cMap.values()).map(g=>{\n  g.incidents.sort((a,b)=>String(a.date).localeCompare(String(b.date)));\n  const dates = g.incidents.map(i=>i.date).filter(Boolean);\n  const reasonsMerged = uniq(g.incidents.flatMap(i=>i.reasons));\n  return {\n    facility: g.facility,\n    slug: g.slug,\n    address: g.address,\n    city: g.city,\n    zip: g.zip,\n    dates_iso: dates,\n    dates_human: dates.map(humanDate),\n    reasons_merged: reasonsMerged,\n    incidents: g.incidents\n  };\n});\nif (COLLAPSE_CLOSURES) {\n  closuresGrouped = closuresGrouped.map(g=>{\n    const last = g.incidents[g.incidents.length-1];\n    return {\n      ...g,\n      dates_iso: [last.date],\n      dates_human: [humanDate(last.date)],\n      reasons_merged: uniq(last.reasons||[]),\n      incidents: [last]\n    };\n  });\n}\n\nconsole.log('After grouping - closures:', closuresGrouped.length);\n\n// ---------- group downgrades by facility+address (or business_id) ----------\nconst dMap = new Map();\nfor (const r of downgradesRaw) {\n  const k = keyFor(r);\n  if (!dMap.has(k)) dMap.set(k, {\n    facility: r.facility||'', \n    address: r.address||'', \n    city: r.city||'', \n    zip: r.zip||'',\n    slug: generateSlug(r),\n    incidents: []\n  });\n  dMap.get(k).incidents.push({\n    date: r.date,\n    grade: r.grade || '',\n    score: (r.score!=null ? r.score : null),\n    reinspection: !!r.reinspection,\n    reasons: Array.isArray(r.violations)? r.violations : [],\n    detail_url: r.detail_url || null\n  });\n}\nlet downgradesGrouped = Array.from(dMap.values()).map(g=>{\n  g.incidents.sort((a,b)=>String(a.date).localeCompare(String(b.date)));\n  const dates = g.incidents.map(i=>i.date).filter(Boolean);\n  const grades = uniq(g.incidents.map(i=>i.grade).filter(Boolean));\n  const reasonsMerged = uniq(g.incidents.flatMap(i=>i.reasons));\n  const worst = g.incidents.reduce((w,i)=> gradeRank(i.grade)>gradeRank(w) ? i.grade : w, '');\n  const minScore = g.incidents.reduce((m,i)=> Number.isFinite(Number(i.score)) ? Math.min(m ?? Number(i.score), Number(i.score)) : m, undefined);\n  \n  return {\n    facility: g.facility,\n    slug: g.slug,\n    address: g.address,\n    city: g.city,\n    zip: g.zip,\n    dates_iso: dates,\n    dates_human: dates.map(humanDate),\n    grades,\n    worst_grade: worst || null,\n    min_score: (minScore!=null ? minScore : null),\n    incidents: g.incidents,\n    reasons_merged: reasonsMerged\n  };\n});\nif (COLLAPSE_DOWNGRADES) {\n  downgradesGrouped = downgradesGrouped.map(g=>{\n    let best = g.incidents[0];\n    for (const i of g.incidents) {\n      const a = gradeRank(i.grade), b = gradeRank(best.grade);\n      if (a>b || (a===b && String(i.date)>String(best.date))) best = i;\n    }\n    return {\n      ...g,\n      grades: uniq([best.grade].filter(Boolean)),\n      dates_iso: [best.date],\n      dates_human: [humanDate(best.date)],\n      reasons_merged: uniq(best.reasons||[]),\n      incidents: [best],\n      worst_grade: best.grade || null,\n      min_score: (best.score!=null ? best.score : null)\n    };\n  });\n}\n\nconsole.log('After grouping - downgrades:', downgradesGrouped.length);\n\n// ---------- overall period (from Set Dates node) ----------\nconst rangeHuman = humanRange(startISO, endISO);\n\n// ---------- Generate Schema Markup ----------\nconst schemaMarkup = generateWeeklySchema(startISO, endISO, closuresGrouped, downgradesGrouped);\n\n// ---------- HTML builders (SanDiegoville style with links) ----------\nfunction closuresSectionHTML(list){\n  if (!list.length) return `<h2>CLOSURES</h2>\\n<p><em>No closures were reported during this period.</em></p>\\n`;\n  \n  const entries = list\n    .sort((a,b)=>String(a.dates_iso[0]).localeCompare(String(b.dates_iso[0])))\n    .map(g=>{\n      const place = formatFacilityName(g.facility, g.slug);\n      const addr = addrTuple(g);\n      const dateText = g.dates_human.length===1 ? g.dates_human[0] : g.dates_human.join(', ');\n      \n      let violationHTML = '';\n      if (g.reasons_merged.length > 0) {\n        violationHTML = `<br/><strong>Violations:</strong> ${g.reasons_merged.join(', ')}`;\n      }\n      \n      return `<p>${place}<br/>${addr}<br/><strong>Closed:</strong> ${dateText}${violationHTML}</p>`;\n    }).join('\\n');\n    \n  return `<h2>CLOSURES</h2>\\n${entries}\\n`;\n}\n\nfunction downgradesSectionHTML(list){\n  if (!list.length) return `<h2>DOWNGRADES</h2>\\n<p><em>No B/C downgrades were reported during this period.</em></p>\\n`;\n  \n  const entries = list\n    .sort((a,b)=>String(a.dates_iso[0]).localeCompare(String(b.dates_iso[0])))\n    .map(g=>{\n      const place = formatFacilityName(g.facility, g.slug);\n      const addr = addrTuple(g);\n      const dateText = g.dates_human.length===1 ? g.dates_human[0] : g.dates_human.join(', ');\n      \n      let gradeText = '';\n      if (g.worst_grade) {\n        gradeText = ` - Grade ${g.worst_grade}`;\n        if (g.min_score != null) {\n          gradeText += ` (Score: ${g.min_score})`;\n        }\n      } else if (g.min_score != null) {\n        gradeText = ` - Score: ${g.min_score}`;\n      }\n      \n      let violationHTML = '';\n      if (g.reasons_merged && g.reasons_merged.length > 0) {\n        violationHTML = `<br/><strong>Violations:</strong> ${g.reasons_merged.join(', ')}`;\n      }\n      \n      return `<p>${place}<br/>${addr}<br/><strong>Downgraded:</strong> ${dateText}${gradeText}${violationHTML}</p>`;\n    }).join('\\n');\n    \n  return `<h2>DOWNGRADES</h2>\\n${entries}\\n`;\n}\n\n// ---------- compose HTML content ----------\nconst html = [\n  schemaMarkup,\n  ``,\n  `<p>This is the weekly list of San Diego County restaurants and food facilities that have faced temporary closures and downgraded health grades due to health inspections from ${rangeHuman}.</p>`,\n  ``,\n  `<p>The San Diego County Department of Environmental Health and Quality performs thousands of inspections annually to ensure that food establishments adhere to necessary safety standards. When inspectors identify critical violations, they issue closure notices, mandating that businesses resolve the issues before they can reopen, as well as reduce the health grade of some establishments.</p>`,\n  ``,\n  `<p>Below are the closures and downgrades with specific violations as reported by health inspectors.</p>`,\n  ``,\n  `<hr/>`,\n  ``,\n  closuresSectionHTML(closuresGrouped),\n  ``,\n  `<hr/>`,\n  ``,\n  downgradesSectionHTML(downgradesGrouped),\n  ``,\n  `<hr/>`,\n  ``,\n  `<p>For more inspection results, including current status of the above restaurants, visit the county's website at <a href=\"http://sdfoodinfo.org\" target=\"_blank\">sdfoodinfo.org</a> or request full health reports by filing a County of San Diego Public Records Request.</p>`\n].join('\\n');\n\n// ---------- title / excerpt / meta ----------\nconst title  = `San Diego County health inspections: closures & downgrades – ${rangeHuman}`;\nconst excerpt = `${closuresGrouped.length} closures and ${downgradesGrouped.length} downgrades reported from ${rangeHuman}.`;\n\nconst post = {\n  title,\n  content: html,\n  excerpt,\n  status: 'draft',\n  meta: {\n    period_start: startISO,\n    period_end: endISO,\n    period_human: rangeHuman,\n    counts: {\n      closures_items: closuresRaw.length,\n      closures_grouped: closuresGrouped.length,\n      downgrades_items: downgradesRaw.length,\n      downgrades_grouped: downgradesGrouped.length\n    },\n    closures_grouped: closuresGrouped,\n    downgrades_grouped: downgradesGrouped\n  }\n};\n\nreturn [{ json: { post } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3920,
+        464
+      ],
+      "id": "5393e42d-8e3e-4c6a-be07-cb32756771a7",
+      "name": "Formatted Blog"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Create metatitle and metadescription in the language of the following:\n- Title: {{ $json.title.raw }}\n- Content: {{ $json.content.raw }}\n- Excerpt: {{ $json.excerpt.rendered }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You are an expert SEO content optimizer specialized in creating meta tags for both web pages and blog articles. Your task is to analyze the provided content and generate optimized meta tags based on the content type.\n\nMETA TAG REQUIREMENTS:\n\n1. Meta Title (max 60 characters):\n   - Include primary keyword near the beginning\n   - State the main value proposition\n   - Include brand name when relevant\n   - Use action-oriented language for commercial pages\n   - Format: Primary Keyword | Main Benefit | Brand (if applicable)\n\n2. Meta Description (max 160 characters):\n   - Lead with unique selling proposition\n   - Include primary and secondary keywords naturally\n   - Add clear call-to-action\n   - Highlight key benefits or features\n   - Address user pain points\n   - Tease the main insights or findings\n   - Mention key topics covered\n   - Use engaging question or statement\n   - Include expertise indicators\n   - Promise value or solution\n\nANALYSIS PROCESS:\n1. Content Assessment:\n   - Identify content type and purpose\n   - Extract main topic and keywords\n   - Determine search intent\n   - Identify target audience\n   - Note key differentiators\n\n2. Optimization Strategy:\n   - Align with search intent\n   - Consider competition level\n   - Factor in brand guidelines\n   - Account for content freshness\n   - Optimize for click-through rate\n\nOUTPUT FORMAT:\nPlease provide meta tags in the required format\n\nVALIDATION CHECKLIST:\n- Title length ≤ 60 characters\n- Description length ≤ 160 characters\n- Primary keyword included in both\n- Matches identified search intent\n- Appropriate for content type\n- Clear value proposition\n- Compelling call-to-action\n- Natural keyword placement\n- Proper grammar and spelling\n- Mobile display optimized\n- Don't use placeholder\n\nBEST PRACTICES:\n- Avoid clickbait or misleading content\n- Use power words appropriately\n- Maintain brand voice and tone\n- Ensure mobile snippet optimization\n- Consider local SEO when relevant\n- Keep seasonal content timely\n- Use numbers and data when available\n- Include price/offers if applicable\n- Add emotional triggers when appropriate\n- Consider SERP feature optimization\n\nTECHNICAL GUIDELINES:\n- No double quotes in meta description\n- Avoid unnecessary special characters\n- Use UTF-8 encoding\n- Capitalize properly\n- Avoid keyword cannibalization\n- Respect brand guidelines\n- Consider local market variations\n- Update meta tags for seasonal content\n- Monitor CTR performance\n- A/B test when possible\n\nRemember: The goal is to create meta tags that serve both search engines and users effectively while maintaining specificity for the content type and maximizing organic click-through rates."
+            }
+          ]
+        }
+      },
+      "id": "e6c9d432-54c8-4792-8699-8cc4c4e47975",
+      "name": "SEO Expert",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "position": [
+        5040,
+        464
+      ],
+      "typeVersion": 1.5
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n\t\t\"metatitle\": {\n\t\t\t\"type\": \"string\"\n\t\t},\n\t\t\"metadescription\": {\n\t\t\t\"type\": \"string\"\n\t\t}\n\t}\n}"
+      },
+      "id": "ca8b1a7a-3ccd-4951-b64c-afb658533cc9",
+      "name": "Structured Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "position": [
+        5184,
+        672
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        4992,
+        672
+      ],
+      "id": "43d39e21-ed11-4244-9513-74d42f344684",
+      "name": "OpenRouter Chat Model"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://civicbite.com/wp-json/wp/v2/posts/{{ $('Create a post').item.json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wordpressApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"meta\":{\n    \"_yoast_wpseo_title\":\"{{ $json.output.metatitle }}\",\n    \"_yoast_wpseo_metadesc\":\"{{ $json.output.metadescription }}\"\n  }\n}",
+        "options": {}
+      },
+      "id": "82013ab9-a8af-48b9-9c6a-b46a160787d3",
+      "name": "Set metatag",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        5392,
+        464
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1fRV6MEHE7wPkbnjBqJPRcnOAbuNWuMuxgNbFgdbV6CE",
+          "mode": "list",
+          "cachedResultName": "New Venue Inspections",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fRV6MEHE7wPkbnjBqJPRcnOAbuNWuMuxgNbFgdbV6CE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1112244899,
+          "mode": "list",
+          "cachedResultName": "Weekly Round up",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fRV6MEHE7wPkbnjBqJPRcnOAbuNWuMuxgNbFgdbV6CE/edit#gid=1112244899"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "date_posted": "={{ $json.date }}",
+            "post_URL": "={{ $json.link }}",
+            "post_title": "={{ $json.title.raw }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "date_posted",
+              "displayName": "date_posted",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "post_title",
+              "displayName": "post_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "post_URL",
+              "displayName": "post_URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        5616,
+        464
+      ],
+      "id": "fadb4799-14b1-4827-ac1c-376a47bbf365",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "eOPhFUrfwo2AgnTD",
+          "name": "NWA Boost:Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1fRV6MEHE7wPkbnjBqJPRcnOAbuNWuMuxgNbFgdbV6CE",
+          "mode": "list",
+          "cachedResultName": "New Venue Inspections",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fRV6MEHE7wPkbnjBqJPRcnOAbuNWuMuxgNbFgdbV6CE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Evergreen Venues",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fRV6MEHE7wPkbnjBqJPRcnOAbuNWuMuxgNbFgdbV6CE/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3696,
+        464
+      ],
+      "id": "3fb925f3-ef09-4d17-b134-36063f529710",
+      "name": "Read Published Posts",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "eOPhFUrfwo2AgnTD",
+          "name": "NWA Boost:Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.sdfoodinfo.org/restaurants/search.htm",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded; charset=UTF-8"
+            },
+            {
+              "name": "X-Requested-With",
+              "value": "XMLHttpRequest"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "start_date",
+              "value": "={{ $json.start_date }}"
+            },
+            {
+              "name": "end_date",
+              "value": "={{ $json.end_date }}"
+            },
+            {
+              "name": "closures_only",
+              "value": "1"
+            },
+            {
+              "name": "lat",
+              "value": "32.715738"
+            },
+            {
+              "name": "lng",
+              "value": "-117.1610838"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3024,
+        368
+      ],
+      "id": "9d982e5e-4c97-4257-a34c-024d973f01bd",
+      "name": "Closures Week1",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.sdfoodinfo.org/restaurants/search.htm",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded; charset=UTF-8"
+            },
+            {
+              "name": "X-Requested-With",
+              "value": "XMLHttpRequest"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "start_date",
+              "value": "={{ $json.start_date }}"
+            },
+            {
+              "name": "end_date",
+              "value": "={{ $json.end_date }}"
+            },
+            {
+              "name": "closures_only",
+              "value": "0"
+            },
+            {
+              "name": "lat",
+              "value": "32.715738"
+            },
+            {
+              "name": "lng",
+              "value": "-117.1610838"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3024,
+        560
+      ],
+      "id": "e9fa3950-1086-4b77-b6fe-ce1654fddd81",
+      "name": "HTTP → Downgrades (B & C, week)",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtHour": 7
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        2576,
+        608
+      ],
+      "id": "ca05d3ef-a984-4c1e-8c60-bdf0161ecec6",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Set date range for PREVIOUS WEEK (Sunday - Saturday)\n// Runs every Sunday morning, captures the week that just ended\n\nconst tz = 'America/Los_Angeles'; // San Diego timezone\n\n// Get current date in Pacific Time\nconst now = new Date(new Date().toLocaleString('en-US', { timeZone: tz }));\n\n// Calculate how many days back to last Sunday\n// If today is Sunday (0), we want last Sunday (7 days back)\n// If today is Monday (1), we want last Sunday (8 days back)\n// etc.\nconst currentDayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, etc.\nconst daysToLastSunday = currentDayOfWeek === 0 ? 7 : currentDayOfWeek + 7;\n\n// Calculate last Sunday (start of previous week)\nconst lastSunday = new Date(now);\nlastSunday.setDate(now.getDate() - daysToLastSunday);\n\n// Calculate last Saturday (end of previous week)\nconst lastSaturday = new Date(lastSunday);\nlastSaturday.setDate(lastSunday.getDate() + 6);\n\n// Format as YYYY-M-D (no leading zeros, matches API format)\nfunction formatDate(date) {\n  return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;\n}\n\n// Human-readable format\nfunction humanDate(date) {\n  return date.toLocaleDateString('en-US', { \n    timeZone: tz, \n    month: 'long', \n    day: 'numeric', \n    year: 'numeric' \n  });\n}\n\nconst startDateStr = formatDate(lastSunday);\nconst endDateStr = formatDate(lastSaturday);\nconst startHuman = humanDate(lastSunday);\nconst endHuman = humanDate(lastSaturday);\n\nconsole.log(`Weekly run for: ${startHuman} - ${endHuman}`);\nconsole.log(`API format: ${startDateStr} to ${endDateStr}`);\n\nreturn [{\n  json: {\n    start_date: startDateStr,\n    end_date: endDateStr,\n    start_human: startHuman,\n    end_human: endHuman,\n    tz: tz\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2800,
+        608
+      ],
+      "id": "588926c8-54ae-4fdb-a3b4-bad2b918f5fe",
+      "name": "Set Previous Week Dates"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://civicbite.com/wp-json/wp/v2/posts/{{ $('Create a post').item.json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wordpressApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "featured_media",
+              "value": "={{ $json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1da373ee-8ac6-410e-bce1-aee12fd27ae3",
+      "name": "Set featured image",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        4816,
+        464
+      ],
+      "typeVersion": 4.2,
+      "credentials": {
+        "wordpressApi": {
+          "id": "BDzYDNG9SadXzoda",
+          "name": "NWA Shop Local Wordpress account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-04T17:21:38.642Z",
+      "createdAt": "2026-01-04T17:21:38.642Z",
+      "role": "workflow:owner",
+      "workflowId": "3pN078W66LqdDs5u",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [
+    {
+      "updatedAt": "2026-01-04T17:19:59.865Z",
+      "createdAt": "2026-01-04T17:19:59.865Z",
+      "id": "CFeOyx50eOh0Yvx1",
+      "name": "SD Food"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-11T02:04:45.378Z",
+  "versionId": "869fda97-d6ac-41f1-ad82-21a65ee9afda"
+}
