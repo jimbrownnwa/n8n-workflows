@@ -1,0 +1,1209 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-01-05T16:30:22.377Z",
+    "createdAt": "2026-01-05T16:30:22.377Z",
+    "versionId": "9b3e068e-ad42-411f-885f-354c03dae3ee",
+    "workflowId": "b6ctqiE7Zmlznbjc",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "analytics/refresh",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "id": "webhook-1",
+        "name": "Webhook Trigger",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          240,
+          400
+        ],
+        "webhookId": "3222406f-db46-443a-aee6-536d90d7467e",
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "jsCode": "const isScheduled = !$input.first().json.body;\nlet params;\nif (isScheduled) {\n  params = {\n    mode: 'incremental',\n    date_range: {\n      start: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0],\n      end: new Date().toISOString().split('T')[0]\n    },\n    force_refresh: false\n  };\n} else {\n  params = $input.first().json.body;\n}\nreturn [{\n  mode: params.mode || 'full',\n  campaign_id: params.campaign_id || null,\n  content_id: params.content_id || null,\n  date_range: params.date_range || {\n    start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],\n    end: new Date().toISOString().split('T')[0]\n  },\n  force_refresh: params.force_refresh || false,\n  triggered_by: isScheduled ? 'schedule' : 'webhook',\n  triggered_at: new Date().toISOString()\n}];"
+        },
+        "id": "code-1",
+        "name": "Normalize Input",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          464,
+          400
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const params = $input.first().json;\nconst validModes = ['full', 'campaign', 'content', 'incremental'];\nif (!validModes.includes(params.mode)) {\n  throw new Error('Invalid mode. Must be one of: ' + validModes.join(', '));\n}\nif (params.mode === 'campaign' && !params.campaign_id) {\n  throw new Error('campaign_id is required when mode is campaign');\n}\nif (params.mode === 'content' && !params.content_id) {\n  throw new Error('content_id is required when mode is content');\n}\nconst startDate = new Date(params.date_range.start);\nconst endDate = new Date(params.date_range.end);\nif (isNaN(startDate.getTime())) {\n  throw new Error('Invalid start date format');\n}\nif (isNaN(endDate.getTime())) {\n  throw new Error('Invalid end date format');\n}\nif (endDate < startDate) {\n  throw new Error('end date must be after start date');\n}\nconst daysDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));\nif (daysDiff > 90) {\n  throw new Error('Date range cannot exceed 90 days');\n}\nreturn [{...params, date_range: {start: startDate.toISOString().split('T')[0], end: endDate.toISOString().split('T')[0], days: daysDiff}}];"
+        },
+        "id": "code-2",
+        "name": "Determine Mode and Scope",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          688,
+          400
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "getAll",
+          "tableId": "campaigns",
+          "returnAll": true,
+          "filterType": "string",
+          "filterString": "=status=in.(active,completed)"
+        },
+        "id": "supabase-1",
+        "name": "Get Active Campaigns",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          912,
+          400
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "H2otb0ZjBMDnmMPT",
+            "name": "LocalPulse Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "getAll",
+          "tableId": "campaign_content",
+          "returnAll": true,
+          "filterType": "string",
+          "filterString": "=status=in.(published,scheduled)"
+        },
+        "id": "supabase-2",
+        "name": "Get Published Content",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          1120,
+          400
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "H2otb0ZjBMDnmMPT",
+            "name": "LocalPulse Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "getAll",
+          "tableId": "activity_log",
+          "limit": 1,
+          "filterType": "string",
+          "filterString": "=activity_type=eq.metrics_refreshed"
+        },
+        "id": "supabase-3",
+        "name": "Get Last Refresh Timestamp",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          1344,
+          400
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "H2otb0ZjBMDnmMPT",
+            "name": "LocalPulse Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const contentPieces = $('Get Published Content').all();\nconst params = $('Determine Mode and Scope').first().json;\n\nconst platformGroups = {\n  facebook: [],\n  instagram: [],\n  google_business: []\n};\n\ncontentPieces.forEach(item => {\n  const content = item.json;\n  const platform = content.platform;\n  \n  if (platformGroups[platform]) {\n    platformGroups[platform].push({\n      content_id: content.content_id,\n      campaign_id: content.campaign_id,\n      external_post_id: content.external_post_id,\n      published_time: content.published_time,\n      platform: platform\n    });\n  }\n});\n\nreturn [{\n  facebook: platformGroups.facebook,\n  instagram: platformGroups.instagram,\n  google_business: platformGroups.google_business,\n  date_range: params.date_range,\n  mode: params.mode\n}];"
+        },
+        "id": "code-3",
+        "name": "Split by Platform",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1568,
+          400
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const posts = $input.first().json.facebook;\nif (posts.length === 0) {\n  return [{platform: 'facebook', metrics: [], count: 0}];\n}\nconst now = new Date();\nconst metrics = posts.map(post => {\n  const publishedDate = new Date(post.published_time);\n  const daysSincePublish = Math.max(1, Math.floor((now - publishedDate) / (1000 * 60 * 60 * 24)));\n  const decayFactor = Math.max(0.1, 1 - (daysSincePublish * 0.05));\n  const baseReach = 800 + Math.floor(Math.random() * 2000);\n  const reach = Math.floor(baseReach * decayFactor);\n  const impressions = Math.floor(reach * (1.2 + Math.random() * 0.5));\n  const engagementRate = (2 + Math.random() * 4) / 100;\n  const engagements = Math.floor(reach * engagementRate);\n  const likes = Math.floor(engagements * 0.6);\n  const comments = Math.floor(engagements * 0.15);\n  const shares = Math.floor(engagements * 0.1);\n  const saves = Math.floor(engagements * 0.05);\n  const clicks = Math.floor(engagements * 0.3);\n  const videoViews = 0;\n  const isPaid = Math.random() > 0.5;\n  const spend = isPaid ? parseFloat((5 + Math.random() * 45).toFixed(2)) : 0;\n  const conversionRate = 0.01 + Math.random() * 0.03;\n  const conversions = Math.floor(clicks * conversionRate);\n  const avgJobValue = 150 + Math.random() * 350;\n  const conversionValue = parseFloat((conversions * avgJobValue).toFixed(2));\n  return {content_id: post.content_id, campaign_id: post.campaign_id, platform: 'facebook', external_post_id: post.external_post_id, metric_date: now.toISOString().split('T')[0], impressions: impressions, reach: reach, engagements: engagements, likes: likes, comments: comments, shares: shares, saves: saves, clicks: clicks, video_views: videoViews, spend: spend, conversions: conversions, conversion_value: conversionValue, fetched_at: now.toISOString()};\n});\nreturn [{platform: 'facebook', metrics: metrics, count: metrics.length}];"
+        },
+        "id": "code-4",
+        "name": "Fetch Facebook Metrics",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1792,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const posts = $input.first().json.instagram;\nif (posts.length === 0) {\n  return [{platform: 'instagram', metrics: [], count: 0}];\n}\nconst now = new Date();\nconst metrics = posts.map(post => {\n  const publishedDate = new Date(post.published_time);\n  const daysSincePublish = Math.max(1, Math.floor((now - publishedDate) / (1000 * 60 * 60 * 24)));\n  const decayFactor = Math.max(0.1, 1 - (daysSincePublish * 0.04));\n  const baseReach = 600 + Math.floor(Math.random() * 1500);\n  const reach = Math.floor(baseReach * decayFactor);\n  const impressions = Math.floor(reach * (1.3 + Math.random() * 0.6));\n  const engagementRate = (3 + Math.random() * 5) / 100;\n  const engagements = Math.floor(reach * engagementRate);\n  const likes = Math.floor(engagements * 0.7);\n  const comments = Math.floor(engagements * 0.12);\n  const shares = Math.floor(engagements * 0.08);\n  const saves = Math.floor(engagements * 0.15);\n  const clicks = Math.floor(engagements * 0.2);\n  const isPaid = Math.random() > 0.5;\n  const spend = isPaid ? parseFloat((5 + Math.random() * 40).toFixed(2)) : 0;\n  const conversions = Math.floor(clicks * (0.01 + Math.random() * 0.02));\n  const conversionValue = parseFloat((conversions * (150 + Math.random() * 300)).toFixed(2));\n  return {content_id: post.content_id, campaign_id: post.campaign_id, platform: 'instagram', external_post_id: post.external_post_id, metric_date: now.toISOString().split('T')[0], impressions: impressions, reach: reach, engagements: engagements, likes: likes, comments: comments, shares: shares, saves: saves, clicks: clicks, video_views: 0, spend: spend, conversions: conversions, conversion_value: conversionValue, fetched_at: now.toISOString()};\n});\nreturn [{platform: 'instagram', metrics: metrics, count: metrics.length}];"
+        },
+        "id": "code-5",
+        "name": "Fetch Instagram Metrics",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1792,
+          400
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const posts = $input.first().json.google_business;\nif (posts.length === 0) {\n  return [{platform: 'google_business', metrics: [], count: 0}];\n}\nconst now = new Date();\nconst metrics = posts.map(post => {\n  const publishedDate = new Date(post.published_time);\n  const daysSincePublish = Math.max(1, Math.floor((now - publishedDate) / (1000 * 60 * 60 * 24)));\n  const decayFactor = Math.max(0.1, 1 - (daysSincePublish * 0.06));\n  const baseViews = 200 + Math.floor(Math.random() * 600);\n  const views = Math.floor(baseViews * decayFactor);\n  const searchViews = Math.floor(views * 0.7);\n  const mapsViews = Math.floor(views * 0.3);\n  const actionRate = (5 + Math.random() * 10) / 100;\n  const totalActions = Math.floor(views * actionRate);\n  const websiteClicks = Math.floor(totalActions * 0.4);\n  const directionRequests = Math.floor(totalActions * 0.25);\n  const phoneCalls = Math.floor(totalActions * 0.35);\n  const engagements = totalActions;\n  const conversions = Math.floor(phoneCalls * 0.3);\n  const conversionValue = parseFloat((conversions * (200 + Math.random() * 400)).toFixed(2));\n  return {content_id: post.content_id, campaign_id: post.campaign_id, platform: 'google_business', external_post_id: post.external_post_id, metric_date: now.toISOString().split('T')[0], impressions: views, reach: views, engagements: engagements, likes: 0, comments: 0, shares: 0, saves: 0, clicks: websiteClicks, video_views: 0, spend: 0, conversions: conversions, conversion_value: conversionValue, metadata: {search_views: searchViews, maps_views: mapsViews, direction_requests: directionRequests, phone_calls: phoneCalls}, fetched_at: now.toISOString()};\n});\nreturn [{platform: 'google_business', metrics: metrics, count: metrics.length}];"
+        },
+        "id": "code-6",
+        "name": "Fetch Google Business Metrics",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1792,
+          512
+        ]
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "jsCode": "const allInputs = $input.all();\nconst allMetrics = [];\nconst platformCounts = {facebook: 0, instagram: 0, google_business: 0};\n\nfor (const input of allInputs) {\n  const data = input.json;\n  if (data.metrics && Array.isArray(data.metrics)) {\n    allMetrics.push(...data.metrics);\n    if (data.platform && platformCounts.hasOwnProperty(data.platform)) {\n      platformCounts[data.platform] = data.count || data.metrics.length;\n    }\n  }\n}\n\nreturn [{metrics: allMetrics, summary: {total_items: allMetrics.length, by_platform: platformCounts}}];"
+        },
+        "id": "code-7",
+        "name": "Merge All Metrics",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2000,
+          400
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const data = $input.first().json;\nconst metrics = data.metrics;\nconst enrichedMetrics = metrics.map(m => {\n  const engagementRate = m.reach > 0 ? parseFloat(((m.engagements / m.reach) * 100).toFixed(2)) : 0;\n  const ctr = m.impressions > 0 ? parseFloat(((m.clicks / m.impressions) * 100).toFixed(2)) : 0;\n  const cpc = m.spend > 0 && m.clicks > 0 ? parseFloat((m.spend / m.clicks).toFixed(2)) : null;\n  const cpm = m.spend > 0 && m.impressions > 0 ? parseFloat((m.spend / m.impressions * 1000).toFixed(2)) : null;\n  const cpe = m.spend > 0 && m.engagements > 0 ? parseFloat((m.spend / m.engagements).toFixed(2)) : null;\n  const cpa = m.spend > 0 && m.conversions > 0 ? parseFloat((m.spend / m.conversions).toFixed(2)) : null;\n  const roas = m.spend > 0 && m.conversion_value > 0 ? parseFloat((m.conversion_value / m.spend).toFixed(2)) : null;\n  const conversionRate = m.clicks > 0 ? (m.conversions / m.clicks) * 100 : 0;\n  const performanceScore = Math.min(100, Math.round((engagementRate * 10) + (ctr * 15) + (conversionRate * 25) + (m.reach > 1000 ? 10 : m.reach / 100)));\n  return {...m, engagement_rate: engagementRate, ctr: ctr, cpc: cpc, cpm: cpm, cpe: cpe, cpa: cpa, roas: roas, performance_score: performanceScore};\n});\nreturn [{metrics: enrichedMetrics, summary: data.summary}];"
+        },
+        "id": "code-8",
+        "name": "Calculate Derived Metrics",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2224,
+          400
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const metrics = $('Calculate Derived Metrics').first().json.metrics;\nconst campaigns = $('Get Active Campaigns').all().map(item => item.json);\nconst campaignMetrics = {};\nfor (const m of metrics) {\n  const cid = m.campaign_id;\n  if (!campaignMetrics[cid]) {\n    campaignMetrics[cid] = {campaign_id: cid, total_impressions: 0, total_reach: 0, total_engagements: 0, total_clicks: 0, total_shares: 0, total_comments: 0, total_spend: 0, total_conversions: 0, total_conversion_value: 0, content_count: 0, platforms: new Set(), metrics_by_platform: {}};\n  }\n  const c = campaignMetrics[cid];\n  c.total_impressions += m.impressions;\n  c.total_reach += m.reach;\n  c.total_engagements += m.engagements;\n  c.total_clicks += m.clicks;\n  c.total_shares += m.shares;\n  c.total_comments += m.comments;\n  c.total_spend += m.spend;\n  c.total_conversions += m.conversions;\n  c.total_conversion_value += m.conversion_value;\n  c.content_count++;\n  c.platforms.add(m.platform);\n  if (!c.metrics_by_platform[m.platform]) {\n    c.metrics_by_platform[m.platform] = {impressions: 0, reach: 0, engagements: 0, clicks: 0, spend: 0, conversions: 0};\n  }\n  const pm = c.metrics_by_platform[m.platform];\n  pm.impressions += m.impressions;\n  pm.reach += m.reach;\n  pm.engagements += m.engagements;\n  pm.clicks += m.clicks;\n  pm.spend += m.spend;\n  pm.conversions += m.conversions;\n}\nconst campaignAggregates = Object.values(campaignMetrics).map(c => {\n  const engagementRate = c.total_reach > 0 ? parseFloat(((c.total_engagements / c.total_reach) * 100).toFixed(2)) : 0;\n  const ctr = c.total_impressions > 0 ? parseFloat(((c.total_clicks / c.total_impressions) * 100).toFixed(2)) : 0;\n  const roas = c.total_spend > 0 ? parseFloat((c.total_conversion_value / c.total_spend).toFixed(2)) : null;\n  const cpa = c.total_spend > 0 && c.total_conversions > 0 ? parseFloat((c.total_spend / c.total_conversions).toFixed(2)) : null;\n  const campaign = campaigns.find(camp => camp.id === c.campaign_id);\n  const budgetUsed = campaign && campaign.budget_total ? parseFloat(((c.total_spend / campaign.budget_total) * 100).toFixed(1)) : null;\n  return {campaign_id: c.campaign_id, campaign_name: campaign ? campaign.name : 'Unknown', total_impressions: c.total_impressions, total_reach: c.total_reach, total_engagements: c.total_engagements, total_clicks: c.total_clicks, total_spend: parseFloat(c.total_spend.toFixed(2)), total_conversions: c.total_conversions, total_conversion_value: parseFloat(c.total_conversion_value.toFixed(2)), engagement_rate: engagementRate, ctr: ctr, roas: roas, cpa: cpa, budget_used_percent: budgetUsed, content_count: c.content_count, platforms: Array.from(c.platforms), metrics_by_platform: c.metrics_by_platform};\n});\nreturn [{campaign_aggregates: campaignAggregates, total_campaigns: campaignAggregates.length}];"
+        },
+        "id": "code-9",
+        "name": "Calculate Campaign Aggregates",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2448,
+          400
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const metrics = $('Calculate Derived Metrics').first().json.metrics;\nconst aggregates = $('Calculate Campaign Aggregates').first().json.campaign_aggregates;\nconst alerts = [];\nconst benchmarks = {engagement_rate: {low: 2, high: 8, unit: '%'}, ctr: {low: 0.5, high: 3, unit: '%'}, cpc: {low: 0.50, high: 4.00, unit: '$'}, roas: {low: 2.0, high: 6.0, unit: 'x'}, cpa: {low: 20, high: 75, unit: '$'}};\nfor (const campaign of aggregates) {\n  if (campaign.engagement_rate > benchmarks.engagement_rate.high) {\n    alerts.push({type: 'high_performer', priority: 'high', entity_type: 'campaign', entity_id: campaign.campaign_id, campaign_id: campaign.campaign_id, title: 'Exceptional Engagement Rate', message: 'Campaign achieving ' + campaign.engagement_rate + '% engagement (benchmark: ' + benchmarks.engagement_rate.high + '%)', metric: 'engagement_rate', value: campaign.engagement_rate, benchmark: benchmarks.engagement_rate.high, recommended_action: 'Consider increasing budget to maximize reach'});\n  }\n  if (campaign.engagement_rate > 0 && campaign.engagement_rate < benchmarks.engagement_rate.low) {\n    alerts.push({type: 'underperformer', priority: 'medium', entity_type: 'campaign', entity_id: campaign.campaign_id, campaign_id: campaign.campaign_id, title: 'Low Engagement Rate', message: 'Campaign at ' + campaign.engagement_rate + '% engagement (benchmark: ' + benchmarks.engagement_rate.low + '%)', metric: 'engagement_rate', value: campaign.engagement_rate, benchmark: benchmarks.engagement_rate.low, recommended_action: 'Review content quality and targeting'});\n  }\n  if (campaign.cpa && campaign.cpa > benchmarks.cpa.high) {\n    alerts.push({type: 'cost_alert', priority: 'high', entity_type: 'campaign', entity_id: campaign.campaign_id, campaign_id: campaign.campaign_id, title: 'High Cost Per Acquisition', message: 'CPA at $' + campaign.cpa + ' (benchmark: $' + benchmarks.cpa.high + ')', metric: 'cpa', value: campaign.cpa, benchmark: benchmarks.cpa.high, recommended_action: 'Pause underperforming ads and reallocate budget'});\n  }\n  if (campaign.roas && campaign.roas > benchmarks.roas.high) {\n    alerts.push({type: 'high_performer', priority: 'high', entity_type: 'campaign', entity_id: campaign.campaign_id, campaign_id: campaign.campaign_id, title: 'Excellent ROAS', message: 'Campaign achieving ' + campaign.roas + 'x return (benchmark: ' + benchmarks.roas.high + 'x)', metric: 'roas', value: campaign.roas, benchmark: benchmarks.roas.high, recommended_action: 'Scale budget while maintaining performance'});\n  }\n  if (campaign.budget_used_percent && campaign.budget_used_percent > 90) {\n    alerts.push({type: 'budget_alert', priority: 'medium', entity_type: 'campaign', entity_id: campaign.campaign_id, campaign_id: campaign.campaign_id, title: 'Budget Nearly Exhausted', message: campaign.budget_used_percent + '% of budget used', metric: 'budget_used_percent', value: campaign.budget_used_percent, benchmark: 90, recommended_action: 'Review performance and consider budget increase'});\n  }\n}\nfor (const m of metrics) {\n  if (m.performance_score >= 80) {\n    alerts.push({type: 'top_content', priority: 'low', entity_type: 'content', entity_id: m.content_id, campaign_id: m.campaign_id, title: 'Top Performing Content', message: 'Content scoring ' + m.performance_score + '/100 on ' + m.platform, metric: 'performance_score', value: m.performance_score, benchmark: 80, recommended_action: 'Boost this content or create similar pieces'});\n  }\n}\nreturn [{alerts: alerts, alert_count: alerts.length, by_priority: {high: alerts.filter(a => a.priority === 'high').length, medium: alerts.filter(a => a.priority === 'medium').length, low: alerts.filter(a => a.priority === 'low').length}}];"
+        },
+        "id": "code-10",
+        "name": "Detect Anomalies and Alerts",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2672,
+          400
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const enrichedMetrics = $('Calculate Derived Metrics').first().json.metrics;\nreturn enrichedMetrics.map(m => ({\n  campaign_id: m.campaign_id,\n  content_id: m.content_id,\n  platform: m.platform,\n  metric_date: m.metric_date,\n  impressions: m.impressions,\n  reach: m.reach,\n  engagements: m.engagements,\n  clicks: m.clicks,\n  shares: m.shares,\n  comments: m.comments,\n  saves: m.saves,\n  video_views: m.video_views,\n  spend: m.spend,\n  conversions: m.conversions,\n  conversion_value: m.conversion_value\n}));"
+        },
+        "id": "code-11",
+        "name": "Prepare Metrics for Save",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2880,
+          400
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const alertsData = $('Detect Anomalies and Alerts').first().json;\nif (alertsData.alerts.length === 0) {\n  return [{skip_alerts: true}];\n}\nreturn alertsData.alerts.map(alert => ({\n  recommendation_type: alert.type,\n  priority: alert.priority,\n  title: alert.title,\n  description: alert.message,\n  rationale: 'Based on performance metrics vs. industry benchmarks',\n  related_campaign_id: alert.campaign_id || null,\n  related_content_id: alert.entity_type === 'content' ? alert.entity_id : null,\n  suggested_action: {\n    action: alert.recommended_action,\n    metric: alert.metric,\n    current_value: alert.value,\n    benchmark: alert.benchmark\n  },\n  potential_impact: 'Performance improvement opportunity',\n  status: 'pending'\n}));"
+        },
+        "id": "code-12",
+        "name": "Prepare Alerts for Save",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          3328,
+          400
+        ]
+      },
+      {
+        "parameters": {
+          "tableId": "ai_recommendations",
+          "dataToSend": "autoMapInputData"
+        },
+        "id": "supabase-5",
+        "name": "Save Alerts",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          3552,
+          400
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "H2otb0ZjBMDnmMPT",
+            "name": "LocalPulse Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const params = $('Determine Mode and Scope').first().json;\nconst summary = $('Calculate Derived Metrics').first().json.summary;\nconst aggregates = $('Calculate Campaign Aggregates').first().json;\nconst alerts = $('Detect Anomalies and Alerts').first().json;\nreturn [{\n  activity_type: 'metrics_refreshed',\n  entity_type: 'performance_metrics',\n  description: 'Refreshed metrics for ' + aggregates.total_campaigns + ' campaigns, ' + summary.total_items + ' content pieces',\n  metadata: {\n    mode: params.mode,\n    triggered_by: params.triggered_by,\n    date_range: params.date_range,\n    metrics_updated: {\n      total: summary.total_items,\n      by_platform: summary.by_platform\n    },\n    alerts_generated: alerts.alert_count,\n    campaigns_analyzed: aggregates.total_campaigns\n  }\n}];"
+        },
+        "id": "code-13",
+        "name": "Prepare Activity Log",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          3760,
+          400
+        ]
+      },
+      {
+        "parameters": {
+          "tableId": "activity_log",
+          "dataToSend": "autoMapInputData"
+        },
+        "id": "supabase-6",
+        "name": "Log Activity",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          3984,
+          400
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "H2otb0ZjBMDnmMPT",
+            "name": "LocalPulse Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const params = $('Determine Mode and Scope').first().json;\nconst summary = $('Calculate Derived Metrics').first().json.summary;\nconst aggregates = $('Calculate Campaign Aggregates').first().json.campaign_aggregates;\nconst alerts = $('Detect Anomalies and Alerts').first().json;\nreturn [{\n  success: true,\n  data: {\n    metrics_updated: summary.total_items,\n    campaigns_analyzed: aggregates.length,\n    by_platform: summary.by_platform,\n    campaign_summaries: aggregates,\n    alerts: alerts.alerts.map(a => ({type: a.type, priority: a.priority, title: a.title, campaign_id: a.campaign_id || null}))\n  },\n  meta: {\n    mode: params.mode,\n    date_range: params.date_range,\n    triggered_by: params.triggered_by,\n    processing_time_ms: Date.now()\n  }\n}];"
+        },
+        "id": "code-14",
+        "name": "Build Final Response",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          4208,
+          400
+        ]
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ $json }}",
+          "options": {}
+        },
+        "id": "respond-1",
+        "name": "Respond to Webhook",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.5,
+        "position": [
+          4432,
+          400
+        ]
+      },
+      {
+        "id": "supabase-4-new",
+        "name": "Save Performance Metrics",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          3104,
+          400
+        ],
+        "parameters": {
+          "resource": "row",
+          "operation": "upsert",
+          "tableId": "performance_metrics",
+          "dataToSend": "autoMapInputData"
+        },
+        "credentials": {
+          "supabaseApi": {
+            "id": "H2otb0ZjBMDnmMPT",
+            "name": "LocalPulse Supabase account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Webhook Trigger": {
+        "main": [
+          [
+            {
+              "node": "Normalize Input",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Normalize Input": {
+        "main": [
+          [
+            {
+              "node": "Determine Mode and Scope",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Determine Mode and Scope": {
+        "main": [
+          [
+            {
+              "node": "Get Active Campaigns",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Active Campaigns": {
+        "main": [
+          [
+            {
+              "node": "Get Published Content",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Published Content": {
+        "main": [
+          [
+            {
+              "node": "Get Last Refresh Timestamp",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Split by Platform",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Split by Platform": {
+        "main": [
+          [
+            {
+              "node": "Fetch Facebook Metrics",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Fetch Instagram Metrics",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Fetch Google Business Metrics",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch Facebook Metrics": {
+        "main": [
+          [
+            {
+              "node": "Merge All Metrics",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch Instagram Metrics": {
+        "main": [
+          [
+            {
+              "node": "Merge All Metrics",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch Google Business Metrics": {
+        "main": [
+          [
+            {
+              "node": "Merge All Metrics",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Merge All Metrics": {
+        "main": [
+          [
+            {
+              "node": "Calculate Derived Metrics",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Calculate Derived Metrics": {
+        "main": [
+          [
+            {
+              "node": "Calculate Campaign Aggregates",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Calculate Campaign Aggregates": {
+        "main": [
+          [
+            {
+              "node": "Detect Anomalies and Alerts",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Detect Anomalies and Alerts": {
+        "main": [
+          [
+            {
+              "node": "Prepare Metrics for Save",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prepare Alerts for Save": {
+        "main": [
+          [
+            {
+              "node": "Save Alerts",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Save Alerts": {
+        "main": [
+          [
+            {
+              "node": "Prepare Activity Log",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prepare Activity Log": {
+        "main": [
+          [
+            {
+              "node": "Log Activity",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Log Activity": {
+        "main": [
+          [
+            {
+              "node": "Build Final Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Final Response": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prepare Metrics for Save": {
+        "main": [
+          [
+            {
+              "node": "Save Performance Metrics",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Save Performance Metrics": {
+        "main": [
+          [
+            {
+              "node": "Prepare Alerts for Save",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "James Brown",
+    "name": null,
+    "description": null,
+    "autosaved": false
+  },
+  "activeVersionId": "9b3e068e-ad42-411f-885f-354c03dae3ee",
+  "connections": {
+    "Normalize Input": {
+      "main": [
+        [
+          {
+            "node": "Determine Mode and Scope",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Determine Mode and Scope": {
+      "main": [
+        [
+          {
+            "node": "Get Active Campaigns",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Active Campaigns": {
+      "main": [
+        [
+          {
+            "node": "Get Published Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Published Content": {
+      "main": [
+        [
+          {
+            "node": "Get Last Refresh Timestamp",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Split by Platform",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split by Platform": {
+      "main": [
+        [
+          {
+            "node": "Fetch Facebook Metrics",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Instagram Metrics",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Google Business Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Facebook Metrics": {
+      "main": [
+        [
+          {
+            "node": "Merge All Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Instagram Metrics": {
+      "main": [
+        [
+          {
+            "node": "Merge All Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Google Business Metrics": {
+      "main": [
+        [
+          {
+            "node": "Merge All Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge All Metrics": {
+      "main": [
+        [
+          {
+            "node": "Calculate Derived Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Derived Metrics": {
+      "main": [
+        [
+          {
+            "node": "Calculate Campaign Aggregates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Campaign Aggregates": {
+      "main": [
+        [
+          {
+            "node": "Detect Anomalies and Alerts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Detect Anomalies and Alerts": {
+      "main": [
+        [
+          {
+            "node": "Prepare Metrics for Save",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Alerts for Save": {
+      "main": [
+        [
+          {
+            "node": "Save Alerts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Alerts": {
+      "main": [
+        [
+          {
+            "node": "Prepare Activity Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Activity Log": {
+      "main": [
+        [
+          {
+            "node": "Log Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Activity": {
+      "main": [
+        [
+          {
+            "node": "Build Final Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Final Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Metrics for Save": {
+      "main": [
+        [
+          {
+            "node": "Save Performance Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Performance Metrics": {
+      "main": [
+        [
+          {
+            "node": "Prepare Alerts for Save",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Triggers": {
+      "main": [
+        [
+          {
+            "node": "Normalize Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-05T15:56:48.781Z",
+  "id": "b6ctqiE7Zmlznbjc",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "analytics-aggregator",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "const isScheduled = !$input.first().json.body;\nlet params;\nif (isScheduled) {\n  params = {\n    mode: 'incremental',\n    date_range: {\n      start: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0],\n      end: new Date().toISOString().split('T')[0]\n    },\n    force_refresh: false\n  };\n} else {\n  params = $input.first().json.body;\n}\nreturn [{\n  mode: params.mode || 'full',\n  campaign_id: params.campaign_id || null,\n  content_id: params.content_id || null,\n  date_range: params.date_range || {\n    start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],\n    end: new Date().toISOString().split('T')[0]\n  },\n  force_refresh: params.force_refresh || false,\n  triggered_by: isScheduled ? 'schedule' : 'webhook',\n  triggered_at: new Date().toISOString()\n}];"
+      },
+      "id": "code-1",
+      "name": "Normalize Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const params = $input.first().json;\nconst validModes = ['full', 'campaign', 'content', 'incremental'];\nif (!validModes.includes(params.mode)) {\n  throw new Error('Invalid mode. Must be one of: ' + validModes.join(', '));\n}\nif (params.mode === 'campaign' && !params.campaign_id) {\n  throw new Error('campaign_id is required when mode is campaign');\n}\nif (params.mode === 'content' && !params.content_id) {\n  throw new Error('content_id is required when mode is content');\n}\nconst startDate = new Date(params.date_range.start);\nconst endDate = new Date(params.date_range.end);\nif (isNaN(startDate.getTime())) {\n  throw new Error('Invalid start date format');\n}\nif (isNaN(endDate.getTime())) {\n  throw new Error('Invalid end date format');\n}\nif (endDate < startDate) {\n  throw new Error('end date must be after start date');\n}\nconst daysDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));\nif (daysDiff > 90) {\n  throw new Error('Date range cannot exceed 90 days');\n}\nreturn [{...params, date_range: {start: startDate.toISOString().split('T')[0], end: endDate.toISOString().split('T')[0], days: daysDiff}}];"
+      },
+      "id": "code-2",
+      "name": "Determine Mode and Scope",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "campaigns",
+        "returnAll": true,
+        "filterType": "string",
+        "filterString": "=status=in.(active,completed)"
+      },
+      "id": "supabase-1",
+      "name": "Get Active Campaigns",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        912,
+        400
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "campaign_content",
+        "returnAll": true,
+        "filterType": "string",
+        "filterString": "=status=in.(published,scheduled)"
+      },
+      "id": "supabase-2",
+      "name": "Get Published Content",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        400
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "activity_log",
+        "limit": 1,
+        "filterType": "string",
+        "filterString": "=activity_type=eq.metrics_refreshed"
+      },
+      "id": "supabase-3",
+      "name": "Get Last Refresh Timestamp",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        400
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const contentPieces = $('Get Published Content').all();\nconst params = $('Determine Mode and Scope').first().json;\n\nconst platformGroups = {\n  facebook: [],\n  instagram: [],\n  google_business: []\n};\n\ncontentPieces.forEach(item => {\n  const content = item.json;\n  const platform = content.platform;\n  \n  if (platformGroups[platform]) {\n    platformGroups[platform].push({\n      content_id: content.content_id,\n      campaign_id: content.campaign_id,\n      external_post_id: content.external_post_id,\n      published_time: content.published_time,\n      platform: platform\n    });\n  }\n});\n\nreturn [{\n  facebook: platformGroups.facebook,\n  instagram: platformGroups.instagram,\n  google_business: platformGroups.google_business,\n  date_range: params.date_range,\n  mode: params.mode\n}];"
+      },
+      "id": "code-3",
+      "name": "Split by Platform",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1568,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const posts = $input.first().json.facebook;\nif (posts.length === 0) {\n  return [{platform: 'facebook', metrics: [], count: 0}];\n}\nconst now = new Date();\nconst metrics = posts.map(post => {\n  const publishedDate = new Date(post.published_time);\n  const daysSincePublish = Math.max(1, Math.floor((now - publishedDate) / (1000 * 60 * 60 * 24)));\n  const decayFactor = Math.max(0.1, 1 - (daysSincePublish * 0.05));\n  const baseReach = 800 + Math.floor(Math.random() * 2000);\n  const reach = Math.floor(baseReach * decayFactor);\n  const impressions = Math.floor(reach * (1.2 + Math.random() * 0.5));\n  const engagementRate = (2 + Math.random() * 4) / 100;\n  const engagements = Math.floor(reach * engagementRate);\n  const likes = Math.floor(engagements * 0.6);\n  const comments = Math.floor(engagements * 0.15);\n  const shares = Math.floor(engagements * 0.1);\n  const saves = Math.floor(engagements * 0.05);\n  const clicks = Math.floor(engagements * 0.3);\n  const videoViews = 0;\n  const isPaid = Math.random() > 0.5;\n  const spend = isPaid ? parseFloat((5 + Math.random() * 45).toFixed(2)) : 0;\n  const conversionRate = 0.01 + Math.random() * 0.03;\n  const conversions = Math.floor(clicks * conversionRate);\n  const avgJobValue = 150 + Math.random() * 350;\n  const conversionValue = parseFloat((conversions * avgJobValue).toFixed(2));\n  return {content_id: post.content_id, campaign_id: post.campaign_id, platform: 'facebook', external_post_id: post.external_post_id, metric_date: now.toISOString().split('T')[0], impressions: impressions, reach: reach, engagements: engagements, likes: likes, comments: comments, shares: shares, saves: saves, clicks: clicks, video_views: videoViews, spend: spend, conversions: conversions, conversion_value: conversionValue, fetched_at: now.toISOString()};\n});\nreturn [{platform: 'facebook', metrics: metrics, count: metrics.length}];"
+      },
+      "id": "code-4",
+      "name": "Fetch Facebook Metrics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1792,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const posts = $input.first().json.instagram;\nif (posts.length === 0) {\n  return [{platform: 'instagram', metrics: [], count: 0}];\n}\nconst now = new Date();\nconst metrics = posts.map(post => {\n  const publishedDate = new Date(post.published_time);\n  const daysSincePublish = Math.max(1, Math.floor((now - publishedDate) / (1000 * 60 * 60 * 24)));\n  const decayFactor = Math.max(0.1, 1 - (daysSincePublish * 0.04));\n  const baseReach = 600 + Math.floor(Math.random() * 1500);\n  const reach = Math.floor(baseReach * decayFactor);\n  const impressions = Math.floor(reach * (1.3 + Math.random() * 0.6));\n  const engagementRate = (3 + Math.random() * 5) / 100;\n  const engagements = Math.floor(reach * engagementRate);\n  const likes = Math.floor(engagements * 0.7);\n  const comments = Math.floor(engagements * 0.12);\n  const shares = Math.floor(engagements * 0.08);\n  const saves = Math.floor(engagements * 0.15);\n  const clicks = Math.floor(engagements * 0.2);\n  const isPaid = Math.random() > 0.5;\n  const spend = isPaid ? parseFloat((5 + Math.random() * 40).toFixed(2)) : 0;\n  const conversions = Math.floor(clicks * (0.01 + Math.random() * 0.02));\n  const conversionValue = parseFloat((conversions * (150 + Math.random() * 300)).toFixed(2));\n  return {content_id: post.content_id, campaign_id: post.campaign_id, platform: 'instagram', external_post_id: post.external_post_id, metric_date: now.toISOString().split('T')[0], impressions: impressions, reach: reach, engagements: engagements, likes: likes, comments: comments, shares: shares, saves: saves, clicks: clicks, video_views: 0, spend: spend, conversions: conversions, conversion_value: conversionValue, fetched_at: now.toISOString()};\n});\nreturn [{platform: 'instagram', metrics: metrics, count: metrics.length}];"
+      },
+      "id": "code-5",
+      "name": "Fetch Instagram Metrics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1792,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const posts = $input.first().json.google_business;\nif (posts.length === 0) {\n  return [{platform: 'google_business', metrics: [], count: 0}];\n}\nconst now = new Date();\nconst metrics = posts.map(post => {\n  const publishedDate = new Date(post.published_time);\n  const daysSincePublish = Math.max(1, Math.floor((now - publishedDate) / (1000 * 60 * 60 * 24)));\n  const decayFactor = Math.max(0.1, 1 - (daysSincePublish * 0.06));\n  const baseViews = 200 + Math.floor(Math.random() * 600);\n  const views = Math.floor(baseViews * decayFactor);\n  const searchViews = Math.floor(views * 0.7);\n  const mapsViews = Math.floor(views * 0.3);\n  const actionRate = (5 + Math.random() * 10) / 100;\n  const totalActions = Math.floor(views * actionRate);\n  const websiteClicks = Math.floor(totalActions * 0.4);\n  const directionRequests = Math.floor(totalActions * 0.25);\n  const phoneCalls = Math.floor(totalActions * 0.35);\n  const engagements = totalActions;\n  const conversions = Math.floor(phoneCalls * 0.3);\n  const conversionValue = parseFloat((conversions * (200 + Math.random() * 400)).toFixed(2));\n  return {content_id: post.content_id, campaign_id: post.campaign_id, platform: 'google_business', external_post_id: post.external_post_id, metric_date: now.toISOString().split('T')[0], impressions: views, reach: views, engagements: engagements, likes: 0, comments: 0, shares: 0, saves: 0, clicks: websiteClicks, video_views: 0, spend: 0, conversions: conversions, conversion_value: conversionValue, metadata: {search_views: searchViews, maps_views: mapsViews, direction_requests: directionRequests, phone_calls: phoneCalls}, fetched_at: now.toISOString()};\n});\nreturn [{platform: 'google_business', metrics: metrics, count: metrics.length}];"
+      },
+      "id": "code-6",
+      "name": "Fetch Google Business Metrics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1792,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const allInputs = $input.all();\nconst allMetrics = [];\nconst platformCounts = {facebook: 0, instagram: 0, google_business: 0};\n\nfor (const input of allInputs) {\n  const data = input.json;\n  if (data.metrics && Array.isArray(data.metrics)) {\n    allMetrics.push(...data.metrics);\n    if (data.platform && platformCounts.hasOwnProperty(data.platform)) {\n      platformCounts[data.platform] = data.count || data.metrics.length;\n    }\n  }\n}\n\nreturn [{metrics: allMetrics, summary: {total_items: allMetrics.length, by_platform: platformCounts}}];"
+      },
+      "id": "code-7",
+      "name": "Merge All Metrics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst metrics = data.metrics;\nconst enrichedMetrics = metrics.map(m => {\n  const engagementRate = m.reach > 0 ? parseFloat(((m.engagements / m.reach) * 100).toFixed(2)) : 0;\n  const ctr = m.impressions > 0 ? parseFloat(((m.clicks / m.impressions) * 100).toFixed(2)) : 0;\n  const cpc = m.spend > 0 && m.clicks > 0 ? parseFloat((m.spend / m.clicks).toFixed(2)) : null;\n  const cpm = m.spend > 0 && m.impressions > 0 ? parseFloat((m.spend / m.impressions * 1000).toFixed(2)) : null;\n  const cpe = m.spend > 0 && m.engagements > 0 ? parseFloat((m.spend / m.engagements).toFixed(2)) : null;\n  const cpa = m.spend > 0 && m.conversions > 0 ? parseFloat((m.spend / m.conversions).toFixed(2)) : null;\n  const roas = m.spend > 0 && m.conversion_value > 0 ? parseFloat((m.conversion_value / m.spend).toFixed(2)) : null;\n  const conversionRate = m.clicks > 0 ? (m.conversions / m.clicks) * 100 : 0;\n  const performanceScore = Math.min(100, Math.round((engagementRate * 10) + (ctr * 15) + (conversionRate * 25) + (m.reach > 1000 ? 10 : m.reach / 100)));\n  return {...m, engagement_rate: engagementRate, ctr: ctr, cpc: cpc, cpm: cpm, cpe: cpe, cpa: cpa, roas: roas, performance_score: performanceScore};\n});\nreturn [{metrics: enrichedMetrics, summary: data.summary}];"
+      },
+      "id": "code-8",
+      "name": "Calculate Derived Metrics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2224,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const metrics = $('Calculate Derived Metrics').first().json.metrics;\nconst campaigns = $('Get Active Campaigns').all().map(item => item.json);\nconst campaignMetrics = {};\nfor (const m of metrics) {\n  const cid = m.campaign_id;\n  if (!campaignMetrics[cid]) {\n    campaignMetrics[cid] = {campaign_id: cid, total_impressions: 0, total_reach: 0, total_engagements: 0, total_clicks: 0, total_shares: 0, total_comments: 0, total_spend: 0, total_conversions: 0, total_conversion_value: 0, content_count: 0, platforms: new Set(), metrics_by_platform: {}};\n  }\n  const c = campaignMetrics[cid];\n  c.total_impressions += m.impressions;\n  c.total_reach += m.reach;\n  c.total_engagements += m.engagements;\n  c.total_clicks += m.clicks;\n  c.total_shares += m.shares;\n  c.total_comments += m.comments;\n  c.total_spend += m.spend;\n  c.total_conversions += m.conversions;\n  c.total_conversion_value += m.conversion_value;\n  c.content_count++;\n  c.platforms.add(m.platform);\n  if (!c.metrics_by_platform[m.platform]) {\n    c.metrics_by_platform[m.platform] = {impressions: 0, reach: 0, engagements: 0, clicks: 0, spend: 0, conversions: 0};\n  }\n  const pm = c.metrics_by_platform[m.platform];\n  pm.impressions += m.impressions;\n  pm.reach += m.reach;\n  pm.engagements += m.engagements;\n  pm.clicks += m.clicks;\n  pm.spend += m.spend;\n  pm.conversions += m.conversions;\n}\nconst campaignAggregates = Object.values(campaignMetrics).map(c => {\n  const engagementRate = c.total_reach > 0 ? parseFloat(((c.total_engagements / c.total_reach) * 100).toFixed(2)) : 0;\n  const ctr = c.total_impressions > 0 ? parseFloat(((c.total_clicks / c.total_impressions) * 100).toFixed(2)) : 0;\n  const roas = c.total_spend > 0 ? parseFloat((c.total_conversion_value / c.total_spend).toFixed(2)) : null;\n  const cpa = c.total_spend > 0 && c.total_conversions > 0 ? parseFloat((c.total_spend / c.total_conversions).toFixed(2)) : null;\n  const campaign = campaigns.find(camp => camp.id === c.campaign_id);\n  const budgetUsed = campaign && campaign.budget_total ? parseFloat(((c.total_spend / campaign.budget_total) * 100).toFixed(1)) : null;\n  return {campaign_id: c.campaign_id, campaign_name: campaign ? campaign.name : 'Unknown', total_impressions: c.total_impressions, total_reach: c.total_reach, total_engagements: c.total_engagements, total_clicks: c.total_clicks, total_spend: parseFloat(c.total_spend.toFixed(2)), total_conversions: c.total_conversions, total_conversion_value: parseFloat(c.total_conversion_value.toFixed(2)), engagement_rate: engagementRate, ctr: ctr, roas: roas, cpa: cpa, budget_used_percent: budgetUsed, content_count: c.content_count, platforms: Array.from(c.platforms), metrics_by_platform: c.metrics_by_platform};\n});\nreturn [{campaign_aggregates: campaignAggregates, total_campaigns: campaignAggregates.length}];"
+      },
+      "id": "code-9",
+      "name": "Calculate Campaign Aggregates",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2448,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const metrics = $('Calculate Derived Metrics').first().json.metrics;\nconst aggregates = $('Calculate Campaign Aggregates').first().json.campaign_aggregates;\nconst alerts = [];\nconst benchmarks = {engagement_rate: {low: 2, high: 8, unit: '%'}, ctr: {low: 0.5, high: 3, unit: '%'}, cpc: {low: 0.50, high: 4.00, unit: '$'}, roas: {low: 2.0, high: 6.0, unit: 'x'}, cpa: {low: 20, high: 75, unit: '$'}};\nfor (const campaign of aggregates) {\n  if (campaign.engagement_rate > benchmarks.engagement_rate.high) {\n    alerts.push({type: 'high_performer', priority: 'high', entity_type: 'campaign', entity_id: campaign.campaign_id, campaign_id: campaign.campaign_id, title: 'Exceptional Engagement Rate', message: 'Campaign achieving ' + campaign.engagement_rate + '% engagement (benchmark: ' + benchmarks.engagement_rate.high + '%)', metric: 'engagement_rate', value: campaign.engagement_rate, benchmark: benchmarks.engagement_rate.high, recommended_action: 'Consider increasing budget to maximize reach'});\n  }\n  if (campaign.engagement_rate > 0 && campaign.engagement_rate < benchmarks.engagement_rate.low) {\n    alerts.push({type: 'underperformer', priority: 'medium', entity_type: 'campaign', entity_id: campaign.campaign_id, campaign_id: campaign.campaign_id, title: 'Low Engagement Rate', message: 'Campaign at ' + campaign.engagement_rate + '% engagement (benchmark: ' + benchmarks.engagement_rate.low + '%)', metric: 'engagement_rate', value: campaign.engagement_rate, benchmark: benchmarks.engagement_rate.low, recommended_action: 'Review content quality and targeting'});\n  }\n  if (campaign.cpa && campaign.cpa > benchmarks.cpa.high) {\n    alerts.push({type: 'cost_alert', priority: 'high', entity_type: 'campaign', entity_id: campaign.campaign_id, campaign_id: campaign.campaign_id, title: 'High Cost Per Acquisition', message: 'CPA at $' + campaign.cpa + ' (benchmark: $' + benchmarks.cpa.high + ')', metric: 'cpa', value: campaign.cpa, benchmark: benchmarks.cpa.high, recommended_action: 'Pause underperforming ads and reallocate budget'});\n  }\n  if (campaign.roas && campaign.roas > benchmarks.roas.high) {\n    alerts.push({type: 'high_performer', priority: 'high', entity_type: 'campaign', entity_id: campaign.campaign_id, campaign_id: campaign.campaign_id, title: 'Excellent ROAS', message: 'Campaign achieving ' + campaign.roas + 'x return (benchmark: ' + benchmarks.roas.high + 'x)', metric: 'roas', value: campaign.roas, benchmark: benchmarks.roas.high, recommended_action: 'Scale budget while maintaining performance'});\n  }\n  if (campaign.budget_used_percent && campaign.budget_used_percent > 90) {\n    alerts.push({type: 'budget_alert', priority: 'medium', entity_type: 'campaign', entity_id: campaign.campaign_id, campaign_id: campaign.campaign_id, title: 'Budget Nearly Exhausted', message: campaign.budget_used_percent + '% of budget used', metric: 'budget_used_percent', value: campaign.budget_used_percent, benchmark: 90, recommended_action: 'Review performance and consider budget increase'});\n  }\n}\nfor (const m of metrics) {\n  if (m.performance_score >= 80) {\n    alerts.push({type: 'top_content', priority: 'low', entity_type: 'content', entity_id: m.content_id, campaign_id: m.campaign_id, title: 'Top Performing Content', message: 'Content scoring ' + m.performance_score + '/100 on ' + m.platform, metric: 'performance_score', value: m.performance_score, benchmark: 80, recommended_action: 'Boost this content or create similar pieces'});\n  }\n}\nreturn [{alerts: alerts, alert_count: alerts.length, by_priority: {high: alerts.filter(a => a.priority === 'high').length, medium: alerts.filter(a => a.priority === 'medium').length, low: alerts.filter(a => a.priority === 'low').length}}];"
+      },
+      "id": "code-10",
+      "name": "Detect Anomalies and Alerts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2672,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const enrichedMetrics = $('Calculate Derived Metrics').first().json.metrics;\nreturn enrichedMetrics.map(m => ({\n  campaign_id: m.campaign_id,\n  content_id: m.content_id,\n  platform: m.platform,\n  metric_date: m.metric_date,\n  impressions: m.impressions,\n  reach: m.reach,\n  engagements: m.engagements,\n  clicks: m.clicks,\n  shares: m.shares,\n  comments: m.comments,\n  saves: m.saves,\n  video_views: m.video_views,\n  spend: m.spend,\n  conversions: m.conversions,\n  conversion_value: m.conversion_value\n}));"
+      },
+      "id": "code-11",
+      "name": "Prepare Metrics for Save",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2880,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const alertsData = $('Detect Anomalies and Alerts').first().json;\nif (alertsData.alerts.length === 0) {\n  return [{skip_alerts: true}];\n}\nreturn alertsData.alerts.map(alert => ({\n  recommendation_type: alert.type,\n  priority: alert.priority,\n  title: alert.title,\n  description: alert.message,\n  rationale: 'Based on performance metrics vs. industry benchmarks',\n  related_campaign_id: alert.campaign_id || null,\n  related_content_id: alert.entity_type === 'content' ? alert.entity_id : null,\n  suggested_action: {\n    action: alert.recommended_action,\n    metric: alert.metric,\n    current_value: alert.value,\n    benchmark: alert.benchmark\n  },\n  potential_impact: 'Performance improvement opportunity',\n  status: 'pending'\n}));"
+      },
+      "id": "code-12",
+      "name": "Prepare Alerts for Save",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3328,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "tableId": "ai_recommendations",
+        "dataToSend": "autoMapInputData"
+      },
+      "id": "supabase-5",
+      "name": "Save Alerts",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        3552,
+        400
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const params = $('Determine Mode and Scope').first().json;\nconst summary = $('Calculate Derived Metrics').first().json.summary;\nconst aggregates = $('Calculate Campaign Aggregates').first().json;\nconst alerts = $('Detect Anomalies and Alerts').first().json;\nreturn [{\n  activity_type: 'metrics_refreshed',\n  entity_type: 'performance_metrics',\n  description: 'Refreshed metrics for ' + aggregates.total_campaigns + ' campaigns, ' + summary.total_items + ' content pieces',\n  metadata: {\n    mode: params.mode,\n    triggered_by: params.triggered_by,\n    date_range: params.date_range,\n    metrics_updated: {\n      total: summary.total_items,\n      by_platform: summary.by_platform\n    },\n    alerts_generated: alerts.alert_count,\n    campaigns_analyzed: aggregates.total_campaigns\n  }\n}];"
+      },
+      "id": "code-13",
+      "name": "Prepare Activity Log",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3760,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "tableId": "activity_log",
+        "dataToSend": "autoMapInputData"
+      },
+      "id": "supabase-6",
+      "name": "Log Activity",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        3984,
+        400
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const params = $('Determine Mode and Scope').first().json;\nconst summary = $('Calculate Derived Metrics').first().json.summary;\nconst aggregates = $('Calculate Campaign Aggregates').first().json.campaign_aggregates;\nconst alerts = $('Detect Anomalies and Alerts').first().json;\nreturn [{\n  success: true,\n  data: {\n    metrics_updated: summary.total_items,\n    campaigns_analyzed: aggregates.length,\n    by_platform: summary.by_platform,\n    campaign_summaries: aggregates,\n    alerts: alerts.alerts.map(a => ({type: a.type, priority: a.priority, title: a.title, campaign_id: a.campaign_id || null}))\n  },\n  meta: {\n    mode: params.mode,\n    date_range: params.date_range,\n    triggered_by: params.triggered_by,\n    processing_time_ms: Date.now()\n  }\n}];"
+      },
+      "id": "code-14",
+      "name": "Build Final Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4208,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "respond-1",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        4432,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upsert"
+      },
+      "id": "supabase-4-new",
+      "name": "Save Performance Metrics",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        3104,
+        400
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "analytics/refresh",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-1",
+      "name": "Webhook Triggers",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        240,
+        400
+      ],
+      "webhookId": "3222406f-db46-443a-aee6-536d90d7467e",
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-05T15:56:48.785Z",
+      "createdAt": "2026-01-05T15:56:48.785Z",
+      "role": "workflow:owner",
+      "workflowId": "b6ctqiE7Zmlznbjc",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-01-11T02:09:54.177Z",
+  "versionId": "6e60736d-711e-4834-b162-faacae439594"
+}
