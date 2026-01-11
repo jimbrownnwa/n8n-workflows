@@ -1,0 +1,623 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-01-04T20:42:17.845Z",
+    "createdAt": "2026-01-04T20:42:17.845Z",
+    "versionId": "10a5dfeb-93b0-4445-a052-8abeb5eeea3a",
+    "workflowId": "eVxzahYTKpgUtzwm",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "data",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "id": "webhook-trigger",
+        "name": "Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          -192,
+          336
+        ],
+        "webhookId": "b6e2a5c5-a6df-4fc3-8499-e63331da50e8",
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "mode": "expression",
+          "numberOutputs": 6,
+          "output": "={{ $json.body.endpoint === 'dashboard' ? 0 : $json.body.endpoint === 'opportunities' ? 1 : $json.body.endpoint === 'content' ? 2 : $json.body.endpoint === 'campaigns' ? 3 : $json.body.endpoint === 'metrics' ? 4 : $json.body.endpoint === 'recommendations' ? 5 : -1 }}"
+        },
+        "id": "route-by-endpoint",
+        "name": "Route by Endpoint",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3,
+        "position": [
+          32,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "// Dashboard endpoint - aggregate data from multiple tables\nconst supabaseUrl = 'https://ymwhxlxhzpvivpmdnops.supabase.co';\nconst supabaseKey = 'sb_secret_GC7H_Mp00DdD3Ag5rEHevg_dYTuoyez';\n\nconst headers = {\n  'apikey': supabaseKey,\n  'Authorization': `Bearer ${supabaseKey}`,\n  'Content-Type': 'application/json'\n};\n\n// Get active campaigns count\nconst campaignsResp = await this.helpers.httpRequest({\n  method: 'GET',\n  url: `${supabaseUrl}/rest/v1/campaigns?status=eq.active&select=count`,\n  headers: { ...headers, 'Prefer': 'count=exact' },\n  returnFullResponse: true\n});\n\n// Get recent metrics (last 7 days)\nconst sevenDaysAgo = new Date();\nsevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);\nconst dateStr = sevenDaysAgo.toISOString().split('T')[0];\n\nconst metricsResp = await this.helpers.httpRequest({\n  method: 'GET',\n  url: `${supabaseUrl}/rest/v1/performance_metrics?metric_date=gte.${dateStr}&select=reach,engagements,metric_date`,\n  headers,\n  json: true\n});\n\n// Get pending recommendations\nconst recsResp = await this.helpers.httpRequest({\n  method: 'GET',\n  url: `${supabaseUrl}/rest/v1/ai_recommendations?status=eq.pending&select=count`,\n  headers: { ...headers, 'Prefer': 'count=exact' },\n  returnFullResponse: true\n});\n\n// Get recent ROI snapshot\nconst roiResp = await this.helpers.httpRequest({\n  method: 'GET',\n  url: `${supabaseUrl}/rest/v1/roi_snapshots?order=snapshot_date.desc&limit=1&select=roas`,\n  headers,\n  json: true\n});\n\n// Calculate metrics\nconst metrics = metricsResp || [];\nconst totalReach = metrics.reduce((sum, m) => sum + (m.reach || 0), 0);\nconst totalEngagements = metrics.reduce((sum, m) => sum + (m.engagements || 0), 0);\nconst avgEngagementRate = totalReach > 0 ? ((totalEngagements / totalReach) * 100).toFixed(2) : 0;\n\n// Group metrics by date for chart\nconst chartData = metrics.reduce((acc, m) => {\n  const existing = acc.find(d => d.date === m.metric_date);\n  if (existing) {\n    existing.reach += m.reach || 0;\n    existing.engagements += m.engagements || 0;\n  } else {\n    acc.push({\n      date: m.metric_date,\n      reach: m.reach || 0,\n      engagements: m.engagements || 0\n    });\n  }\n  return acc;\n}, []).sort((a, b) => a.date.localeCompare(b.date));\n\n// Extract counts from content-range header\nconst activeCampaigns = parseInt(campaignsResp.headers['content-range']?.split('/')[1] || 0);\nconst pendingRecs = parseInt(recsResp.headers['content-range']?.split('/')[1] || 0);\n\nreturn [{\n  json: {\n    quickStats: {\n      totalReach7d: totalReach,\n      avgEngagementRate: parseFloat(avgEngagementRate),\n      activeCampaigns,\n      currentROAS: roiResp[0]?.roas || 0\n    },\n    chartData,\n    actionItems: {\n      pendingRecommendations: pendingRecs\n    },\n    timestamp: new Date().toISOString()\n  }\n}];"
+        },
+        "id": "get-dashboard-data",
+        "name": "Get Dashboard Data",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          480,
+          144
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "getAll",
+          "tableId": "content_opportunities",
+          "limit": "={{ $json.body.pagination && $json.body.pagination.limit ? $json.body.pagination.limit : 20 }}"
+        },
+        "id": "get-opportunities",
+        "name": "Get Opportunities",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          480,
+          288
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "H2otb0ZjBMDnmMPT",
+            "name": "LocalPulse Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "getAll",
+          "tableId": "content_library",
+          "limit": "={{ $json.body.pagination && $json.body.pagination.limit ? $json.body.pagination.limit : 20 }}"
+        },
+        "id": "get-content",
+        "name": "Get Content Library",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          480,
+          416
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "H2otb0ZjBMDnmMPT",
+            "name": "LocalPulse Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "getAll",
+          "tableId": "campaigns",
+          "limit": "={{ $json.body.pagination && $json.body.pagination.limit ? $json.body.pagination.limit : 20 }}"
+        },
+        "id": "get-campaigns",
+        "name": "Get Campaigns",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          480,
+          528
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "H2otb0ZjBMDnmMPT",
+            "name": "LocalPulse Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "getAll",
+          "tableId": "performance_metrics",
+          "limit": "={{ $json.body.pagination && $json.body.pagination.limit ? $json.body.pagination.limit : 100 }}"
+        },
+        "id": "get-metrics",
+        "name": "Get Performance Metrics",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          480,
+          704
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "H2otb0ZjBMDnmMPT",
+            "name": "LocalPulse Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "getAll",
+          "tableId": "ai_recommendations",
+          "limit": "={{ $json.body.pagination && $json.body.pagination.limit ? $json.body.pagination.limit : 20 }}"
+        },
+        "id": "get-recommendations",
+        "name": "Get AI Recommendations",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          480,
+          880
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "H2otb0ZjBMDnmMPT",
+            "name": "LocalPulse Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "options": {}
+        },
+        "id": "respond-to-webhook",
+        "name": "Respond to Webhook",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.1,
+        "position": [
+          1072,
+          448
+        ]
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Route by Endpoint",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Route by Endpoint": {
+        "main": [
+          [
+            {
+              "node": "Get Dashboard Data",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Get Opportunities",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Get Content Library",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Get Campaigns",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Get Performance Metrics",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Get AI Recommendations",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Dashboard Data": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Opportunities": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Content Library": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Campaigns": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Performance Metrics": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get AI Recommendations": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "James Brown",
+    "name": null,
+    "description": null,
+    "autosaved": false
+  },
+  "activeVersionId": "10a5dfeb-93b0-4445-a052-8abeb5eeea3a",
+  "connections": {
+    "Route by Endpoint": {
+      "main": [
+        [
+          {
+            "node": "Get Dashboard Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Opportunities",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Content Library",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Campaigns",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Performance Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get AI Recommendations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Dashboard Data": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Opportunities": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Content Library": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Campaigns": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Performance Metrics": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get AI Recommendations": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Route by Endpoint",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-04T20:12:25.450Z",
+  "id": "eVxzahYTKpgUtzwm",
+  "isArchived": false,
+  "meta": null,
+  "name": "data-api",
+  "nodes": [
+    {
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 6,
+        "output": "={{ $json.body.endpoint === 'dashboard' ? 0 : $json.body.endpoint === 'opportunities' ? 1 : $json.body.endpoint === 'content' ? 2 : $json.body.endpoint === 'campaigns' ? 3 : $json.body.endpoint === 'metrics' ? 4 : $json.body.endpoint === 'recommendations' ? 5 : -1 }}"
+      },
+      "id": "route-by-endpoint",
+      "name": "Route by Endpoint",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        32,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Dashboard endpoint - aggregate data from multiple tables\nconst supabaseUrl = 'https://ymwhxlxhzpvivpmdnops.supabase.co';\nconst supabaseKey = 'sb_secret_GC7H_Mp00DdD3Ag5rEHevg_dYTuoyez';\n\nconst headers = {\n  'apikey': supabaseKey,\n  'Authorization': `Bearer ${supabaseKey}`,\n  'Content-Type': 'application/json'\n};\n\n// Get active campaigns count\nconst campaignsResp = await this.helpers.httpRequest({\n  method: 'GET',\n  url: `${supabaseUrl}/rest/v1/campaigns?status=eq.active&select=count`,\n  headers: { ...headers, 'Prefer': 'count=exact' },\n  returnFullResponse: true\n});\n\n// Get recent metrics (last 7 days)\nconst sevenDaysAgo = new Date();\nsevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);\nconst dateStr = sevenDaysAgo.toISOString().split('T')[0];\n\nconst metricsResp = await this.helpers.httpRequest({\n  method: 'GET',\n  url: `${supabaseUrl}/rest/v1/performance_metrics?metric_date=gte.${dateStr}&select=reach,engagements,metric_date`,\n  headers,\n  json: true\n});\n\n// Get pending recommendations\nconst recsResp = await this.helpers.httpRequest({\n  method: 'GET',\n  url: `${supabaseUrl}/rest/v1/ai_recommendations?status=eq.pending&select=count`,\n  headers: { ...headers, 'Prefer': 'count=exact' },\n  returnFullResponse: true\n});\n\n// Get recent ROI snapshot\nconst roiResp = await this.helpers.httpRequest({\n  method: 'GET',\n  url: `${supabaseUrl}/rest/v1/roi_snapshots?order=snapshot_date.desc&limit=1&select=roas`,\n  headers,\n  json: true\n});\n\n// Calculate metrics\nconst metrics = metricsResp || [];\nconst totalReach = metrics.reduce((sum, m) => sum + (m.reach || 0), 0);\nconst totalEngagements = metrics.reduce((sum, m) => sum + (m.engagements || 0), 0);\nconst avgEngagementRate = totalReach > 0 ? ((totalEngagements / totalReach) * 100).toFixed(2) : 0;\n\n// Group metrics by date for chart\nconst chartData = metrics.reduce((acc, m) => {\n  const existing = acc.find(d => d.date === m.metric_date);\n  if (existing) {\n    existing.reach += m.reach || 0;\n    existing.engagements += m.engagements || 0;\n  } else {\n    acc.push({\n      date: m.metric_date,\n      reach: m.reach || 0,\n      engagements: m.engagements || 0\n    });\n  }\n  return acc;\n}, []).sort((a, b) => a.date.localeCompare(b.date));\n\n// Extract counts from content-range header\nconst activeCampaigns = parseInt(campaignsResp.headers['content-range']?.split('/')[1] || 0);\nconst pendingRecs = parseInt(recsResp.headers['content-range']?.split('/')[1] || 0);\n\nreturn [{\n  json: {\n    quickStats: {\n      totalReach7d: totalReach,\n      avgEngagementRate: parseFloat(avgEngagementRate),\n      activeCampaigns,\n      currentROAS: roiResp[0]?.roas || 0\n    },\n    chartData,\n    actionItems: {\n      pendingRecommendations: pendingRecs\n    },\n    timestamp: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "get-dashboard-data",
+      "name": "Get Dashboard Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "content_opportunities",
+        "limit": "={{ $json.body.pagination && $json.body.pagination.limit ? $json.body.pagination.limit : 20 }}"
+      },
+      "id": "get-opportunities",
+      "name": "Get Opportunities",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        480,
+        288
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "content_library",
+        "limit": "={{ $json.body.pagination && $json.body.pagination.limit ? $json.body.pagination.limit : 20 }}"
+      },
+      "id": "get-content",
+      "name": "Get Content Library",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        480,
+        416
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "campaigns",
+        "limit": "={{ $json.body.pagination && $json.body.pagination.limit ? $json.body.pagination.limit : 20 }}"
+      },
+      "id": "get-campaigns",
+      "name": "Get Campaigns",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        480,
+        528
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "performance_metrics",
+        "limit": "={{ $json.body.pagination && $json.body.pagination.limit ? $json.body.pagination.limit : 100 }}"
+      },
+      "id": "get-metrics",
+      "name": "Get Performance Metrics",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        480,
+        704
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "ai_recommendations",
+        "limit": "={{ $json.body.pagination && $json.body.pagination.limit ? $json.body.pagination.limit : 20 }}"
+      },
+      "id": "get-recommendations",
+      "name": "Get AI Recommendations",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        480,
+        880
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "respond-to-webhook",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1072,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "data",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -192,
+        336
+      ],
+      "webhookId": "b6e2a5c5-a6df-4fc3-8499-e63331da50e8",
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-04T20:12:25.451Z",
+      "createdAt": "2026-01-04T20:12:25.451Z",
+      "role": "workflow:owner",
+      "workflowId": "eVxzahYTKpgUtzwm",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-01-11T02:11:11.482Z",
+  "versionId": "7b5347b7-ca4b-41c1-bdf6-81b6040d4f52"
+}
