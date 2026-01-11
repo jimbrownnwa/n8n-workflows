@@ -1,0 +1,1409 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Create Script Folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Script": {
+      "main": [
+        [
+          {
+            "node": "Parse script and extract chapters",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Convert Script to Chapters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse script and extract chapters": {
+      "main": [
+        [
+          {
+            "node": "Parse Scenes for Image Prompts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate Script",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Create Image Prompts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Name Images": {
+      "main": [
+        [
+          {
+            "node": "Upload images",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Images": {
+      "main": [
+        [
+          {
+            "node": "Name Images",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Image Prompts": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Scenes for Image Prompts": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Images Folder": {
+      "main": [
+        [
+          {
+            "node": "Generate Script",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Script Folder": {
+      "main": [
+        [
+          {
+            "node": "Create Images Folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Script to Chapters": {
+      "main": [
+        [
+          {
+            "node": "Copy Script Template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Copy Script Template": {
+      "main": [
+        [
+          {
+            "node": "Update Script Document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Generate Images",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Replace Me Today",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Replace Me Today": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-02T00:18:13.840Z",
+  "id": "c8wTsecxlownNWYE",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "History TV: Michael",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Youtube Story Generator",
+        "formDescription": "Story",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Youtube Story Title",
+              "placeholder": "Title"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -2544,
+        240
+      ],
+      "id": "c17dcd98-3c2e-4efd-811f-f4384bf5f719",
+      "name": "On form submission",
+      "webhookId": "df3d2a6a-968c-4afd-b7b9-447165ca0caf"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Title of Story: {{ $('On form submission').item.json['Youtube Story Title'] }}",
+        "options": {
+          "systemMessage": "=You are a professional YouTube scriptwriter specializing in historical storytelling. Create a compelling 10-minute script that is a minimum of 1600 words about: {{ $('On form submission').item.json['Youtube Story Title'] }}\n\nRequirements:\n- Factually accurate historical information\n- Engaging narrative structure with clear beginning, middle, and end\n- Written for spoken delivery (conversational tone)\n- Include specific dates, names, and locations where relevant\n- Structure should naturally flow through chronological events\n- Target 8-10 words per second for 10-minute duration\n\nStructure the script with the following format:\n- **INTRO** - Hook the audience and set up the story (150-200 words)\n- **CHAPTER 1: [Chapter Title]** - First major story segment (250-300 words)\n- **CHAPTER 2: [Chapter Title]** - Second major story segment (250-300 words)  \n- **CHAPTER 3: [Chapter Title]** - Third major story segment (250-300 words)\n- **CHAPTER 4: [Chapter Title]** - Fourth major story segment (250-300 words)\n- **CHAPTER 5: [Chapter Title]** - Fifth major story segment (250-300 words)\n- **OUTRO** - Conclusion and call-to-action (150-200 words)\n\nFor each section, create compelling chapter titles that capture the essence of that part of the story. Format the script with clear paragraph breaks and section headers. Include [SCENE] markers at natural transition points within each chapter that would work well for image changes.\n\nCRITICAL FORMATTING REQUIREMENTS:\n- Use exactly \"**INTRO**\" for the introduction section\n- Use exactly \"**CHAPTER 1: [Title]**\" format for all chapters (numbers 1-5)\n- Use exactly \"**OUTRO**\" for the conclusion section\n- No variations in formatting - be precise with asterisks, spacing, and capitalization\n- Each section header must be on its own line\n- Do not use alternative headers like \"INTRODUCTION\", \"CONCLUSION\", etc.\n\nExample format:\n**INTRO**\n[content]\n\n**CHAPTER 1: [Your Title Here]**\n[content]\n\n**CHAPTER 2: [Your Title Here]**\n[content]\n\n**OUTRO**\n[content]"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        -1872,
+        240
+      ],
+      "id": "7e5830c7-291d-4503-b1d2-913bbf35a119",
+      "name": "Generate Script"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ROBUST PARSER - handles multiple script formats\nconst script = items[0].json.output;\n\nconsole.log('Parser started - script length:', script ? script.length : 'null');\n\nif (!script) {\n  return [{json: {error: 'No script content'}}];\n}\n\n// Clean up the script\nconst cleanScript = script.replace(/---/g, '').trim();\nconst sections = [];\nconst lines = cleanScript.split('\\n');\n\nlet currentSection = null;\nlet currentContent = [];\n\nlines.forEach((line, lineIndex) => {\n  const trimmedLine = line.trim();\n  \n  // Multiple ways to detect INTRO\n  const isIntro = trimmedLine === '**INTRO**' || \n                  trimmedLine === 'INTRO' || \n                  trimmedLine === '**INTRO:**' ||\n                  trimmedLine === 'INTRODUCTION' ||\n                  trimmedLine.toLowerCase().includes('intro');\n  \n  // Multiple ways to detect OUTRO  \n  const isOutro = trimmedLine === '**OUTRO**' || \n                  trimmedLine === 'OUTRO' || \n                  trimmedLine === '**OUTRO:**' ||\n                  trimmedLine === 'CONCLUSION' ||\n                  trimmedLine.toLowerCase().includes('outro');\n  \n  // Multiple ways to detect CHAPTER\n  const chapterMatch = trimmedLine.match(/\\*?\\*?CHAPTER\\s*(\\d+)[:\\-\\.]?\\s*(.+?)?\\*?\\*?/i) ||\n                       trimmedLine.match(/^(\\d+)[\\.\\-\\:]?\\s*(.+)/i) ||\n                       trimmedLine.match(/^Chapter\\s*(\\d+)[:\\-\\.]?\\s*(.+)?/i);\n  \n  console.log(`Line ${lineIndex}: \"${trimmedLine}\" - Intro: ${isIntro}, Outro: ${isOutro}, Chapter: ${!!chapterMatch}`);\n  \n  if (isIntro) {\n    // Save previous section\n    if (currentSection) {\n      sections.push({\n        ...currentSection,\n        text: currentContent.join('\\n').trim()\n      });\n    }\n    currentSection = {\n      type: 'intro',\n      number: 0,\n      title: 'INTRO'\n    };\n    currentContent = [];\n    \n  } else if (isOutro) {\n    // Save previous section\n    if (currentSection) {\n      sections.push({\n        ...currentSection,\n        text: currentContent.join('\\n').trim()\n      });\n    }\n    currentSection = {\n      type: 'outro',\n      number: 7,\n      title: 'OUTRO'\n    };\n    currentContent = [];\n    \n  } else if (chapterMatch) {\n    // Save previous section\n    if (currentSection) {\n      sections.push({\n        ...currentSection,\n        text: currentContent.join('\\n').trim()\n      });\n    }\n    \n    const chapterNumber = Number(chapterMatch[1]);\n    const chapterTitle = chapterMatch[2] ? chapterMatch[2].trim() : `Chapter ${chapterNumber}`;\n    \n    currentSection = {\n      type: 'chapter',\n      number: chapterNumber,\n      title: chapterTitle\n    };\n    currentContent = [];\n    \n  } else {\n    // Add line to current content (skip empty lines at start)\n    if (currentSection && (currentContent.length > 0 || trimmedLine.length > 0)) {\n      currentContent.push(line);\n    }\n  }\n});\n\n// Don't forget the last section\nif (currentSection) {\n  sections.push({\n    ...currentSection,\n    text: currentContent.join('\\n').trim()\n  });\n}\n\nconsole.log(`Parsed ${sections.length} sections:`, sections.map(s => `${s.type}-${s.number}`));\n\n// Fallback: if no sections found, try paragraph-based splitting\nif (sections.length === 0) {\n  console.log('No sections found, trying paragraph splitting...');\n  const paragraphs = cleanScript.split(/\\n\\n+/).filter(p => p.trim().length > 100);\n  \n  paragraphs.forEach((paragraph, index) => {\n    sections.push({\n      type: index === 0 ? 'intro' : index === paragraphs.length - 1 ? 'outro' : 'chapter',\n      number: index,\n      title: `Section ${index + 1}`,\n      text: paragraph.trim()\n    });\n  });\n}\n\nconsole.log(`Final result: ${sections.length} sections`);\nreturn sections.map(s => ({json: s}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1392,
+        96
+      ],
+      "id": "d1fa2f06-f303-4109-b3b8-15ab3b5d3c1b",
+      "name": "Parse script and extract chapters"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5",
+          "mode": "list",
+          "cachedResultName": "gpt-5"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -1968,
+        480
+      ],
+      "id": "fff7a1da-5498-4881-a5ed-87c612e4a29e",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "6sKwLZ4CBgrhQ8HO",
+          "name": "Hostinger n8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "maxItems": 5
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        -848,
+        96
+      ],
+      "id": "3fdd3b5b-fe6a-49d7-9abe-a4241b8846b8",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process ALL binary image data items\nconst results = [];\n\nitems.forEach((item, index) => {\n  const imageData = item.binary;\n  const jsonData = item.json;\n\n  // Create a descriptive filename\n  const chapterNum = jsonData.chapter_number || '0';\n  const sceneNum = jsonData.scene_number || '1';\n  const shotNum = jsonData.shot_number || '1';\n  const shotType = jsonData.shot_type || 'shot';\n\n  // Clean up shot type for filename (remove spaces, special chars)\n  const cleanShotType = shotType\n    .toLowerCase()\n    .replace(/[^a-z0-9]/g, '_')\n    .replace(/_+/g, '_')\n    .replace(/^_|_$/g, '');\n\n  // Create filename: ch1_sc2_sh3_wide_establishing_shot.png\n  const filename = `ch${chapterNum}_sc${sceneNum}_sh${shotNum}_${cleanShotType}.png`;\n\n  // Add this item to results\n  results.push({\n    json: {\n      ...jsonData,\n      filename: filename,\n      mimeType: 'image/png'\n    },\n    binary: {\n      data: imageData.data,\n      fileName: filename,\n      mimeType: 'image/png'\n    }\n  });\n});\n\nconsole.log(`Processed ${results.length} images`);\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "5076c6f9-5409-4683-963e-bcd587b4b955",
+      "name": "Name Images"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "prompt": "={{ $json.message.content }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        0,
+        0
+      ],
+      "id": "28032a6f-73b3-435f-b046-5fe3c7a9c0f3",
+      "name": "Generate Images",
+      "credentials": {
+        "openAiApi": {
+          "id": "6sKwLZ4CBgrhQ8HO",
+          "name": "Hostinger n8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5",
+          "mode": "list",
+          "cachedResultName": "GPT-5"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are an expert at creating concise, effective DALL-E 3 image prompts for historical documentaries. \n\nYour task: Convert narrative scene text into a focused visual description suitable for image generation.\n\nREQUIREMENTS:\n- Output must be 50-150 words maximum\n- Focus only on VISUAL elements (people, objects, settings, lighting, atmosphere)\n- Remove all narrative/storytelling language\n- Include specific historical details (clothing, weapons, architecture, landscape)\n- Match the requested camera shot type\n- Maintain historical accuracy for the time period\n\nSHOT TYPES TO UNDERSTAND:\n- \"wide establishing shot\" = Show full scene, environment, multiple subjects\n- \"medium shot\" = Focus on 2-3 people, upper body to full body\n- \"close-up detail\" = Single person's face/hands, or specific object detail\n- \"action moment\" = Capture movement, combat, dramatic gesture\n- \"transition shot\" = Environmental detail, symbolic element, or atmospheric scene\n\nOUTPUT FORMAT: Just the image prompt text, nothing else.",
+              "role": "system"
+            },
+            {
+              "content": "=Shot Type: {{ $json.shot_type }}\nChapter: {{ $json.chapter_title }}\nScene Text: {{ $json.scene_text }}\n\nCreate a DALL-E prompt for this {{ $json.shot_type }} that captures the key visual elements from the scene text. Focus on what the camera would actually see."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -624,
+        96
+      ],
+      "id": "8a36191c-3aa7-438c-b4a4-03c714c963fd",
+      "name": "Create Image Prompts",
+      "credentials": {
+        "openAiApi": {
+          "id": "6sKwLZ4CBgrhQ8HO",
+          "name": "Hostinger n8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process ALL chapters from the parse node\nconst allImagePrompts = [];\n\n// Loop through each chapter\nitems.forEach((item, chapterIndex) => {\n  const chapterText = item.json.text;\n  const chapterNumber = item.json.number;\n  const chapterTitle = item.json.title;\n  const chapterType = item.json.type;\n  \n  // Skip if no text content\n  if (!chapterText || chapterText.trim() === '') {\n    return;\n  }\n  \n  // Split on [SCENE] markers first, then fallback to paragraph breaks\n  let scenes;\n  if (chapterText.includes('[SCENE]')) {\n    // Split on [SCENE] markers and filter out the markers themselves\n    scenes = chapterText.split(/\\[SCENE\\][^\\n]*\\n?/).filter(scene => scene.trim().length > 50);\n  } else {\n    // Fallback: split on double line breaks for substantial chunks\n    scenes = chapterText.split(/\\n\\n+/).filter(scene => scene.trim().length > 100);\n  }\n  \n  // If still no good scenes, use whole chapter as one scene\n  if (scenes.length === 0) {\n    scenes = [chapterText];\n  }\n  \n  // NOW scenes is defined - process each scene\n  scenes.forEach((scene, sceneIndex) => {\n    const cleanScene = scene.trim();\n    \n    // Only use scenes longer than 150 characters\n    if (cleanScene.length > 150) {\n      \n      // For intro/outro: 2 shots per scene\n      // For chapters: 3 shots per scene\n      const shotSequence = chapterType === 'intro' || chapterType === 'outro' \n        ? [\"wide establishing shot\", \"medium shot\"]\n        : [\"wide establishing shot\", \"medium shot\", \"close-up detail\"];\n      \n      shotSequence.forEach((shotType, shotIndex) => {\n        allImagePrompts.push({\n          chapter_type: chapterType,\n          chapter_number: chapterNumber,\n          chapter_title: chapterTitle,\n          scene_number: sceneIndex + 1,\n          shot_number: shotIndex + 1,\n          shot_type: shotType,\n          scene_text: cleanScene,\n          full_chapter_context: chapterText,\n          global_image_id: chapterNumber + \"-\" + (sceneIndex + 1) + \"-\" + (shotIndex + 1)\n        });\n      });\n    }\n  });\n});\n\nconsole.log(\"Created \" + allImagePrompts.length + \" total image prompts\");\nreturn allImagePrompts.map(s => ({json: s}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1072,
+        96
+      ],
+      "id": "c0086233-1872-4c6e-b464-9239811aee00",
+      "name": "Parse Scenes for Image Prompts"
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "Images",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -2096,
+        240
+      ],
+      "id": "1df32c40-7fbf-4c0e-9ae7-ee9dcafae022",
+      "name": "Create Images Folder",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "1FTU4WPUYe5B9Ioa",
+          "name": "NWABoost: Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "={{ $json['Youtube Story Title'] }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1sjCxMCI5WK6YQEu8kfDvtPNMlX5SaQgZ",
+          "mode": "list",
+          "cachedResultName": "Youtube Scripts",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1sjCxMCI5WK6YQEu8kfDvtPNMlX5SaQgZ"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -2320,
+        240
+      ],
+      "id": "dcaeac57-e303-4bd1-8fec-3036296453cb",
+      "name": "Create Script Folder",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "1FTU4WPUYe5B9Ioa",
+          "name": "NWABoost: Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-nano",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-NANO"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Please Output {{ $json.output }} as structured json as follows:\n\n{intro}\n{chapter1}\n{chapter2}\n{chapter3}\n{chapter4}\n{chapter5}\n{outro} "
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -1472,
+        288
+      ],
+      "id": "a99208dc-dc24-4c94-aaae-417e8f1e6fc5",
+      "name": "Convert Script to Chapters",
+      "credentials": {
+        "openAiApi": {
+          "id": "6sKwLZ4CBgrhQ8HO",
+          "name": "Hostinger n8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "value": "1iSAB_1ebN7fxgbOMbSD8xxChmHuIwUmIFrpXrzLUlgk",
+          "mode": "list",
+          "cachedResultName": "Youtube Script Template",
+          "cachedResultUrl": "https://docs.google.com/document/d/1iSAB_1ebN7fxgbOMbSD8xxChmHuIwUmIFrpXrzLUlgk/edit?usp=drivesdk"
+        },
+        "name": "1iSAB_1ebN7fxgbOMbSD8xxChmHuIwUmIFrpXrzLUlgk",
+        "sameFolder": false,
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('Create Script Folder').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -1072,
+        288
+      ],
+      "id": "730d76ec-470a-4580-bfcc-f45a275ae98b",
+      "name": "Copy Script Template",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "1FTU4WPUYe5B9Ioa",
+          "name": "NWABoost: Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $json.id }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "replaceAll",
+              "text": "{{Title}}",
+              "replaceText": "={{ $('On form submission').item.json[\"Youtube Story Title\"] }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{Intro Content}}",
+              "replaceText": "={{ $('Convert Script to Chapters').item.json.message.content.intro }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{Chapter 1 Content}}",
+              "replaceText": "={{ $('Convert Script to Chapters').item.json.message.content.chapter1 }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{Chapter 2 Content}}",
+              "replaceText": "={{ $('Convert Script to Chapters').item.json.message.content.chapter2 }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{Chapter 3 Content}}",
+              "replaceText": "={{ $('Convert Script to Chapters').item.json.message.content.chapter3 }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{Chapter 4 Content}}",
+              "replaceText": "={{ $('Convert Script to Chapters').item.json.message.content.chapter4 }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{Chapter 5 Content}}",
+              "replaceText": "={{ $('Convert Script to Chapters').item.json.message.content.chapter5 }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{Outro Content}}",
+              "replaceText": "={{ $('Convert Script to Chapters').item.json.message.content.outro }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        -848,
+        288
+      ],
+      "id": "5a15ade0-8849-4edf-8f34-1970856abbe5",
+      "name": "Update Script Document",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "40fqoG46DGwkNSB6",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "batchSize": 2,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -224,
+        96
+      ],
+      "id": "27b35041-59fc-4a51-815d-07dbd5d774f1",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "name": "={{ $json.filename }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1sjCxMCI5WK6YQEu8kfDvtPNMlX5SaQgZ",
+          "mode": "list",
+          "cachedResultName": "Youtube Scripts",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1sjCxMCI5WK6YQEu8kfDvtPNMlX5SaQgZ"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        448,
+        0
+      ],
+      "id": "5ab4e1eb-aee0-4e95-8135-6700b2a033a7",
+      "name": "Upload images",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "1FTU4WPUYe5B9Ioa",
+          "name": "NWABoost: Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "name": "Replace Me Today",
+      "typeVersion": 1,
+      "position": [
+        0,
+        192
+      ],
+      "id": "e0112b47-dbc5-45c8-905e-9044963f16b6"
+    }
+  ],
+  "pinData": {
+    "On form submission": [
+      {
+        "json": {
+          "Youtube Story Title": "How to survive in Normandy during WW2",
+          "submittedAt": "2025-08-20T18:02:08.343-04:00",
+          "formMode": "test"
+        }
+      }
+    ],
+    "Create Script Folder": [
+      {
+        "json": {
+          "kind": "drive#file",
+          "id": "1CakpoXyfoOUWJ0tgA-RJj71ML2OxU_Rp",
+          "name": "How to survive in Normandy during WW2",
+          "mimeType": "application/vnd.google-apps.folder"
+        }
+      }
+    ],
+    "Create Images Folder": [
+      {
+        "json": {
+          "kind": "drive#file",
+          "id": "1zTyiqPGs6k0A93CT6TCzuzn2GaSE8r_o",
+          "name": "Images",
+          "mimeType": "application/vnd.google-apps.folder"
+        }
+      }
+    ],
+    "Generate Script": [
+      {
+        "json": {
+          "output": "**INTRO**\nNormandy, on a map, looks quiet—rolling fields, tidy hedgerows, fishing towns perched on grey seas. But between 1940 and 1944, it became one of the most dangerous places on earth to be an ordinary civilian. How do you survive when the front line, and history itself, rolls right through your village?\n\nIn this story, you are a composite of thousands: a shopkeeper in Bayeux, a farmhand near Saint-Lô, a fisherman’s daughter from Courseulles-sur-Mer. You live under German occupation after June 1940. You learn new rules, new faces. You hide food, hide radios, hide your fear. And then, in June 1944, the sea turns black with ships, and the sky with planes. The Allied invasion—Operation Overlord—arrives, and survival becomes a minute-to-minute calculation: where to shelter, when to run, what to say, who to trust.\n\nToday, I’m taking you through the chronological, day-by-day reality of surviving in Normandy during World War II—how people endured rationing and reprisals, how they read the signs of invasion long before dawn on 6 June, and how they stayed alive amid bombardments, hedgerow battles, and the closing trap at Falaise. We’ll meet names and places you know—Caen, Bayeux, Sainte-Mère-Église—and the ordinary people who kept their families alive through the longest days. This is not a soldier’s story. It’s yours.\n\n**CHAPTER 1: Under the Boots—Occupation, Rations, and Quiet Defiance**\nJune 1940. France has fallen. The German 7th Panzer Division sweeps west. Normandy—Calvados, Manche, Orne, Eure, and Seine-Inférieure (now Seine-Maritime)—falls into occupied territory. German officers arrive in towns like Caen and Cherbourg to establish commandantures. If you want to survive, you learn the rules immediately.\n\nThere’s a curfew. Papers—Ausweis—must be shown on demand. The black market thrives. Bread is rationed by 1941; butter and meat are scarce. You cultivate every square meter of soil. Kitchen gardens bloom behind stone walls. A few chickens, a pig if you can hide it. Bicycle tires become more precious than wine. If you’re a fisherman in Courseulles-sur-Mer, your boat is restricted or requisitioned. If you live near the coast, you might be forced back inland as “red zones” appear along the Atlantic Wall.\n\n[SCENE] Men in gray-green uniforms billeted in parlor rooms. Organization Todt crews arrive in 1942 to pour concrete for bunkers and batteries. The German “Widerstandsnest” positions—like WN 62 above Omaha Beach—begin to stud the coast. You learn to keep your head down when trucks rumble past loaded with rebar and cement. No loose talk in cafés. The Feldgendarmerie, the “chain dogs,” listen.\n\nYou adapt. A bar of soap becomes currency. You trade eggs for bicycle tubes, a few potatoes for lamp oil. Radios are confiscated after 1942—some families hide a second set in the hayloft to catch BBC news. Children learn to whisper. News is gathered from whispers and the Paris-Soir headlines you don’t trust.\n\n[SCENE] In November 1942, after the Allied landings in North Africa, German control tightens. People vanish—Jews, suspected resisters, those denounced. You learn who in town is safe, and who watches. You carve a life into smaller, quieter pieces. You keep going.\n\n**CHAPTER 2: Whispers and Wires—Resistance, STO, and the Price of Secrets**\nBy 1943, the occupation hardens. Vichy’s Service du Travail Obligatoire—the STO—orders young men to go to Germany as laborers. If you’re twenty, you disappear into the bocage, joining a small maquis unit in the Orne hills or hiding on a cousin’s farm under an assumed name. The Milice and the German Sipo-SD hunt draft evaders. Survival now includes invisibility.\n\n[SCENE] Resistance in Normandy is less grand than in the mountains, but it’s everywhere. Networks like Libération-Nord and the Organisation Civile et Militaire (OCM) pass notes, gather timber counts for bridge demolition, and report troop movements. The Free French intelligence service, the BCRA, coordinates with SOE agents who are parachuted in on moonlit nights. Containers drop into fields outside Lisieux and near Vire—Sten guns, explosives, radio sets. If you’re a farmer, you mark fields with discreet lights and pull the canisters into a barn before dawn. You say nothing.\n\nBut the price of secrets is high. The Gestapo maintains offices in larger towns—Caen and Rouen—and the prisons fill. Torture leaves scars no one mentions aloud. If you have a Jewish neighbor in Le Havre or Caen, you help them find forged papers or hide in a back room when the roundups come. In Normandy, as across occupied France, some collaborate, some resist, most try to survive the middle.\n\n[SCENE] You sharpen your ears. The BBC broadcasts coded messages to trigger sabotage. “Les sanglots longs des violons de l’automne”—the first line of Verlaine—goes out on 1 June 1944. You know what that means: the invasion is near. When the second line, “blessent mon cœur d’une langueur monotone,” is broadcast on 5 June, the message is clear: cut rails, drop trees, isolate road junctions. You sleep in your clothes.\n\nYou keep a small suitcase ready: papers, bread, a scarf, a white cloth. In your cellar, you reinforce a corner with wooden beams, a makeshift shelter beneath the stairs. The front will arrive as a thunderclap. The only question is where.\n\n**CHAPTER 3: Storm Warning—Rommel’s Visit, Bombs on Rails, and the Night Before**\nIn December 1943, Field Marshal Erwin Rommel takes command of Army Group B and tours the Atlantic Wall. In January and March 1944, he visits Normandy—Courseulles, Asnelles, Riva-Bella at Ouistreham—ordering more beach obstacles: stakes, mines, “Rommel’s asparagus.” If you live near the dunes, you watch soldiers hammering steel and laying Teller mines; the sea seems to grow teeth.\n\n[SCENE] The Allies answer from the air. From March 1944 onward, RAF and USAAF bomb the rail network—“the Transportation Plan.” Rail yards in Caen, Rouen, and Le Mans are hit. On the night of 10 April 1944, RAF bombers strike Caen’s rail infrastructure; hundreds of civilians die. You learn to sleep in a coat near the cellar door. You move your bed away from windows. You keep a bucket of sand by the hearth.\n\nBy May, whispers turn to certainty. Strange uniforms are seen near Caen—the 21st Panzer Division—the 716th Static Division mans the coast. You watch convoys of young soldiers—some barely older than your sons—roll through. If you live near Bayeux, you sense the calm before a storm. If you live near Saint-Lô, you notice more roadblocks, more trenches dug into fields.\n\n[SCENE] Then the signals: 1 June, the first Verlaine line. On the morning of 5 June, weather turns foul over the Channel; rumors claim the invasion is delayed. That evening, the second line broadcasts. If you’re in a Resistance cell, you cut telephone poles under cover of thunder. If you’re a civilian with no politics, you still feel the air change—dogs bark, the church clock sounds louder, the horizon flashes at midnight.\n\nLate on 5 June into early 6 June 1944, you hear it: engines in the night, like rolling thunder. It’s the largest armada in history approaching your coast. Parachutes bloom in the dark over the Cotentin. In Sainte-Mère-Église, an American paratrooper, John Steele, hangs from the church roof. Lantern light glows in windows one last time. Then the sky turns to fire.\n\n**CHAPTER 4: Dawn on Fire—D-Day to the Ruins of Saint-Lô**\n6 June 1944. At first light, the horizon is a black band of ships. The beaches from Utah and Omaha in the west to Gold, Juno, and Sword in the east are hammered by naval guns. If you live in Vierville-sur-Mer above Omaha, your house shakes with every hit. The 352nd Infantry Division fires back; on Omaha, the beach runs red. If you live inland near Sainte-Mère-Église, you hear scattered gunfire—American paratroopers from the 82nd and 101st Airborne fighting to secure causeways. The first town liberated in France is Sainte-Mère-Église by mid-morning.\n\n[SCENE] Survival becomes tactical. If you are coastal, you drag mattresses into the cellar, brace doors, and stay away from windows—blast waves turn glass into knives. You move only when shelling pauses. If you have a white cloth, you hang it outside so advancing troops know civilians are inside. If you live in Bayeux, British troops of the 50th (Northumbrian) Division arrive on 7 June; the town is spared heavy destruction and becomes the first major town liberated. If you’re in Caen, the story is different: bombardments on 6–7 June devastate neighborhoods, but German defenses hold. You shelter for weeks.\n\nBy late June, the front congeals. Operation Epsom (26–30 June) west of Caen brings heavy rain and shellfire. Operation Charnwood (8–9 July) takes northern Caen; Canadians then fight Operation Goodwood (18–20 July) to the east. If you live in Caen, you emerge to a moonscape on 9 July, the Orne bridges choked with debris. Meanwhile, across the bocage, hedgerows turn every lane into an ambush. Civilians learn new rules: never cross an open field; stay inside ditches; listen for snipers; beware of mines in orchards.\n\n[SCENE] In Saint-Lô, the “Capital of Ruins,” US bombers hit on 6–7 June; fighting grinds on. Liberation comes on 18 July 1944 by troops of the US XIX Corps. The town is pulverized. How do you survive here? You boil water, focus on small tasks: salvage a pot, find bread at a field kitchen, bury the dead with respect and speed, mark unexploded shells with a stick so children don’t touch them. You learn Allied hand signals for “stop” and “go.” You wait for the front to move.\n\n**CHAPTER 5: Breakout and the Trap—Cobra, Mortain, and Falaise**\nBy late July, the stalemate breaks. Operation Cobra begins on 25 July 1944 with a carpet bombing south of Saint-Lô. The US First Army punches through toward Coutances and Avranches. If you’re a farmer near Périers, the ground trembles for hours. You keep your family in the cellar until the dust settles. Once the Americans roll past, you mark your gate with “Civils” or a tricolor flag; you bake bread in communal ovens to feed whoever shows up.\n\n[SCENE] Early August brings a desperate German counterattack at Mortain—Operation Lüttich—7–12 August 1944. Panzers push west trying to cut off the US Third Army near Avranches. If you live in the hills around Mortain, you see low-flying Allied fighter-bombers, P-47 Thunderbolts, strike columns on narrow roads. You learn to shelter in stone caves, to wait for the whine of dive brakes before you move. Movement in daylight is perilous; stick to hedgerow shadows. Mark your doors with chalk to indicate civilians, elderly, children—anything to slow a trigger finger.\n\nThen comes the closing of the Falaise pocket, 12–21 August 1944. The Allies encircle German forces between Falaise, Argentan, Trun, and Chambois. The Polish 1st Armoured Division holds Hill 262—Mont-Ormel—sealing the escape. The smell of diesel, smoke, and death settles over fields. If you live near Trun, you hunker down while a moving cauldron of vehicles and soldiers tries to flee east. Crossing a road is a life-or-death decision. Better to dig in, wait for silence.\n\n[SCENE] Liberation rolls across Normandy, but survival isn’t over. Mines and booby traps litter lanes. Engineers mark safe paths with white tape. You teach children to follow boot prints, not shortcuts. Disease threatens with broken water mains; you draw from wells only after boiling. The Red Cross and local Secours National deliver blankets and tinned milk. De Gaulle arrives in Normandy on 14 June 1944, landing at Courseulles-sur-Mer, visiting Bayeux, asserting French authority against an Allied military government. Bayeux becomes an administrative anchor while Caen rebuilds. You line up for ration cards again, this time with hope.\n\nWinter 1944–45 is hard. Roofs leak; glass is rare; fuel scarcer. But the front has moved east toward the Seine. Normandy breathes again.\n\n**OUTRO**\nSurviving Normandy in World War II wasn’t a single decision. It was thousands of small ones made under unbearable pressure: when to whisper and when to keep silent; when to run and when to stay; which road to take when both were dangerous. It was about cellars and suitcases, ration cards and radio codes, hedgerows and white flags on doorways. It was about reading the sky—from Rommel’s inspections in early 1944 to the black horizon on 6 June—and adapting, day by day.\n\nAfter August 1944, the headlines move on to Paris and the Rhine, but Normandy carries the scars: Caen’s broken streets, Saint-Lô’s shattered stones, fields seeded with shrapnel and memory. Yet life returns. Markets reopen in Bayeux. Children run in rebuilt schoolyards. Trains, repaired from the Transportation Plan’s wreckage, whistle again through the Orne valley.\n\nIf this story moved you, think of the civilians in every war zone today who make the same impossible choices, and share this video to keep their stories in view. Subscribe for more deep dives into everyday lives caught in extraordinary history, and let me know in the comments which place and period you want to explore next. History isn’t just commanders and campaigns—it’s people like you, surviving, enduring, and rebuilding."
+        }
+      }
+    ],
+    "Parse script and extract chapters": [
+      {
+        "json": {
+          "type": "intro",
+          "number": 0,
+          "title": "INTRO",
+          "text": "Normandy, on a map, looks quiet—rolling fields, tidy hedgerows, fishing towns perched on grey seas. But between 1940 and 1944, it became one of the most dangerous places on earth to be an ordinary civilian. How do you survive when the front line, and history itself, rolls right through your village?\n\nIn this story, you are a composite of thousands: a shopkeeper in Bayeux, a farmhand near Saint-Lô, a fisherman’s daughter from Courseulles-sur-Mer. You live under German occupation after June 1940. You learn new rules, new faces. You hide food, hide radios, hide your fear. And then, in June 1944, the sea turns black with ships, and the sky with planes. The Allied invasion—Operation Overlord—arrives, and survival becomes a minute-to-minute calculation: where to shelter, when to run, what to say, who to trust.\n\nToday, I’m taking you through the chronological, day-by-day reality of surviving in Normandy during World War II—how people endured rationing and reprisals, how they read the signs of invasion long before dawn on 6 June, and how they stayed alive amid bombardments, hedgerow battles, and the closing trap at Falaise. We’ll meet names and places you know—Caen, Bayeux, Sainte-Mère-Église—and the ordinary people who kept their families alive through the longest days. This is not a soldier’s story. It’s yours."
+        }
+      },
+      {
+        "json": {
+          "type": "chapter",
+          "number": 1,
+          "title": "U",
+          "text": "June 1940. France has fallen. The German 7th Panzer Division sweeps west. Normandy—Calvados, Manche, Orne, Eure, and Seine-Inférieure (now Seine-Maritime)—falls into occupied territory. German officers arrive in towns like Caen and Cherbourg to establish commandantures. If you want to survive, you learn the rules immediately.\n\nThere’s a curfew. Papers—Ausweis—must be shown on demand. The black market thrives. Bread is rationed by 1941; butter and meat are scarce. You cultivate every square meter of soil. Kitchen gardens bloom behind stone walls. A few chickens, a pig if you can hide it. Bicycle tires become more precious than wine. If you’re a fisherman in Courseulles-sur-Mer, your boat is restricted or requisitioned. If you live near the coast, you might be forced back inland as “red zones” appear along the Atlantic Wall.\n\n[SCENE] Men in gray-green uniforms billeted in parlor rooms. Organization Todt crews arrive in 1942 to pour concrete for bunkers and batteries. The German “Widerstandsnest” positions—like WN 62 above Omaha Beach—begin to stud the coast. You learn to keep your head down when trucks rumble past loaded with rebar and cement. No loose talk in cafés. The Feldgendarmerie, the “chain dogs,” listen.\n\nYou adapt. A bar of soap becomes currency. You trade eggs for bicycle tubes, a few potatoes for lamp oil. Radios are confiscated after 1942—some families hide a second set in the hayloft to catch BBC news. Children learn to whisper. News is gathered from whispers and the Paris-Soir headlines you don’t trust.\n\n[SCENE] In November 1942, after the Allied landings in North Africa, German control tightens. People vanish—Jews, suspected resisters, those denounced. You learn who in town is safe, and who watches. You carve a life into smaller, quieter pieces. You keep going."
+        }
+      },
+      {
+        "json": {
+          "type": "chapter",
+          "number": 2,
+          "title": "W",
+          "text": "By 1943, the occupation hardens. Vichy’s Service du Travail Obligatoire—the STO—orders young men to go to Germany as laborers. If you’re twenty, you disappear into the bocage, joining a small maquis unit in the Orne hills or hiding on a cousin’s farm under an assumed name. The Milice and the German Sipo-SD hunt draft evaders. Survival now includes invisibility.\n\n[SCENE] Resistance in Normandy is less grand than in the mountains, but it’s everywhere. Networks like Libération-Nord and the Organisation Civile et Militaire (OCM) pass notes, gather timber counts for bridge demolition, and report troop movements. The Free French intelligence service, the BCRA, coordinates with SOE agents who are parachuted in on moonlit nights. Containers drop into fields outside Lisieux and near Vire—Sten guns, explosives, radio sets. If you’re a farmer, you mark fields with discreet lights and pull the canisters into a barn before dawn. You say nothing.\n\nBut the price of secrets is high. The Gestapo maintains offices in larger towns—Caen and Rouen—and the prisons fill. Torture leaves scars no one mentions aloud. If you have a Jewish neighbor in Le Havre or Caen, you help them find forged papers or hide in a back room when the roundups come. In Normandy, as across occupied France, some collaborate, some resist, most try to survive the middle.\n\n[SCENE] You sharpen your ears. The BBC broadcasts coded messages to trigger sabotage. “Les sanglots longs des violons de l’automne”—the first line of Verlaine—goes out on 1 June 1944. You know what that means: the invasion is near. When the second line, “blessent mon cœur d’une langueur monotone,” is broadcast on 5 June, the message is clear: cut rails, drop trees, isolate road junctions. You sleep in your clothes.\n\nYou keep a small suitcase ready: papers, bread, a scarf, a white cloth. In your cellar, you reinforce a corner with wooden beams, a makeshift shelter beneath the stairs. The front will arrive as a thunderclap. The only question is where."
+        }
+      },
+      {
+        "json": {
+          "type": "chapter",
+          "number": 3,
+          "title": "S",
+          "text": "In December 1943, Field Marshal Erwin Rommel takes command of Army Group B and tours the Atlantic Wall. In January and March 1944, he visits Normandy—Courseulles, Asnelles, Riva-Bella at Ouistreham—ordering more beach obstacles: stakes, mines, “Rommel’s asparagus.” If you live near the dunes, you watch soldiers hammering steel and laying Teller mines; the sea seems to grow teeth.\n\n[SCENE] The Allies answer from the air. From March 1944 onward, RAF and USAAF bomb the rail network—“the Transportation Plan.” Rail yards in Caen, Rouen, and Le Mans are hit. On the night of 10 April 1944, RAF bombers strike Caen’s rail infrastructure; hundreds of civilians die. You learn to sleep in a coat near the cellar door. You move your bed away from windows. You keep a bucket of sand by the hearth.\n\nBy May, whispers turn to certainty. Strange uniforms are seen near Caen—the 21st Panzer Division—the 716th Static Division mans the coast. You watch convoys of young soldiers—some barely older than your sons—roll through. If you live near Bayeux, you sense the calm before a storm. If you live near Saint-Lô, you notice more roadblocks, more trenches dug into fields.\n\n[SCENE] Then the signals: 1 June, the first Verlaine line. On the morning of 5 June, weather turns foul over the Channel; rumors claim the invasion is delayed. That evening, the second line broadcasts. If you’re in a Resistance cell, you cut telephone poles under cover of thunder. If you’re a civilian with no politics, you still feel the air change—dogs bark, the church clock sounds louder, the horizon flashes at midnight.\n\nLate on 5 June into early 6 June 1944, you hear it: engines in the night, like rolling thunder. It’s the largest armada in history approaching your coast. Parachutes bloom in the dark over the Cotentin. In Sainte-Mère-Église, an American paratrooper, John Steele, hangs from the church roof. Lantern light glows in windows one last time. Then the sky turns to fire."
+        }
+      },
+      {
+        "json": {
+          "type": "chapter",
+          "number": 4,
+          "title": "D",
+          "text": ""
+        }
+      },
+      {
+        "json": {
+          "type": "chapter",
+          "number": 6,
+          "title": "June 1944. At first light, the horizon is a black band of ships. The beaches from Utah and Omaha in the west to Gold, Juno, and Sword in the east are hammered by naval guns. If you live in Vierville-sur-Mer above Omaha, your house shakes with every hit. The 352nd Infantry Division fires back; on Omaha, the beach runs red. If you live inland near Sainte-Mère-Église, you hear scattered gunfire—American paratroopers from the 82nd and 101st Airborne fighting to secure causeways. The first town liberated in France is Sainte-Mère-Église by mid-morning.",
+          "text": "[SCENE] Survival becomes tactical. If you are coastal, you drag mattresses into the cellar, brace doors, and stay away from windows—blast waves turn glass into knives. You move only when shelling pauses. If you have a white cloth, you hang it outside so advancing troops know civilians are inside. If you live in Bayeux, British troops of the 50th (Northumbrian) Division arrive on 7 June; the town is spared heavy destruction and becomes the first major town liberated. If you’re in Caen, the story is different: bombardments on 6–7 June devastate neighborhoods, but German defenses hold. You shelter for weeks.\n\nBy late June, the front congeals. Operation Epsom (26–30 June) west of Caen brings heavy rain and shellfire. Operation Charnwood (8–9 July) takes northern Caen; Canadians then fight Operation Goodwood (18–20 July) to the east. If you live in Caen, you emerge to a moonscape on 9 July, the Orne bridges choked with debris. Meanwhile, across the bocage, hedgerows turn every lane into an ambush. Civilians learn new rules: never cross an open field; stay inside ditches; listen for snipers; beware of mines in orchards.\n\n[SCENE] In Saint-Lô, the “Capital of Ruins,” US bombers hit on 6–7 June; fighting grinds on. Liberation comes on 18 July 1944 by troops of the US XIX Corps. The town is pulverized. How do you survive here? You boil water, focus on small tasks: salvage a pot, find bread at a field kitchen, bury the dead with respect and speed, mark unexploded shells with a stick so children don’t touch them. You learn Allied hand signals for “stop” and “go.” You wait for the front to move."
+        }
+      },
+      {
+        "json": {
+          "type": "chapter",
+          "number": 5,
+          "title": "B",
+          "text": "By late July, the stalemate breaks. Operation Cobra begins on 25 July 1944 with a carpet bombing south of Saint-Lô. The US First Army punches through toward Coutances and Avranches. If you’re a farmer near Périers, the ground trembles for hours. You keep your family in the cellar until the dust settles. Once the Americans roll past, you mark your gate with “Civils” or a tricolor flag; you bake bread in communal ovens to feed whoever shows up.\n\n[SCENE] Early August brings a desperate German counterattack at Mortain—Operation Lüttich—7–12 August 1944. Panzers push west trying to cut off the US Third Army near Avranches. If you live in the hills around Mortain, you see low-flying Allied fighter-bombers, P-47 Thunderbolts, strike columns on narrow roads. You learn to shelter in stone caves, to wait for the whine of dive brakes before you move. Movement in daylight is perilous; stick to hedgerow shadows. Mark your doors with chalk to indicate civilians, elderly, children—anything to slow a trigger finger.\n\nThen comes the closing of the Falaise pocket, 12–21 August 1944. The Allies encircle German forces between Falaise, Argentan, Trun, and Chambois. The Polish 1st Armoured Division holds Hill 262—Mont-Ormel—sealing the escape. The smell of diesel, smoke, and death settles over fields. If you live near Trun, you hunker down while a moving cauldron of vehicles and soldiers tries to flee east. Crossing a road is a life-or-death decision. Better to dig in, wait for silence.\n\n[SCENE] Liberation rolls across Normandy, but survival isn’t over. Mines and booby traps litter lanes. Engineers mark safe paths with white tape. You teach children to follow boot prints, not shortcuts. Disease threatens with broken water mains; you draw from wells only after boiling. The Red Cross and local Secours National deliver blankets and tinned milk. De Gaulle arrives in Normandy on 14 June 1944, landing at Courseulles-sur-Mer, visiting Bayeux, asserting French authority against an Allied military government. Bayeux becomes an administrative anchor while Caen rebuilds. You line up for ration cards again, this time with hope.\n\nWinter 1944–45 is hard. Roofs leak; glass is rare; fuel scarcer. But the front has moved east toward the Seine. Normandy breathes again."
+        }
+      },
+      {
+        "json": {
+          "type": "outro",
+          "number": 7,
+          "title": "OUTRO",
+          "text": "Surviving Normandy in World War II wasn’t a single decision. It was thousands of small ones made under unbearable pressure: when to whisper and when to keep silent; when to run and when to stay; which road to take when both were dangerous. It was about cellars and suitcases, ration cards and radio codes, hedgerows and white flags on doorways. It was about reading the sky—from Rommel’s inspections in early 1944 to the black horizon on 6 June—and adapting, day by day.\n\nAfter August 1944, the headlines move on to Paris and the Rhine, but Normandy carries the scars: Caen’s broken streets, Saint-Lô’s shattered stones, fields seeded with shrapnel and memory. Yet life returns. Markets reopen in Bayeux. Children run in rebuilt schoolyards. Trains, repaired from the Transportation Plan’s wreckage, whistle again through the Orne valley.\n\nIf this story moved you, think of the civilians in every war zone today who make the same impossible choices, and share this video to keep their stories in view. Subscribe for more deep dives into everyday lives caught in extraordinary history, and let me know in the comments which place and period you want to explore next. History isn’t just commanders and campaigns—it’s people like you, surviving, enduring, and rebuilding."
+        }
+      }
+    ],
+    "Parse Scenes for Image Prompts": [
+      {
+        "json": {
+          "chapter_type": "intro",
+          "chapter_number": 0,
+          "chapter_title": "INTRO",
+          "scene_number": 1,
+          "shot_number": 1,
+          "shot_type": "wide establishing shot",
+          "scene_text": "Normandy, on a map, looks quiet—rolling fields, tidy hedgerows, fishing towns perched on grey seas. But between 1940 and 1944, it became one of the most dangerous places on earth to be an ordinary civilian. How do you survive when the front line, and history itself, rolls right through your village?",
+          "full_chapter_context": "Normandy, on a map, looks quiet—rolling fields, tidy hedgerows, fishing towns perched on grey seas. But between 1940 and 1944, it became one of the most dangerous places on earth to be an ordinary civilian. How do you survive when the front line, and history itself, rolls right through your village?\n\nIn this story, you are a composite of thousands: a shopkeeper in Bayeux, a farmhand near Saint-Lô, a fisherman’s daughter from Courseulles-sur-Mer. You live under German occupation after June 1940. You learn new rules, new faces. You hide food, hide radios, hide your fear. And then, in June 1944, the sea turns black with ships, and the sky with planes. The Allied invasion—Operation Overlord—arrives, and survival becomes a minute-to-minute calculation: where to shelter, when to run, what to say, who to trust.\n\nToday, I’m taking you through the chronological, day-by-day reality of surviving in Normandy during World War II—how people endured rationing and reprisals, how they read the signs of invasion long before dawn on 6 June, and how they stayed alive amid bombardments, hedgerow battles, and the closing trap at Falaise. We’ll meet names and places you know—Caen, Bayeux, Sainte-Mère-Église—and the ordinary people who kept their families alive through the longest days. This is not a soldier’s story. It’s yours.",
+          "global_image_id": "0-1-1"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "intro",
+          "chapter_number": 0,
+          "chapter_title": "INTRO",
+          "scene_number": 1,
+          "shot_number": 2,
+          "shot_type": "medium shot",
+          "scene_text": "Normandy, on a map, looks quiet—rolling fields, tidy hedgerows, fishing towns perched on grey seas. But between 1940 and 1944, it became one of the most dangerous places on earth to be an ordinary civilian. How do you survive when the front line, and history itself, rolls right through your village?",
+          "full_chapter_context": "Normandy, on a map, looks quiet—rolling fields, tidy hedgerows, fishing towns perched on grey seas. But between 1940 and 1944, it became one of the most dangerous places on earth to be an ordinary civilian. How do you survive when the front line, and history itself, rolls right through your village?\n\nIn this story, you are a composite of thousands: a shopkeeper in Bayeux, a farmhand near Saint-Lô, a fisherman’s daughter from Courseulles-sur-Mer. You live under German occupation after June 1940. You learn new rules, new faces. You hide food, hide radios, hide your fear. And then, in June 1944, the sea turns black with ships, and the sky with planes. The Allied invasion—Operation Overlord—arrives, and survival becomes a minute-to-minute calculation: where to shelter, when to run, what to say, who to trust.\n\nToday, I’m taking you through the chronological, day-by-day reality of surviving in Normandy during World War II—how people endured rationing and reprisals, how they read the signs of invasion long before dawn on 6 June, and how they stayed alive amid bombardments, hedgerow battles, and the closing trap at Falaise. We’ll meet names and places you know—Caen, Bayeux, Sainte-Mère-Église—and the ordinary people who kept their families alive through the longest days. This is not a soldier’s story. It’s yours.",
+          "global_image_id": "0-1-2"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "intro",
+          "chapter_number": 0,
+          "chapter_title": "INTRO",
+          "scene_number": 2,
+          "shot_number": 1,
+          "shot_type": "wide establishing shot",
+          "scene_text": "In this story, you are a composite of thousands: a shopkeeper in Bayeux, a farmhand near Saint-Lô, a fisherman’s daughter from Courseulles-sur-Mer. You live under German occupation after June 1940. You learn new rules, new faces. You hide food, hide radios, hide your fear. And then, in June 1944, the sea turns black with ships, and the sky with planes. The Allied invasion—Operation Overlord—arrives, and survival becomes a minute-to-minute calculation: where to shelter, when to run, what to say, who to trust.",
+          "full_chapter_context": "Normandy, on a map, looks quiet—rolling fields, tidy hedgerows, fishing towns perched on grey seas. But between 1940 and 1944, it became one of the most dangerous places on earth to be an ordinary civilian. How do you survive when the front line, and history itself, rolls right through your village?\n\nIn this story, you are a composite of thousands: a shopkeeper in Bayeux, a farmhand near Saint-Lô, a fisherman’s daughter from Courseulles-sur-Mer. You live under German occupation after June 1940. You learn new rules, new faces. You hide food, hide radios, hide your fear. And then, in June 1944, the sea turns black with ships, and the sky with planes. The Allied invasion—Operation Overlord—arrives, and survival becomes a minute-to-minute calculation: where to shelter, when to run, what to say, who to trust.\n\nToday, I’m taking you through the chronological, day-by-day reality of surviving in Normandy during World War II—how people endured rationing and reprisals, how they read the signs of invasion long before dawn on 6 June, and how they stayed alive amid bombardments, hedgerow battles, and the closing trap at Falaise. We’ll meet names and places you know—Caen, Bayeux, Sainte-Mère-Église—and the ordinary people who kept their families alive through the longest days. This is not a soldier’s story. It’s yours.",
+          "global_image_id": "0-2-1"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "intro",
+          "chapter_number": 0,
+          "chapter_title": "INTRO",
+          "scene_number": 2,
+          "shot_number": 2,
+          "shot_type": "medium shot",
+          "scene_text": "In this story, you are a composite of thousands: a shopkeeper in Bayeux, a farmhand near Saint-Lô, a fisherman’s daughter from Courseulles-sur-Mer. You live under German occupation after June 1940. You learn new rules, new faces. You hide food, hide radios, hide your fear. And then, in June 1944, the sea turns black with ships, and the sky with planes. The Allied invasion—Operation Overlord—arrives, and survival becomes a minute-to-minute calculation: where to shelter, when to run, what to say, who to trust.",
+          "full_chapter_context": "Normandy, on a map, looks quiet—rolling fields, tidy hedgerows, fishing towns perched on grey seas. But between 1940 and 1944, it became one of the most dangerous places on earth to be an ordinary civilian. How do you survive when the front line, and history itself, rolls right through your village?\n\nIn this story, you are a composite of thousands: a shopkeeper in Bayeux, a farmhand near Saint-Lô, a fisherman’s daughter from Courseulles-sur-Mer. You live under German occupation after June 1940. You learn new rules, new faces. You hide food, hide radios, hide your fear. And then, in June 1944, the sea turns black with ships, and the sky with planes. The Allied invasion—Operation Overlord—arrives, and survival becomes a minute-to-minute calculation: where to shelter, when to run, what to say, who to trust.\n\nToday, I’m taking you through the chronological, day-by-day reality of surviving in Normandy during World War II—how people endured rationing and reprisals, how they read the signs of invasion long before dawn on 6 June, and how they stayed alive amid bombardments, hedgerow battles, and the closing trap at Falaise. We’ll meet names and places you know—Caen, Bayeux, Sainte-Mère-Église—and the ordinary people who kept their families alive through the longest days. This is not a soldier’s story. It’s yours.",
+          "global_image_id": "0-2-2"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "intro",
+          "chapter_number": 0,
+          "chapter_title": "INTRO",
+          "scene_number": 3,
+          "shot_number": 1,
+          "shot_type": "wide establishing shot",
+          "scene_text": "Today, I’m taking you through the chronological, day-by-day reality of surviving in Normandy during World War II—how people endured rationing and reprisals, how they read the signs of invasion long before dawn on 6 June, and how they stayed alive amid bombardments, hedgerow battles, and the closing trap at Falaise. We’ll meet names and places you know—Caen, Bayeux, Sainte-Mère-Église—and the ordinary people who kept their families alive through the longest days. This is not a soldier’s story. It’s yours.",
+          "full_chapter_context": "Normandy, on a map, looks quiet—rolling fields, tidy hedgerows, fishing towns perched on grey seas. But between 1940 and 1944, it became one of the most dangerous places on earth to be an ordinary civilian. How do you survive when the front line, and history itself, rolls right through your village?\n\nIn this story, you are a composite of thousands: a shopkeeper in Bayeux, a farmhand near Saint-Lô, a fisherman’s daughter from Courseulles-sur-Mer. You live under German occupation after June 1940. You learn new rules, new faces. You hide food, hide radios, hide your fear. And then, in June 1944, the sea turns black with ships, and the sky with planes. The Allied invasion—Operation Overlord—arrives, and survival becomes a minute-to-minute calculation: where to shelter, when to run, what to say, who to trust.\n\nToday, I’m taking you through the chronological, day-by-day reality of surviving in Normandy during World War II—how people endured rationing and reprisals, how they read the signs of invasion long before dawn on 6 June, and how they stayed alive amid bombardments, hedgerow battles, and the closing trap at Falaise. We’ll meet names and places you know—Caen, Bayeux, Sainte-Mère-Église—and the ordinary people who kept their families alive through the longest days. This is not a soldier’s story. It’s yours.",
+          "global_image_id": "0-3-1"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "intro",
+          "chapter_number": 0,
+          "chapter_title": "INTRO",
+          "scene_number": 3,
+          "shot_number": 2,
+          "shot_type": "medium shot",
+          "scene_text": "Today, I’m taking you through the chronological, day-by-day reality of surviving in Normandy during World War II—how people endured rationing and reprisals, how they read the signs of invasion long before dawn on 6 June, and how they stayed alive amid bombardments, hedgerow battles, and the closing trap at Falaise. We’ll meet names and places you know—Caen, Bayeux, Sainte-Mère-Église—and the ordinary people who kept their families alive through the longest days. This is not a soldier’s story. It’s yours.",
+          "full_chapter_context": "Normandy, on a map, looks quiet—rolling fields, tidy hedgerows, fishing towns perched on grey seas. But between 1940 and 1944, it became one of the most dangerous places on earth to be an ordinary civilian. How do you survive when the front line, and history itself, rolls right through your village?\n\nIn this story, you are a composite of thousands: a shopkeeper in Bayeux, a farmhand near Saint-Lô, a fisherman’s daughter from Courseulles-sur-Mer. You live under German occupation after June 1940. You learn new rules, new faces. You hide food, hide radios, hide your fear. And then, in June 1944, the sea turns black with ships, and the sky with planes. The Allied invasion—Operation Overlord—arrives, and survival becomes a minute-to-minute calculation: where to shelter, when to run, what to say, who to trust.\n\nToday, I’m taking you through the chronological, day-by-day reality of surviving in Normandy during World War II—how people endured rationing and reprisals, how they read the signs of invasion long before dawn on 6 June, and how they stayed alive amid bombardments, hedgerow battles, and the closing trap at Falaise. We’ll meet names and places you know—Caen, Bayeux, Sainte-Mère-Église—and the ordinary people who kept their families alive through the longest days. This is not a soldier’s story. It’s yours.",
+          "global_image_id": "0-3-2"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 1,
+          "chapter_title": "U",
+          "scene_number": 1,
+          "shot_number": 1,
+          "shot_type": "wide establishing shot",
+          "scene_text": "June 1940. France has fallen. The German 7th Panzer Division sweeps west. Normandy—Calvados, Manche, Orne, Eure, and Seine-Inférieure (now Seine-Maritime)—falls into occupied territory. German officers arrive in towns like Caen and Cherbourg to establish commandantures. If you want to survive, you learn the rules immediately.\n\nThere’s a curfew. Papers—Ausweis—must be shown on demand. The black market thrives. Bread is rationed by 1941; butter and meat are scarce. You cultivate every square meter of soil. Kitchen gardens bloom behind stone walls. A few chickens, a pig if you can hide it. Bicycle tires become more precious than wine. If you’re a fisherman in Courseulles-sur-Mer, your boat is restricted or requisitioned. If you live near the coast, you might be forced back inland as “red zones” appear along the Atlantic Wall.",
+          "full_chapter_context": "June 1940. France has fallen. The German 7th Panzer Division sweeps west. Normandy—Calvados, Manche, Orne, Eure, and Seine-Inférieure (now Seine-Maritime)—falls into occupied territory. German officers arrive in towns like Caen and Cherbourg to establish commandantures. If you want to survive, you learn the rules immediately.\n\nThere’s a curfew. Papers—Ausweis—must be shown on demand. The black market thrives. Bread is rationed by 1941; butter and meat are scarce. You cultivate every square meter of soil. Kitchen gardens bloom behind stone walls. A few chickens, a pig if you can hide it. Bicycle tires become more precious than wine. If you’re a fisherman in Courseulles-sur-Mer, your boat is restricted or requisitioned. If you live near the coast, you might be forced back inland as “red zones” appear along the Atlantic Wall.\n\n[SCENE] Men in gray-green uniforms billeted in parlor rooms. Organization Todt crews arrive in 1942 to pour concrete for bunkers and batteries. The German “Widerstandsnest” positions—like WN 62 above Omaha Beach—begin to stud the coast. You learn to keep your head down when trucks rumble past loaded with rebar and cement. No loose talk in cafés. The Feldgendarmerie, the “chain dogs,” listen.\n\nYou adapt. A bar of soap becomes currency. You trade eggs for bicycle tubes, a few potatoes for lamp oil. Radios are confiscated after 1942—some families hide a second set in the hayloft to catch BBC news. Children learn to whisper. News is gathered from whispers and the Paris-Soir headlines you don’t trust.\n\n[SCENE] In November 1942, after the Allied landings in North Africa, German control tightens. People vanish—Jews, suspected resisters, those denounced. You learn who in town is safe, and who watches. You carve a life into smaller, quieter pieces. You keep going.",
+          "global_image_id": "1-1-1"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 1,
+          "chapter_title": "U",
+          "scene_number": 1,
+          "shot_number": 2,
+          "shot_type": "medium shot",
+          "scene_text": "June 1940. France has fallen. The German 7th Panzer Division sweeps west. Normandy—Calvados, Manche, Orne, Eure, and Seine-Inférieure (now Seine-Maritime)—falls into occupied territory. German officers arrive in towns like Caen and Cherbourg to establish commandantures. If you want to survive, you learn the rules immediately.\n\nThere’s a curfew. Papers—Ausweis—must be shown on demand. The black market thrives. Bread is rationed by 1941; butter and meat are scarce. You cultivate every square meter of soil. Kitchen gardens bloom behind stone walls. A few chickens, a pig if you can hide it. Bicycle tires become more precious than wine. If you’re a fisherman in Courseulles-sur-Mer, your boat is restricted or requisitioned. If you live near the coast, you might be forced back inland as “red zones” appear along the Atlantic Wall.",
+          "full_chapter_context": "June 1940. France has fallen. The German 7th Panzer Division sweeps west. Normandy—Calvados, Manche, Orne, Eure, and Seine-Inférieure (now Seine-Maritime)—falls into occupied territory. German officers arrive in towns like Caen and Cherbourg to establish commandantures. If you want to survive, you learn the rules immediately.\n\nThere’s a curfew. Papers—Ausweis—must be shown on demand. The black market thrives. Bread is rationed by 1941; butter and meat are scarce. You cultivate every square meter of soil. Kitchen gardens bloom behind stone walls. A few chickens, a pig if you can hide it. Bicycle tires become more precious than wine. If you’re a fisherman in Courseulles-sur-Mer, your boat is restricted or requisitioned. If you live near the coast, you might be forced back inland as “red zones” appear along the Atlantic Wall.\n\n[SCENE] Men in gray-green uniforms billeted in parlor rooms. Organization Todt crews arrive in 1942 to pour concrete for bunkers and batteries. The German “Widerstandsnest” positions—like WN 62 above Omaha Beach—begin to stud the coast. You learn to keep your head down when trucks rumble past loaded with rebar and cement. No loose talk in cafés. The Feldgendarmerie, the “chain dogs,” listen.\n\nYou adapt. A bar of soap becomes currency. You trade eggs for bicycle tubes, a few potatoes for lamp oil. Radios are confiscated after 1942—some families hide a second set in the hayloft to catch BBC news. Children learn to whisper. News is gathered from whispers and the Paris-Soir headlines you don’t trust.\n\n[SCENE] In November 1942, after the Allied landings in North Africa, German control tightens. People vanish—Jews, suspected resisters, those denounced. You learn who in town is safe, and who watches. You carve a life into smaller, quieter pieces. You keep going.",
+          "global_image_id": "1-1-2"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 1,
+          "chapter_title": "U",
+          "scene_number": 1,
+          "shot_number": 3,
+          "shot_type": "close-up detail",
+          "scene_text": "June 1940. France has fallen. The German 7th Panzer Division sweeps west. Normandy—Calvados, Manche, Orne, Eure, and Seine-Inférieure (now Seine-Maritime)—falls into occupied territory. German officers arrive in towns like Caen and Cherbourg to establish commandantures. If you want to survive, you learn the rules immediately.\n\nThere’s a curfew. Papers—Ausweis—must be shown on demand. The black market thrives. Bread is rationed by 1941; butter and meat are scarce. You cultivate every square meter of soil. Kitchen gardens bloom behind stone walls. A few chickens, a pig if you can hide it. Bicycle tires become more precious than wine. If you’re a fisherman in Courseulles-sur-Mer, your boat is restricted or requisitioned. If you live near the coast, you might be forced back inland as “red zones” appear along the Atlantic Wall.",
+          "full_chapter_context": "June 1940. France has fallen. The German 7th Panzer Division sweeps west. Normandy—Calvados, Manche, Orne, Eure, and Seine-Inférieure (now Seine-Maritime)—falls into occupied territory. German officers arrive in towns like Caen and Cherbourg to establish commandantures. If you want to survive, you learn the rules immediately.\n\nThere’s a curfew. Papers—Ausweis—must be shown on demand. The black market thrives. Bread is rationed by 1941; butter and meat are scarce. You cultivate every square meter of soil. Kitchen gardens bloom behind stone walls. A few chickens, a pig if you can hide it. Bicycle tires become more precious than wine. If you’re a fisherman in Courseulles-sur-Mer, your boat is restricted or requisitioned. If you live near the coast, you might be forced back inland as “red zones” appear along the Atlantic Wall.\n\n[SCENE] Men in gray-green uniforms billeted in parlor rooms. Organization Todt crews arrive in 1942 to pour concrete for bunkers and batteries. The German “Widerstandsnest” positions—like WN 62 above Omaha Beach—begin to stud the coast. You learn to keep your head down when trucks rumble past loaded with rebar and cement. No loose talk in cafés. The Feldgendarmerie, the “chain dogs,” listen.\n\nYou adapt. A bar of soap becomes currency. You trade eggs for bicycle tubes, a few potatoes for lamp oil. Radios are confiscated after 1942—some families hide a second set in the hayloft to catch BBC news. Children learn to whisper. News is gathered from whispers and the Paris-Soir headlines you don’t trust.\n\n[SCENE] In November 1942, after the Allied landings in North Africa, German control tightens. People vanish—Jews, suspected resisters, those denounced. You learn who in town is safe, and who watches. You carve a life into smaller, quieter pieces. You keep going.",
+          "global_image_id": "1-1-3"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 1,
+          "chapter_title": "U",
+          "scene_number": 2,
+          "shot_number": 1,
+          "shot_type": "wide establishing shot",
+          "scene_text": "You adapt. A bar of soap becomes currency. You trade eggs for bicycle tubes, a few potatoes for lamp oil. Radios are confiscated after 1942—some families hide a second set in the hayloft to catch BBC news. Children learn to whisper. News is gathered from whispers and the Paris-Soir headlines you don’t trust.",
+          "full_chapter_context": "June 1940. France has fallen. The German 7th Panzer Division sweeps west. Normandy—Calvados, Manche, Orne, Eure, and Seine-Inférieure (now Seine-Maritime)—falls into occupied territory. German officers arrive in towns like Caen and Cherbourg to establish commandantures. If you want to survive, you learn the rules immediately.\n\nThere’s a curfew. Papers—Ausweis—must be shown on demand. The black market thrives. Bread is rationed by 1941; butter and meat are scarce. You cultivate every square meter of soil. Kitchen gardens bloom behind stone walls. A few chickens, a pig if you can hide it. Bicycle tires become more precious than wine. If you’re a fisherman in Courseulles-sur-Mer, your boat is restricted or requisitioned. If you live near the coast, you might be forced back inland as “red zones” appear along the Atlantic Wall.\n\n[SCENE] Men in gray-green uniforms billeted in parlor rooms. Organization Todt crews arrive in 1942 to pour concrete for bunkers and batteries. The German “Widerstandsnest” positions—like WN 62 above Omaha Beach—begin to stud the coast. You learn to keep your head down when trucks rumble past loaded with rebar and cement. No loose talk in cafés. The Feldgendarmerie, the “chain dogs,” listen.\n\nYou adapt. A bar of soap becomes currency. You trade eggs for bicycle tubes, a few potatoes for lamp oil. Radios are confiscated after 1942—some families hide a second set in the hayloft to catch BBC news. Children learn to whisper. News is gathered from whispers and the Paris-Soir headlines you don’t trust.\n\n[SCENE] In November 1942, after the Allied landings in North Africa, German control tightens. People vanish—Jews, suspected resisters, those denounced. You learn who in town is safe, and who watches. You carve a life into smaller, quieter pieces. You keep going.",
+          "global_image_id": "1-2-1"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 1,
+          "chapter_title": "U",
+          "scene_number": 2,
+          "shot_number": 2,
+          "shot_type": "medium shot",
+          "scene_text": "You adapt. A bar of soap becomes currency. You trade eggs for bicycle tubes, a few potatoes for lamp oil. Radios are confiscated after 1942—some families hide a second set in the hayloft to catch BBC news. Children learn to whisper. News is gathered from whispers and the Paris-Soir headlines you don’t trust.",
+          "full_chapter_context": "June 1940. France has fallen. The German 7th Panzer Division sweeps west. Normandy—Calvados, Manche, Orne, Eure, and Seine-Inférieure (now Seine-Maritime)—falls into occupied territory. German officers arrive in towns like Caen and Cherbourg to establish commandantures. If you want to survive, you learn the rules immediately.\n\nThere’s a curfew. Papers—Ausweis—must be shown on demand. The black market thrives. Bread is rationed by 1941; butter and meat are scarce. You cultivate every square meter of soil. Kitchen gardens bloom behind stone walls. A few chickens, a pig if you can hide it. Bicycle tires become more precious than wine. If you’re a fisherman in Courseulles-sur-Mer, your boat is restricted or requisitioned. If you live near the coast, you might be forced back inland as “red zones” appear along the Atlantic Wall.\n\n[SCENE] Men in gray-green uniforms billeted in parlor rooms. Organization Todt crews arrive in 1942 to pour concrete for bunkers and batteries. The German “Widerstandsnest” positions—like WN 62 above Omaha Beach—begin to stud the coast. You learn to keep your head down when trucks rumble past loaded with rebar and cement. No loose talk in cafés. The Feldgendarmerie, the “chain dogs,” listen.\n\nYou adapt. A bar of soap becomes currency. You trade eggs for bicycle tubes, a few potatoes for lamp oil. Radios are confiscated after 1942—some families hide a second set in the hayloft to catch BBC news. Children learn to whisper. News is gathered from whispers and the Paris-Soir headlines you don’t trust.\n\n[SCENE] In November 1942, after the Allied landings in North Africa, German control tightens. People vanish—Jews, suspected resisters, those denounced. You learn who in town is safe, and who watches. You carve a life into smaller, quieter pieces. You keep going.",
+          "global_image_id": "1-2-2"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 1,
+          "chapter_title": "U",
+          "scene_number": 2,
+          "shot_number": 3,
+          "shot_type": "close-up detail",
+          "scene_text": "You adapt. A bar of soap becomes currency. You trade eggs for bicycle tubes, a few potatoes for lamp oil. Radios are confiscated after 1942—some families hide a second set in the hayloft to catch BBC news. Children learn to whisper. News is gathered from whispers and the Paris-Soir headlines you don’t trust.",
+          "full_chapter_context": "June 1940. France has fallen. The German 7th Panzer Division sweeps west. Normandy—Calvados, Manche, Orne, Eure, and Seine-Inférieure (now Seine-Maritime)—falls into occupied territory. German officers arrive in towns like Caen and Cherbourg to establish commandantures. If you want to survive, you learn the rules immediately.\n\nThere’s a curfew. Papers—Ausweis—must be shown on demand. The black market thrives. Bread is rationed by 1941; butter and meat are scarce. You cultivate every square meter of soil. Kitchen gardens bloom behind stone walls. A few chickens, a pig if you can hide it. Bicycle tires become more precious than wine. If you’re a fisherman in Courseulles-sur-Mer, your boat is restricted or requisitioned. If you live near the coast, you might be forced back inland as “red zones” appear along the Atlantic Wall.\n\n[SCENE] Men in gray-green uniforms billeted in parlor rooms. Organization Todt crews arrive in 1942 to pour concrete for bunkers and batteries. The German “Widerstandsnest” positions—like WN 62 above Omaha Beach—begin to stud the coast. You learn to keep your head down when trucks rumble past loaded with rebar and cement. No loose talk in cafés. The Feldgendarmerie, the “chain dogs,” listen.\n\nYou adapt. A bar of soap becomes currency. You trade eggs for bicycle tubes, a few potatoes for lamp oil. Radios are confiscated after 1942—some families hide a second set in the hayloft to catch BBC news. Children learn to whisper. News is gathered from whispers and the Paris-Soir headlines you don’t trust.\n\n[SCENE] In November 1942, after the Allied landings in North Africa, German control tightens. People vanish—Jews, suspected resisters, those denounced. You learn who in town is safe, and who watches. You carve a life into smaller, quieter pieces. You keep going.",
+          "global_image_id": "1-2-3"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 2,
+          "chapter_title": "W",
+          "scene_number": 1,
+          "shot_number": 1,
+          "shot_type": "wide establishing shot",
+          "scene_text": "By 1943, the occupation hardens. Vichy’s Service du Travail Obligatoire—the STO—orders young men to go to Germany as laborers. If you’re twenty, you disappear into the bocage, joining a small maquis unit in the Orne hills or hiding on a cousin’s farm under an assumed name. The Milice and the German Sipo-SD hunt draft evaders. Survival now includes invisibility.",
+          "full_chapter_context": "By 1943, the occupation hardens. Vichy’s Service du Travail Obligatoire—the STO—orders young men to go to Germany as laborers. If you’re twenty, you disappear into the bocage, joining a small maquis unit in the Orne hills or hiding on a cousin’s farm under an assumed name. The Milice and the German Sipo-SD hunt draft evaders. Survival now includes invisibility.\n\n[SCENE] Resistance in Normandy is less grand than in the mountains, but it’s everywhere. Networks like Libération-Nord and the Organisation Civile et Militaire (OCM) pass notes, gather timber counts for bridge demolition, and report troop movements. The Free French intelligence service, the BCRA, coordinates with SOE agents who are parachuted in on moonlit nights. Containers drop into fields outside Lisieux and near Vire—Sten guns, explosives, radio sets. If you’re a farmer, you mark fields with discreet lights and pull the canisters into a barn before dawn. You say nothing.\n\nBut the price of secrets is high. The Gestapo maintains offices in larger towns—Caen and Rouen—and the prisons fill. Torture leaves scars no one mentions aloud. If you have a Jewish neighbor in Le Havre or Caen, you help them find forged papers or hide in a back room when the roundups come. In Normandy, as across occupied France, some collaborate, some resist, most try to survive the middle.\n\n[SCENE] You sharpen your ears. The BBC broadcasts coded messages to trigger sabotage. “Les sanglots longs des violons de l’automne”—the first line of Verlaine—goes out on 1 June 1944. You know what that means: the invasion is near. When the second line, “blessent mon cœur d’une langueur monotone,” is broadcast on 5 June, the message is clear: cut rails, drop trees, isolate road junctions. You sleep in your clothes.\n\nYou keep a small suitcase ready: papers, bread, a scarf, a white cloth. In your cellar, you reinforce a corner with wooden beams, a makeshift shelter beneath the stairs. The front will arrive as a thunderclap. The only question is where.",
+          "global_image_id": "2-1-1"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 2,
+          "chapter_title": "W",
+          "scene_number": 1,
+          "shot_number": 2,
+          "shot_type": "medium shot",
+          "scene_text": "By 1943, the occupation hardens. Vichy’s Service du Travail Obligatoire—the STO—orders young men to go to Germany as laborers. If you’re twenty, you disappear into the bocage, joining a small maquis unit in the Orne hills or hiding on a cousin’s farm under an assumed name. The Milice and the German Sipo-SD hunt draft evaders. Survival now includes invisibility.",
+          "full_chapter_context": "By 1943, the occupation hardens. Vichy’s Service du Travail Obligatoire—the STO—orders young men to go to Germany as laborers. If you’re twenty, you disappear into the bocage, joining a small maquis unit in the Orne hills or hiding on a cousin’s farm under an assumed name. The Milice and the German Sipo-SD hunt draft evaders. Survival now includes invisibility.\n\n[SCENE] Resistance in Normandy is less grand than in the mountains, but it’s everywhere. Networks like Libération-Nord and the Organisation Civile et Militaire (OCM) pass notes, gather timber counts for bridge demolition, and report troop movements. The Free French intelligence service, the BCRA, coordinates with SOE agents who are parachuted in on moonlit nights. Containers drop into fields outside Lisieux and near Vire—Sten guns, explosives, radio sets. If you’re a farmer, you mark fields with discreet lights and pull the canisters into a barn before dawn. You say nothing.\n\nBut the price of secrets is high. The Gestapo maintains offices in larger towns—Caen and Rouen—and the prisons fill. Torture leaves scars no one mentions aloud. If you have a Jewish neighbor in Le Havre or Caen, you help them find forged papers or hide in a back room when the roundups come. In Normandy, as across occupied France, some collaborate, some resist, most try to survive the middle.\n\n[SCENE] You sharpen your ears. The BBC broadcasts coded messages to trigger sabotage. “Les sanglots longs des violons de l’automne”—the first line of Verlaine—goes out on 1 June 1944. You know what that means: the invasion is near. When the second line, “blessent mon cœur d’une langueur monotone,” is broadcast on 5 June, the message is clear: cut rails, drop trees, isolate road junctions. You sleep in your clothes.\n\nYou keep a small suitcase ready: papers, bread, a scarf, a white cloth. In your cellar, you reinforce a corner with wooden beams, a makeshift shelter beneath the stairs. The front will arrive as a thunderclap. The only question is where.",
+          "global_image_id": "2-1-2"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 2,
+          "chapter_title": "W",
+          "scene_number": 1,
+          "shot_number": 3,
+          "shot_type": "close-up detail",
+          "scene_text": "By 1943, the occupation hardens. Vichy’s Service du Travail Obligatoire—the STO—orders young men to go to Germany as laborers. If you’re twenty, you disappear into the bocage, joining a small maquis unit in the Orne hills or hiding on a cousin’s farm under an assumed name. The Milice and the German Sipo-SD hunt draft evaders. Survival now includes invisibility.",
+          "full_chapter_context": "By 1943, the occupation hardens. Vichy’s Service du Travail Obligatoire—the STO—orders young men to go to Germany as laborers. If you’re twenty, you disappear into the bocage, joining a small maquis unit in the Orne hills or hiding on a cousin’s farm under an assumed name. The Milice and the German Sipo-SD hunt draft evaders. Survival now includes invisibility.\n\n[SCENE] Resistance in Normandy is less grand than in the mountains, but it’s everywhere. Networks like Libération-Nord and the Organisation Civile et Militaire (OCM) pass notes, gather timber counts for bridge demolition, and report troop movements. The Free French intelligence service, the BCRA, coordinates with SOE agents who are parachuted in on moonlit nights. Containers drop into fields outside Lisieux and near Vire—Sten guns, explosives, radio sets. If you’re a farmer, you mark fields with discreet lights and pull the canisters into a barn before dawn. You say nothing.\n\nBut the price of secrets is high. The Gestapo maintains offices in larger towns—Caen and Rouen—and the prisons fill. Torture leaves scars no one mentions aloud. If you have a Jewish neighbor in Le Havre or Caen, you help them find forged papers or hide in a back room when the roundups come. In Normandy, as across occupied France, some collaborate, some resist, most try to survive the middle.\n\n[SCENE] You sharpen your ears. The BBC broadcasts coded messages to trigger sabotage. “Les sanglots longs des violons de l’automne”—the first line of Verlaine—goes out on 1 June 1944. You know what that means: the invasion is near. When the second line, “blessent mon cœur d’une langueur monotone,” is broadcast on 5 June, the message is clear: cut rails, drop trees, isolate road junctions. You sleep in your clothes.\n\nYou keep a small suitcase ready: papers, bread, a scarf, a white cloth. In your cellar, you reinforce a corner with wooden beams, a makeshift shelter beneath the stairs. The front will arrive as a thunderclap. The only question is where.",
+          "global_image_id": "2-1-3"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 2,
+          "chapter_title": "W",
+          "scene_number": 2,
+          "shot_number": 1,
+          "shot_type": "wide establishing shot",
+          "scene_text": "But the price of secrets is high. The Gestapo maintains offices in larger towns—Caen and Rouen—and the prisons fill. Torture leaves scars no one mentions aloud. If you have a Jewish neighbor in Le Havre or Caen, you help them find forged papers or hide in a back room when the roundups come. In Normandy, as across occupied France, some collaborate, some resist, most try to survive the middle.",
+          "full_chapter_context": "By 1943, the occupation hardens. Vichy’s Service du Travail Obligatoire—the STO—orders young men to go to Germany as laborers. If you’re twenty, you disappear into the bocage, joining a small maquis unit in the Orne hills or hiding on a cousin’s farm under an assumed name. The Milice and the German Sipo-SD hunt draft evaders. Survival now includes invisibility.\n\n[SCENE] Resistance in Normandy is less grand than in the mountains, but it’s everywhere. Networks like Libération-Nord and the Organisation Civile et Militaire (OCM) pass notes, gather timber counts for bridge demolition, and report troop movements. The Free French intelligence service, the BCRA, coordinates with SOE agents who are parachuted in on moonlit nights. Containers drop into fields outside Lisieux and near Vire—Sten guns, explosives, radio sets. If you’re a farmer, you mark fields with discreet lights and pull the canisters into a barn before dawn. You say nothing.\n\nBut the price of secrets is high. The Gestapo maintains offices in larger towns—Caen and Rouen—and the prisons fill. Torture leaves scars no one mentions aloud. If you have a Jewish neighbor in Le Havre or Caen, you help them find forged papers or hide in a back room when the roundups come. In Normandy, as across occupied France, some collaborate, some resist, most try to survive the middle.\n\n[SCENE] You sharpen your ears. The BBC broadcasts coded messages to trigger sabotage. “Les sanglots longs des violons de l’automne”—the first line of Verlaine—goes out on 1 June 1944. You know what that means: the invasion is near. When the second line, “blessent mon cœur d’une langueur monotone,” is broadcast on 5 June, the message is clear: cut rails, drop trees, isolate road junctions. You sleep in your clothes.\n\nYou keep a small suitcase ready: papers, bread, a scarf, a white cloth. In your cellar, you reinforce a corner with wooden beams, a makeshift shelter beneath the stairs. The front will arrive as a thunderclap. The only question is where.",
+          "global_image_id": "2-2-1"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 2,
+          "chapter_title": "W",
+          "scene_number": 2,
+          "shot_number": 2,
+          "shot_type": "medium shot",
+          "scene_text": "But the price of secrets is high. The Gestapo maintains offices in larger towns—Caen and Rouen—and the prisons fill. Torture leaves scars no one mentions aloud. If you have a Jewish neighbor in Le Havre or Caen, you help them find forged papers or hide in a back room when the roundups come. In Normandy, as across occupied France, some collaborate, some resist, most try to survive the middle.",
+          "full_chapter_context": "By 1943, the occupation hardens. Vichy’s Service du Travail Obligatoire—the STO—orders young men to go to Germany as laborers. If you’re twenty, you disappear into the bocage, joining a small maquis unit in the Orne hills or hiding on a cousin’s farm under an assumed name. The Milice and the German Sipo-SD hunt draft evaders. Survival now includes invisibility.\n\n[SCENE] Resistance in Normandy is less grand than in the mountains, but it’s everywhere. Networks like Libération-Nord and the Organisation Civile et Militaire (OCM) pass notes, gather timber counts for bridge demolition, and report troop movements. The Free French intelligence service, the BCRA, coordinates with SOE agents who are parachuted in on moonlit nights. Containers drop into fields outside Lisieux and near Vire—Sten guns, explosives, radio sets. If you’re a farmer, you mark fields with discreet lights and pull the canisters into a barn before dawn. You say nothing.\n\nBut the price of secrets is high. The Gestapo maintains offices in larger towns—Caen and Rouen—and the prisons fill. Torture leaves scars no one mentions aloud. If you have a Jewish neighbor in Le Havre or Caen, you help them find forged papers or hide in a back room when the roundups come. In Normandy, as across occupied France, some collaborate, some resist, most try to survive the middle.\n\n[SCENE] You sharpen your ears. The BBC broadcasts coded messages to trigger sabotage. “Les sanglots longs des violons de l’automne”—the first line of Verlaine—goes out on 1 June 1944. You know what that means: the invasion is near. When the second line, “blessent mon cœur d’une langueur monotone,” is broadcast on 5 June, the message is clear: cut rails, drop trees, isolate road junctions. You sleep in your clothes.\n\nYou keep a small suitcase ready: papers, bread, a scarf, a white cloth. In your cellar, you reinforce a corner with wooden beams, a makeshift shelter beneath the stairs. The front will arrive as a thunderclap. The only question is where.",
+          "global_image_id": "2-2-2"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 2,
+          "chapter_title": "W",
+          "scene_number": 2,
+          "shot_number": 3,
+          "shot_type": "close-up detail",
+          "scene_text": "But the price of secrets is high. The Gestapo maintains offices in larger towns—Caen and Rouen—and the prisons fill. Torture leaves scars no one mentions aloud. If you have a Jewish neighbor in Le Havre or Caen, you help them find forged papers or hide in a back room when the roundups come. In Normandy, as across occupied France, some collaborate, some resist, most try to survive the middle.",
+          "full_chapter_context": "By 1943, the occupation hardens. Vichy’s Service du Travail Obligatoire—the STO—orders young men to go to Germany as laborers. If you’re twenty, you disappear into the bocage, joining a small maquis unit in the Orne hills or hiding on a cousin’s farm under an assumed name. The Milice and the German Sipo-SD hunt draft evaders. Survival now includes invisibility.\n\n[SCENE] Resistance in Normandy is less grand than in the mountains, but it’s everywhere. Networks like Libération-Nord and the Organisation Civile et Militaire (OCM) pass notes, gather timber counts for bridge demolition, and report troop movements. The Free French intelligence service, the BCRA, coordinates with SOE agents who are parachuted in on moonlit nights. Containers drop into fields outside Lisieux and near Vire—Sten guns, explosives, radio sets. If you’re a farmer, you mark fields with discreet lights and pull the canisters into a barn before dawn. You say nothing.\n\nBut the price of secrets is high. The Gestapo maintains offices in larger towns—Caen and Rouen—and the prisons fill. Torture leaves scars no one mentions aloud. If you have a Jewish neighbor in Le Havre or Caen, you help them find forged papers or hide in a back room when the roundups come. In Normandy, as across occupied France, some collaborate, some resist, most try to survive the middle.\n\n[SCENE] You sharpen your ears. The BBC broadcasts coded messages to trigger sabotage. “Les sanglots longs des violons de l’automne”—the first line of Verlaine—goes out on 1 June 1944. You know what that means: the invasion is near. When the second line, “blessent mon cœur d’une langueur monotone,” is broadcast on 5 June, the message is clear: cut rails, drop trees, isolate road junctions. You sleep in your clothes.\n\nYou keep a small suitcase ready: papers, bread, a scarf, a white cloth. In your cellar, you reinforce a corner with wooden beams, a makeshift shelter beneath the stairs. The front will arrive as a thunderclap. The only question is where.",
+          "global_image_id": "2-2-3"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 2,
+          "chapter_title": "W",
+          "scene_number": 3,
+          "shot_number": 1,
+          "shot_type": "wide establishing shot",
+          "scene_text": "You keep a small suitcase ready: papers, bread, a scarf, a white cloth. In your cellar, you reinforce a corner with wooden beams, a makeshift shelter beneath the stairs. The front will arrive as a thunderclap. The only question is where.",
+          "full_chapter_context": "By 1943, the occupation hardens. Vichy’s Service du Travail Obligatoire—the STO—orders young men to go to Germany as laborers. If you’re twenty, you disappear into the bocage, joining a small maquis unit in the Orne hills or hiding on a cousin’s farm under an assumed name. The Milice and the German Sipo-SD hunt draft evaders. Survival now includes invisibility.\n\n[SCENE] Resistance in Normandy is less grand than in the mountains, but it’s everywhere. Networks like Libération-Nord and the Organisation Civile et Militaire (OCM) pass notes, gather timber counts for bridge demolition, and report troop movements. The Free French intelligence service, the BCRA, coordinates with SOE agents who are parachuted in on moonlit nights. Containers drop into fields outside Lisieux and near Vire—Sten guns, explosives, radio sets. If you’re a farmer, you mark fields with discreet lights and pull the canisters into a barn before dawn. You say nothing.\n\nBut the price of secrets is high. The Gestapo maintains offices in larger towns—Caen and Rouen—and the prisons fill. Torture leaves scars no one mentions aloud. If you have a Jewish neighbor in Le Havre or Caen, you help them find forged papers or hide in a back room when the roundups come. In Normandy, as across occupied France, some collaborate, some resist, most try to survive the middle.\n\n[SCENE] You sharpen your ears. The BBC broadcasts coded messages to trigger sabotage. “Les sanglots longs des violons de l’automne”—the first line of Verlaine—goes out on 1 June 1944. You know what that means: the invasion is near. When the second line, “blessent mon cœur d’une langueur monotone,” is broadcast on 5 June, the message is clear: cut rails, drop trees, isolate road junctions. You sleep in your clothes.\n\nYou keep a small suitcase ready: papers, bread, a scarf, a white cloth. In your cellar, you reinforce a corner with wooden beams, a makeshift shelter beneath the stairs. The front will arrive as a thunderclap. The only question is where.",
+          "global_image_id": "2-3-1"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 2,
+          "chapter_title": "W",
+          "scene_number": 3,
+          "shot_number": 2,
+          "shot_type": "medium shot",
+          "scene_text": "You keep a small suitcase ready: papers, bread, a scarf, a white cloth. In your cellar, you reinforce a corner with wooden beams, a makeshift shelter beneath the stairs. The front will arrive as a thunderclap. The only question is where.",
+          "full_chapter_context": "By 1943, the occupation hardens. Vichy’s Service du Travail Obligatoire—the STO—orders young men to go to Germany as laborers. If you’re twenty, you disappear into the bocage, joining a small maquis unit in the Orne hills or hiding on a cousin’s farm under an assumed name. The Milice and the German Sipo-SD hunt draft evaders. Survival now includes invisibility.\n\n[SCENE] Resistance in Normandy is less grand than in the mountains, but it’s everywhere. Networks like Libération-Nord and the Organisation Civile et Militaire (OCM) pass notes, gather timber counts for bridge demolition, and report troop movements. The Free French intelligence service, the BCRA, coordinates with SOE agents who are parachuted in on moonlit nights. Containers drop into fields outside Lisieux and near Vire—Sten guns, explosives, radio sets. If you’re a farmer, you mark fields with discreet lights and pull the canisters into a barn before dawn. You say nothing.\n\nBut the price of secrets is high. The Gestapo maintains offices in larger towns—Caen and Rouen—and the prisons fill. Torture leaves scars no one mentions aloud. If you have a Jewish neighbor in Le Havre or Caen, you help them find forged papers or hide in a back room when the roundups come. In Normandy, as across occupied France, some collaborate, some resist, most try to survive the middle.\n\n[SCENE] You sharpen your ears. The BBC broadcasts coded messages to trigger sabotage. “Les sanglots longs des violons de l’automne”—the first line of Verlaine—goes out on 1 June 1944. You know what that means: the invasion is near. When the second line, “blessent mon cœur d’une langueur monotone,” is broadcast on 5 June, the message is clear: cut rails, drop trees, isolate road junctions. You sleep in your clothes.\n\nYou keep a small suitcase ready: papers, bread, a scarf, a white cloth. In your cellar, you reinforce a corner with wooden beams, a makeshift shelter beneath the stairs. The front will arrive as a thunderclap. The only question is where.",
+          "global_image_id": "2-3-2"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 2,
+          "chapter_title": "W",
+          "scene_number": 3,
+          "shot_number": 3,
+          "shot_type": "close-up detail",
+          "scene_text": "You keep a small suitcase ready: papers, bread, a scarf, a white cloth. In your cellar, you reinforce a corner with wooden beams, a makeshift shelter beneath the stairs. The front will arrive as a thunderclap. The only question is where.",
+          "full_chapter_context": "By 1943, the occupation hardens. Vichy’s Service du Travail Obligatoire—the STO—orders young men to go to Germany as laborers. If you’re twenty, you disappear into the bocage, joining a small maquis unit in the Orne hills or hiding on a cousin’s farm under an assumed name. The Milice and the German Sipo-SD hunt draft evaders. Survival now includes invisibility.\n\n[SCENE] Resistance in Normandy is less grand than in the mountains, but it’s everywhere. Networks like Libération-Nord and the Organisation Civile et Militaire (OCM) pass notes, gather timber counts for bridge demolition, and report troop movements. The Free French intelligence service, the BCRA, coordinates with SOE agents who are parachuted in on moonlit nights. Containers drop into fields outside Lisieux and near Vire—Sten guns, explosives, radio sets. If you’re a farmer, you mark fields with discreet lights and pull the canisters into a barn before dawn. You say nothing.\n\nBut the price of secrets is high. The Gestapo maintains offices in larger towns—Caen and Rouen—and the prisons fill. Torture leaves scars no one mentions aloud. If you have a Jewish neighbor in Le Havre or Caen, you help them find forged papers or hide in a back room when the roundups come. In Normandy, as across occupied France, some collaborate, some resist, most try to survive the middle.\n\n[SCENE] You sharpen your ears. The BBC broadcasts coded messages to trigger sabotage. “Les sanglots longs des violons de l’automne”—the first line of Verlaine—goes out on 1 June 1944. You know what that means: the invasion is near. When the second line, “blessent mon cœur d’une langueur monotone,” is broadcast on 5 June, the message is clear: cut rails, drop trees, isolate road junctions. You sleep in your clothes.\n\nYou keep a small suitcase ready: papers, bread, a scarf, a white cloth. In your cellar, you reinforce a corner with wooden beams, a makeshift shelter beneath the stairs. The front will arrive as a thunderclap. The only question is where.",
+          "global_image_id": "2-3-3"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 3,
+          "chapter_title": "S",
+          "scene_number": 1,
+          "shot_number": 1,
+          "shot_type": "wide establishing shot",
+          "scene_text": "In December 1943, Field Marshal Erwin Rommel takes command of Army Group B and tours the Atlantic Wall. In January and March 1944, he visits Normandy—Courseulles, Asnelles, Riva-Bella at Ouistreham—ordering more beach obstacles: stakes, mines, “Rommel’s asparagus.” If you live near the dunes, you watch soldiers hammering steel and laying Teller mines; the sea seems to grow teeth.",
+          "full_chapter_context": "In December 1943, Field Marshal Erwin Rommel takes command of Army Group B and tours the Atlantic Wall. In January and March 1944, he visits Normandy—Courseulles, Asnelles, Riva-Bella at Ouistreham—ordering more beach obstacles: stakes, mines, “Rommel’s asparagus.” If you live near the dunes, you watch soldiers hammering steel and laying Teller mines; the sea seems to grow teeth.\n\n[SCENE] The Allies answer from the air. From March 1944 onward, RAF and USAAF bomb the rail network—“the Transportation Plan.” Rail yards in Caen, Rouen, and Le Mans are hit. On the night of 10 April 1944, RAF bombers strike Caen’s rail infrastructure; hundreds of civilians die. You learn to sleep in a coat near the cellar door. You move your bed away from windows. You keep a bucket of sand by the hearth.\n\nBy May, whispers turn to certainty. Strange uniforms are seen near Caen—the 21st Panzer Division—the 716th Static Division mans the coast. You watch convoys of young soldiers—some barely older than your sons—roll through. If you live near Bayeux, you sense the calm before a storm. If you live near Saint-Lô, you notice more roadblocks, more trenches dug into fields.\n\n[SCENE] Then the signals: 1 June, the first Verlaine line. On the morning of 5 June, weather turns foul over the Channel; rumors claim the invasion is delayed. That evening, the second line broadcasts. If you’re in a Resistance cell, you cut telephone poles under cover of thunder. If you’re a civilian with no politics, you still feel the air change—dogs bark, the church clock sounds louder, the horizon flashes at midnight.\n\nLate on 5 June into early 6 June 1944, you hear it: engines in the night, like rolling thunder. It’s the largest armada in history approaching your coast. Parachutes bloom in the dark over the Cotentin. In Sainte-Mère-Église, an American paratrooper, John Steele, hangs from the church roof. Lantern light glows in windows one last time. Then the sky turns to fire.",
+          "global_image_id": "3-1-1"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 3,
+          "chapter_title": "S",
+          "scene_number": 1,
+          "shot_number": 2,
+          "shot_type": "medium shot",
+          "scene_text": "In December 1943, Field Marshal Erwin Rommel takes command of Army Group B and tours the Atlantic Wall. In January and March 1944, he visits Normandy—Courseulles, Asnelles, Riva-Bella at Ouistreham—ordering more beach obstacles: stakes, mines, “Rommel’s asparagus.” If you live near the dunes, you watch soldiers hammering steel and laying Teller mines; the sea seems to grow teeth.",
+          "full_chapter_context": "In December 1943, Field Marshal Erwin Rommel takes command of Army Group B and tours the Atlantic Wall. In January and March 1944, he visits Normandy—Courseulles, Asnelles, Riva-Bella at Ouistreham—ordering more beach obstacles: stakes, mines, “Rommel’s asparagus.” If you live near the dunes, you watch soldiers hammering steel and laying Teller mines; the sea seems to grow teeth.\n\n[SCENE] The Allies answer from the air. From March 1944 onward, RAF and USAAF bomb the rail network—“the Transportation Plan.” Rail yards in Caen, Rouen, and Le Mans are hit. On the night of 10 April 1944, RAF bombers strike Caen’s rail infrastructure; hundreds of civilians die. You learn to sleep in a coat near the cellar door. You move your bed away from windows. You keep a bucket of sand by the hearth.\n\nBy May, whispers turn to certainty. Strange uniforms are seen near Caen—the 21st Panzer Division—the 716th Static Division mans the coast. You watch convoys of young soldiers—some barely older than your sons—roll through. If you live near Bayeux, you sense the calm before a storm. If you live near Saint-Lô, you notice more roadblocks, more trenches dug into fields.\n\n[SCENE] Then the signals: 1 June, the first Verlaine line. On the morning of 5 June, weather turns foul over the Channel; rumors claim the invasion is delayed. That evening, the second line broadcasts. If you’re in a Resistance cell, you cut telephone poles under cover of thunder. If you’re a civilian with no politics, you still feel the air change—dogs bark, the church clock sounds louder, the horizon flashes at midnight.\n\nLate on 5 June into early 6 June 1944, you hear it: engines in the night, like rolling thunder. It’s the largest armada in history approaching your coast. Parachutes bloom in the dark over the Cotentin. In Sainte-Mère-Église, an American paratrooper, John Steele, hangs from the church roof. Lantern light glows in windows one last time. Then the sky turns to fire.",
+          "global_image_id": "3-1-2"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 3,
+          "chapter_title": "S",
+          "scene_number": 1,
+          "shot_number": 3,
+          "shot_type": "close-up detail",
+          "scene_text": "In December 1943, Field Marshal Erwin Rommel takes command of Army Group B and tours the Atlantic Wall. In January and March 1944, he visits Normandy—Courseulles, Asnelles, Riva-Bella at Ouistreham—ordering more beach obstacles: stakes, mines, “Rommel’s asparagus.” If you live near the dunes, you watch soldiers hammering steel and laying Teller mines; the sea seems to grow teeth.",
+          "full_chapter_context": "In December 1943, Field Marshal Erwin Rommel takes command of Army Group B and tours the Atlantic Wall. In January and March 1944, he visits Normandy—Courseulles, Asnelles, Riva-Bella at Ouistreham—ordering more beach obstacles: stakes, mines, “Rommel’s asparagus.” If you live near the dunes, you watch soldiers hammering steel and laying Teller mines; the sea seems to grow teeth.\n\n[SCENE] The Allies answer from the air. From March 1944 onward, RAF and USAAF bomb the rail network—“the Transportation Plan.” Rail yards in Caen, Rouen, and Le Mans are hit. On the night of 10 April 1944, RAF bombers strike Caen’s rail infrastructure; hundreds of civilians die. You learn to sleep in a coat near the cellar door. You move your bed away from windows. You keep a bucket of sand by the hearth.\n\nBy May, whispers turn to certainty. Strange uniforms are seen near Caen—the 21st Panzer Division—the 716th Static Division mans the coast. You watch convoys of young soldiers—some barely older than your sons—roll through. If you live near Bayeux, you sense the calm before a storm. If you live near Saint-Lô, you notice more roadblocks, more trenches dug into fields.\n\n[SCENE] Then the signals: 1 June, the first Verlaine line. On the morning of 5 June, weather turns foul over the Channel; rumors claim the invasion is delayed. That evening, the second line broadcasts. If you’re in a Resistance cell, you cut telephone poles under cover of thunder. If you’re a civilian with no politics, you still feel the air change—dogs bark, the church clock sounds louder, the horizon flashes at midnight.\n\nLate on 5 June into early 6 June 1944, you hear it: engines in the night, like rolling thunder. It’s the largest armada in history approaching your coast. Parachutes bloom in the dark over the Cotentin. In Sainte-Mère-Église, an American paratrooper, John Steele, hangs from the church roof. Lantern light glows in windows one last time. Then the sky turns to fire.",
+          "global_image_id": "3-1-3"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 3,
+          "chapter_title": "S",
+          "scene_number": 2,
+          "shot_number": 1,
+          "shot_type": "wide establishing shot",
+          "scene_text": "By May, whispers turn to certainty. Strange uniforms are seen near Caen—the 21st Panzer Division—the 716th Static Division mans the coast. You watch convoys of young soldiers—some barely older than your sons—roll through. If you live near Bayeux, you sense the calm before a storm. If you live near Saint-Lô, you notice more roadblocks, more trenches dug into fields.",
+          "full_chapter_context": "In December 1943, Field Marshal Erwin Rommel takes command of Army Group B and tours the Atlantic Wall. In January and March 1944, he visits Normandy—Courseulles, Asnelles, Riva-Bella at Ouistreham—ordering more beach obstacles: stakes, mines, “Rommel’s asparagus.” If you live near the dunes, you watch soldiers hammering steel and laying Teller mines; the sea seems to grow teeth.\n\n[SCENE] The Allies answer from the air. From March 1944 onward, RAF and USAAF bomb the rail network—“the Transportation Plan.” Rail yards in Caen, Rouen, and Le Mans are hit. On the night of 10 April 1944, RAF bombers strike Caen’s rail infrastructure; hundreds of civilians die. You learn to sleep in a coat near the cellar door. You move your bed away from windows. You keep a bucket of sand by the hearth.\n\nBy May, whispers turn to certainty. Strange uniforms are seen near Caen—the 21st Panzer Division—the 716th Static Division mans the coast. You watch convoys of young soldiers—some barely older than your sons—roll through. If you live near Bayeux, you sense the calm before a storm. If you live near Saint-Lô, you notice more roadblocks, more trenches dug into fields.\n\n[SCENE] Then the signals: 1 June, the first Verlaine line. On the morning of 5 June, weather turns foul over the Channel; rumors claim the invasion is delayed. That evening, the second line broadcasts. If you’re in a Resistance cell, you cut telephone poles under cover of thunder. If you’re a civilian with no politics, you still feel the air change—dogs bark, the church clock sounds louder, the horizon flashes at midnight.\n\nLate on 5 June into early 6 June 1944, you hear it: engines in the night, like rolling thunder. It’s the largest armada in history approaching your coast. Parachutes bloom in the dark over the Cotentin. In Sainte-Mère-Église, an American paratrooper, John Steele, hangs from the church roof. Lantern light glows in windows one last time. Then the sky turns to fire.",
+          "global_image_id": "3-2-1"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 3,
+          "chapter_title": "S",
+          "scene_number": 2,
+          "shot_number": 2,
+          "shot_type": "medium shot",
+          "scene_text": "By May, whispers turn to certainty. Strange uniforms are seen near Caen—the 21st Panzer Division—the 716th Static Division mans the coast. You watch convoys of young soldiers—some barely older than your sons—roll through. If you live near Bayeux, you sense the calm before a storm. If you live near Saint-Lô, you notice more roadblocks, more trenches dug into fields.",
+          "full_chapter_context": "In December 1943, Field Marshal Erwin Rommel takes command of Army Group B and tours the Atlantic Wall. In January and March 1944, he visits Normandy—Courseulles, Asnelles, Riva-Bella at Ouistreham—ordering more beach obstacles: stakes, mines, “Rommel’s asparagus.” If you live near the dunes, you watch soldiers hammering steel and laying Teller mines; the sea seems to grow teeth.\n\n[SCENE] The Allies answer from the air. From March 1944 onward, RAF and USAAF bomb the rail network—“the Transportation Plan.” Rail yards in Caen, Rouen, and Le Mans are hit. On the night of 10 April 1944, RAF bombers strike Caen’s rail infrastructure; hundreds of civilians die. You learn to sleep in a coat near the cellar door. You move your bed away from windows. You keep a bucket of sand by the hearth.\n\nBy May, whispers turn to certainty. Strange uniforms are seen near Caen—the 21st Panzer Division—the 716th Static Division mans the coast. You watch convoys of young soldiers—some barely older than your sons—roll through. If you live near Bayeux, you sense the calm before a storm. If you live near Saint-Lô, you notice more roadblocks, more trenches dug into fields.\n\n[SCENE] Then the signals: 1 June, the first Verlaine line. On the morning of 5 June, weather turns foul over the Channel; rumors claim the invasion is delayed. That evening, the second line broadcasts. If you’re in a Resistance cell, you cut telephone poles under cover of thunder. If you’re a civilian with no politics, you still feel the air change—dogs bark, the church clock sounds louder, the horizon flashes at midnight.\n\nLate on 5 June into early 6 June 1944, you hear it: engines in the night, like rolling thunder. It’s the largest armada in history approaching your coast. Parachutes bloom in the dark over the Cotentin. In Sainte-Mère-Église, an American paratrooper, John Steele, hangs from the church roof. Lantern light glows in windows one last time. Then the sky turns to fire.",
+          "global_image_id": "3-2-2"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 3,
+          "chapter_title": "S",
+          "scene_number": 2,
+          "shot_number": 3,
+          "shot_type": "close-up detail",
+          "scene_text": "By May, whispers turn to certainty. Strange uniforms are seen near Caen—the 21st Panzer Division—the 716th Static Division mans the coast. You watch convoys of young soldiers—some barely older than your sons—roll through. If you live near Bayeux, you sense the calm before a storm. If you live near Saint-Lô, you notice more roadblocks, more trenches dug into fields.",
+          "full_chapter_context": "In December 1943, Field Marshal Erwin Rommel takes command of Army Group B and tours the Atlantic Wall. In January and March 1944, he visits Normandy—Courseulles, Asnelles, Riva-Bella at Ouistreham—ordering more beach obstacles: stakes, mines, “Rommel’s asparagus.” If you live near the dunes, you watch soldiers hammering steel and laying Teller mines; the sea seems to grow teeth.\n\n[SCENE] The Allies answer from the air. From March 1944 onward, RAF and USAAF bomb the rail network—“the Transportation Plan.” Rail yards in Caen, Rouen, and Le Mans are hit. On the night of 10 April 1944, RAF bombers strike Caen’s rail infrastructure; hundreds of civilians die. You learn to sleep in a coat near the cellar door. You move your bed away from windows. You keep a bucket of sand by the hearth.\n\nBy May, whispers turn to certainty. Strange uniforms are seen near Caen—the 21st Panzer Division—the 716th Static Division mans the coast. You watch convoys of young soldiers—some barely older than your sons—roll through. If you live near Bayeux, you sense the calm before a storm. If you live near Saint-Lô, you notice more roadblocks, more trenches dug into fields.\n\n[SCENE] Then the signals: 1 June, the first Verlaine line. On the morning of 5 June, weather turns foul over the Channel; rumors claim the invasion is delayed. That evening, the second line broadcasts. If you’re in a Resistance cell, you cut telephone poles under cover of thunder. If you’re a civilian with no politics, you still feel the air change—dogs bark, the church clock sounds louder, the horizon flashes at midnight.\n\nLate on 5 June into early 6 June 1944, you hear it: engines in the night, like rolling thunder. It’s the largest armada in history approaching your coast. Parachutes bloom in the dark over the Cotentin. In Sainte-Mère-Église, an American paratrooper, John Steele, hangs from the church roof. Lantern light glows in windows one last time. Then the sky turns to fire.",
+          "global_image_id": "3-2-3"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 3,
+          "chapter_title": "S",
+          "scene_number": 3,
+          "shot_number": 1,
+          "shot_type": "wide establishing shot",
+          "scene_text": "Late on 5 June into early 6 June 1944, you hear it: engines in the night, like rolling thunder. It’s the largest armada in history approaching your coast. Parachutes bloom in the dark over the Cotentin. In Sainte-Mère-Église, an American paratrooper, John Steele, hangs from the church roof. Lantern light glows in windows one last time. Then the sky turns to fire.",
+          "full_chapter_context": "In December 1943, Field Marshal Erwin Rommel takes command of Army Group B and tours the Atlantic Wall. In January and March 1944, he visits Normandy—Courseulles, Asnelles, Riva-Bella at Ouistreham—ordering more beach obstacles: stakes, mines, “Rommel’s asparagus.” If you live near the dunes, you watch soldiers hammering steel and laying Teller mines; the sea seems to grow teeth.\n\n[SCENE] The Allies answer from the air. From March 1944 onward, RAF and USAAF bomb the rail network—“the Transportation Plan.” Rail yards in Caen, Rouen, and Le Mans are hit. On the night of 10 April 1944, RAF bombers strike Caen’s rail infrastructure; hundreds of civilians die. You learn to sleep in a coat near the cellar door. You move your bed away from windows. You keep a bucket of sand by the hearth.\n\nBy May, whispers turn to certainty. Strange uniforms are seen near Caen—the 21st Panzer Division—the 716th Static Division mans the coast. You watch convoys of young soldiers—some barely older than your sons—roll through. If you live near Bayeux, you sense the calm before a storm. If you live near Saint-Lô, you notice more roadblocks, more trenches dug into fields.\n\n[SCENE] Then the signals: 1 June, the first Verlaine line. On the morning of 5 June, weather turns foul over the Channel; rumors claim the invasion is delayed. That evening, the second line broadcasts. If you’re in a Resistance cell, you cut telephone poles under cover of thunder. If you’re a civilian with no politics, you still feel the air change—dogs bark, the church clock sounds louder, the horizon flashes at midnight.\n\nLate on 5 June into early 6 June 1944, you hear it: engines in the night, like rolling thunder. It’s the largest armada in history approaching your coast. Parachutes bloom in the dark over the Cotentin. In Sainte-Mère-Église, an American paratrooper, John Steele, hangs from the church roof. Lantern light glows in windows one last time. Then the sky turns to fire.",
+          "global_image_id": "3-3-1"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 3,
+          "chapter_title": "S",
+          "scene_number": 3,
+          "shot_number": 2,
+          "shot_type": "medium shot",
+          "scene_text": "Late on 5 June into early 6 June 1944, you hear it: engines in the night, like rolling thunder. It’s the largest armada in history approaching your coast. Parachutes bloom in the dark over the Cotentin. In Sainte-Mère-Église, an American paratrooper, John Steele, hangs from the church roof. Lantern light glows in windows one last time. Then the sky turns to fire.",
+          "full_chapter_context": "In December 1943, Field Marshal Erwin Rommel takes command of Army Group B and tours the Atlantic Wall. In January and March 1944, he visits Normandy—Courseulles, Asnelles, Riva-Bella at Ouistreham—ordering more beach obstacles: stakes, mines, “Rommel’s asparagus.” If you live near the dunes, you watch soldiers hammering steel and laying Teller mines; the sea seems to grow teeth.\n\n[SCENE] The Allies answer from the air. From March 1944 onward, RAF and USAAF bomb the rail network—“the Transportation Plan.” Rail yards in Caen, Rouen, and Le Mans are hit. On the night of 10 April 1944, RAF bombers strike Caen’s rail infrastructure; hundreds of civilians die. You learn to sleep in a coat near the cellar door. You move your bed away from windows. You keep a bucket of sand by the hearth.\n\nBy May, whispers turn to certainty. Strange uniforms are seen near Caen—the 21st Panzer Division—the 716th Static Division mans the coast. You watch convoys of young soldiers—some barely older than your sons—roll through. If you live near Bayeux, you sense the calm before a storm. If you live near Saint-Lô, you notice more roadblocks, more trenches dug into fields.\n\n[SCENE] Then the signals: 1 June, the first Verlaine line. On the morning of 5 June, weather turns foul over the Channel; rumors claim the invasion is delayed. That evening, the second line broadcasts. If you’re in a Resistance cell, you cut telephone poles under cover of thunder. If you’re a civilian with no politics, you still feel the air change—dogs bark, the church clock sounds louder, the horizon flashes at midnight.\n\nLate on 5 June into early 6 June 1944, you hear it: engines in the night, like rolling thunder. It’s the largest armada in history approaching your coast. Parachutes bloom in the dark over the Cotentin. In Sainte-Mère-Église, an American paratrooper, John Steele, hangs from the church roof. Lantern light glows in windows one last time. Then the sky turns to fire.",
+          "global_image_id": "3-3-2"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 3,
+          "chapter_title": "S",
+          "scene_number": 3,
+          "shot_number": 3,
+          "shot_type": "close-up detail",
+          "scene_text": "Late on 5 June into early 6 June 1944, you hear it: engines in the night, like rolling thunder. It’s the largest armada in history approaching your coast. Parachutes bloom in the dark over the Cotentin. In Sainte-Mère-Église, an American paratrooper, John Steele, hangs from the church roof. Lantern light glows in windows one last time. Then the sky turns to fire.",
+          "full_chapter_context": "In December 1943, Field Marshal Erwin Rommel takes command of Army Group B and tours the Atlantic Wall. In January and March 1944, he visits Normandy—Courseulles, Asnelles, Riva-Bella at Ouistreham—ordering more beach obstacles: stakes, mines, “Rommel’s asparagus.” If you live near the dunes, you watch soldiers hammering steel and laying Teller mines; the sea seems to grow teeth.\n\n[SCENE] The Allies answer from the air. From March 1944 onward, RAF and USAAF bomb the rail network—“the Transportation Plan.” Rail yards in Caen, Rouen, and Le Mans are hit. On the night of 10 April 1944, RAF bombers strike Caen’s rail infrastructure; hundreds of civilians die. You learn to sleep in a coat near the cellar door. You move your bed away from windows. You keep a bucket of sand by the hearth.\n\nBy May, whispers turn to certainty. Strange uniforms are seen near Caen—the 21st Panzer Division—the 716th Static Division mans the coast. You watch convoys of young soldiers—some barely older than your sons—roll through. If you live near Bayeux, you sense the calm before a storm. If you live near Saint-Lô, you notice more roadblocks, more trenches dug into fields.\n\n[SCENE] Then the signals: 1 June, the first Verlaine line. On the morning of 5 June, weather turns foul over the Channel; rumors claim the invasion is delayed. That evening, the second line broadcasts. If you’re in a Resistance cell, you cut telephone poles under cover of thunder. If you’re a civilian with no politics, you still feel the air change—dogs bark, the church clock sounds louder, the horizon flashes at midnight.\n\nLate on 5 June into early 6 June 1944, you hear it: engines in the night, like rolling thunder. It’s the largest armada in history approaching your coast. Parachutes bloom in the dark over the Cotentin. In Sainte-Mère-Église, an American paratrooper, John Steele, hangs from the church roof. Lantern light glows in windows one last time. Then the sky turns to fire.",
+          "global_image_id": "3-3-3"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 6,
+          "chapter_title": "June 1944. At first light, the horizon is a black band of ships. The beaches from Utah and Omaha in the west to Gold, Juno, and Sword in the east are hammered by naval guns. If you live in Vierville-sur-Mer above Omaha, your house shakes with every hit. The 352nd Infantry Division fires back; on Omaha, the beach runs red. If you live inland near Sainte-Mère-Église, you hear scattered gunfire—American paratroopers from the 82nd and 101st Airborne fighting to secure causeways. The first town liberated in France is Sainte-Mère-Église by mid-morning.",
+          "scene_number": 1,
+          "shot_number": 1,
+          "shot_type": "wide establishing shot",
+          "scene_text": "By late June, the front congeals. Operation Epsom (26–30 June) west of Caen brings heavy rain and shellfire. Operation Charnwood (8–9 July) takes northern Caen; Canadians then fight Operation Goodwood (18–20 July) to the east. If you live in Caen, you emerge to a moonscape on 9 July, the Orne bridges choked with debris. Meanwhile, across the bocage, hedgerows turn every lane into an ambush. Civilians learn new rules: never cross an open field; stay inside ditches; listen for snipers; beware of mines in orchards.",
+          "full_chapter_context": "[SCENE] Survival becomes tactical. If you are coastal, you drag mattresses into the cellar, brace doors, and stay away from windows—blast waves turn glass into knives. You move only when shelling pauses. If you have a white cloth, you hang it outside so advancing troops know civilians are inside. If you live in Bayeux, British troops of the 50th (Northumbrian) Division arrive on 7 June; the town is spared heavy destruction and becomes the first major town liberated. If you’re in Caen, the story is different: bombardments on 6–7 June devastate neighborhoods, but German defenses hold. You shelter for weeks.\n\nBy late June, the front congeals. Operation Epsom (26–30 June) west of Caen brings heavy rain and shellfire. Operation Charnwood (8–9 July) takes northern Caen; Canadians then fight Operation Goodwood (18–20 July) to the east. If you live in Caen, you emerge to a moonscape on 9 July, the Orne bridges choked with debris. Meanwhile, across the bocage, hedgerows turn every lane into an ambush. Civilians learn new rules: never cross an open field; stay inside ditches; listen for snipers; beware of mines in orchards.\n\n[SCENE] In Saint-Lô, the “Capital of Ruins,” US bombers hit on 6–7 June; fighting grinds on. Liberation comes on 18 July 1944 by troops of the US XIX Corps. The town is pulverized. How do you survive here? You boil water, focus on small tasks: salvage a pot, find bread at a field kitchen, bury the dead with respect and speed, mark unexploded shells with a stick so children don’t touch them. You learn Allied hand signals for “stop” and “go.” You wait for the front to move.",
+          "global_image_id": "6-1-1"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 6,
+          "chapter_title": "June 1944. At first light, the horizon is a black band of ships. The beaches from Utah and Omaha in the west to Gold, Juno, and Sword in the east are hammered by naval guns. If you live in Vierville-sur-Mer above Omaha, your house shakes with every hit. The 352nd Infantry Division fires back; on Omaha, the beach runs red. If you live inland near Sainte-Mère-Église, you hear scattered gunfire—American paratroopers from the 82nd and 101st Airborne fighting to secure causeways. The first town liberated in France is Sainte-Mère-Église by mid-morning.",
+          "scene_number": 1,
+          "shot_number": 2,
+          "shot_type": "medium shot",
+          "scene_text": "By late June, the front congeals. Operation Epsom (26–30 June) west of Caen brings heavy rain and shellfire. Operation Charnwood (8–9 July) takes northern Caen; Canadians then fight Operation Goodwood (18–20 July) to the east. If you live in Caen, you emerge to a moonscape on 9 July, the Orne bridges choked with debris. Meanwhile, across the bocage, hedgerows turn every lane into an ambush. Civilians learn new rules: never cross an open field; stay inside ditches; listen for snipers; beware of mines in orchards.",
+          "full_chapter_context": "[SCENE] Survival becomes tactical. If you are coastal, you drag mattresses into the cellar, brace doors, and stay away from windows—blast waves turn glass into knives. You move only when shelling pauses. If you have a white cloth, you hang it outside so advancing troops know civilians are inside. If you live in Bayeux, British troops of the 50th (Northumbrian) Division arrive on 7 June; the town is spared heavy destruction and becomes the first major town liberated. If you’re in Caen, the story is different: bombardments on 6–7 June devastate neighborhoods, but German defenses hold. You shelter for weeks.\n\nBy late June, the front congeals. Operation Epsom (26–30 June) west of Caen brings heavy rain and shellfire. Operation Charnwood (8–9 July) takes northern Caen; Canadians then fight Operation Goodwood (18–20 July) to the east. If you live in Caen, you emerge to a moonscape on 9 July, the Orne bridges choked with debris. Meanwhile, across the bocage, hedgerows turn every lane into an ambush. Civilians learn new rules: never cross an open field; stay inside ditches; listen for snipers; beware of mines in orchards.\n\n[SCENE] In Saint-Lô, the “Capital of Ruins,” US bombers hit on 6–7 June; fighting grinds on. Liberation comes on 18 July 1944 by troops of the US XIX Corps. The town is pulverized. How do you survive here? You boil water, focus on small tasks: salvage a pot, find bread at a field kitchen, bury the dead with respect and speed, mark unexploded shells with a stick so children don’t touch them. You learn Allied hand signals for “stop” and “go.” You wait for the front to move.",
+          "global_image_id": "6-1-2"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 6,
+          "chapter_title": "June 1944. At first light, the horizon is a black band of ships. The beaches from Utah and Omaha in the west to Gold, Juno, and Sword in the east are hammered by naval guns. If you live in Vierville-sur-Mer above Omaha, your house shakes with every hit. The 352nd Infantry Division fires back; on Omaha, the beach runs red. If you live inland near Sainte-Mère-Église, you hear scattered gunfire—American paratroopers from the 82nd and 101st Airborne fighting to secure causeways. The first town liberated in France is Sainte-Mère-Église by mid-morning.",
+          "scene_number": 1,
+          "shot_number": 3,
+          "shot_type": "close-up detail",
+          "scene_text": "By late June, the front congeals. Operation Epsom (26–30 June) west of Caen brings heavy rain and shellfire. Operation Charnwood (8–9 July) takes northern Caen; Canadians then fight Operation Goodwood (18–20 July) to the east. If you live in Caen, you emerge to a moonscape on 9 July, the Orne bridges choked with debris. Meanwhile, across the bocage, hedgerows turn every lane into an ambush. Civilians learn new rules: never cross an open field; stay inside ditches; listen for snipers; beware of mines in orchards.",
+          "full_chapter_context": "[SCENE] Survival becomes tactical. If you are coastal, you drag mattresses into the cellar, brace doors, and stay away from windows—blast waves turn glass into knives. You move only when shelling pauses. If you have a white cloth, you hang it outside so advancing troops know civilians are inside. If you live in Bayeux, British troops of the 50th (Northumbrian) Division arrive on 7 June; the town is spared heavy destruction and becomes the first major town liberated. If you’re in Caen, the story is different: bombardments on 6–7 June devastate neighborhoods, but German defenses hold. You shelter for weeks.\n\nBy late June, the front congeals. Operation Epsom (26–30 June) west of Caen brings heavy rain and shellfire. Operation Charnwood (8–9 July) takes northern Caen; Canadians then fight Operation Goodwood (18–20 July) to the east. If you live in Caen, you emerge to a moonscape on 9 July, the Orne bridges choked with debris. Meanwhile, across the bocage, hedgerows turn every lane into an ambush. Civilians learn new rules: never cross an open field; stay inside ditches; listen for snipers; beware of mines in orchards.\n\n[SCENE] In Saint-Lô, the “Capital of Ruins,” US bombers hit on 6–7 June; fighting grinds on. Liberation comes on 18 July 1944 by troops of the US XIX Corps. The town is pulverized. How do you survive here? You boil water, focus on small tasks: salvage a pot, find bread at a field kitchen, bury the dead with respect and speed, mark unexploded shells with a stick so children don’t touch them. You learn Allied hand signals for “stop” and “go.” You wait for the front to move.",
+          "global_image_id": "6-1-3"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 5,
+          "chapter_title": "B",
+          "scene_number": 1,
+          "shot_number": 1,
+          "shot_type": "wide establishing shot",
+          "scene_text": "By late July, the stalemate breaks. Operation Cobra begins on 25 July 1944 with a carpet bombing south of Saint-Lô. The US First Army punches through toward Coutances and Avranches. If you’re a farmer near Périers, the ground trembles for hours. You keep your family in the cellar until the dust settles. Once the Americans roll past, you mark your gate with “Civils” or a tricolor flag; you bake bread in communal ovens to feed whoever shows up.",
+          "full_chapter_context": "By late July, the stalemate breaks. Operation Cobra begins on 25 July 1944 with a carpet bombing south of Saint-Lô. The US First Army punches through toward Coutances and Avranches. If you’re a farmer near Périers, the ground trembles for hours. You keep your family in the cellar until the dust settles. Once the Americans roll past, you mark your gate with “Civils” or a tricolor flag; you bake bread in communal ovens to feed whoever shows up.\n\n[SCENE] Early August brings a desperate German counterattack at Mortain—Operation Lüttich—7–12 August 1944. Panzers push west trying to cut off the US Third Army near Avranches. If you live in the hills around Mortain, you see low-flying Allied fighter-bombers, P-47 Thunderbolts, strike columns on narrow roads. You learn to shelter in stone caves, to wait for the whine of dive brakes before you move. Movement in daylight is perilous; stick to hedgerow shadows. Mark your doors with chalk to indicate civilians, elderly, children—anything to slow a trigger finger.\n\nThen comes the closing of the Falaise pocket, 12–21 August 1944. The Allies encircle German forces between Falaise, Argentan, Trun, and Chambois. The Polish 1st Armoured Division holds Hill 262—Mont-Ormel—sealing the escape. The smell of diesel, smoke, and death settles over fields. If you live near Trun, you hunker down while a moving cauldron of vehicles and soldiers tries to flee east. Crossing a road is a life-or-death decision. Better to dig in, wait for silence.\n\n[SCENE] Liberation rolls across Normandy, but survival isn’t over. Mines and booby traps litter lanes. Engineers mark safe paths with white tape. You teach children to follow boot prints, not shortcuts. Disease threatens with broken water mains; you draw from wells only after boiling. The Red Cross and local Secours National deliver blankets and tinned milk. De Gaulle arrives in Normandy on 14 June 1944, landing at Courseulles-sur-Mer, visiting Bayeux, asserting French authority against an Allied military government. Bayeux becomes an administrative anchor while Caen rebuilds. You line up for ration cards again, this time with hope.\n\nWinter 1944–45 is hard. Roofs leak; glass is rare; fuel scarcer. But the front has moved east toward the Seine. Normandy breathes again.",
+          "global_image_id": "5-1-1"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 5,
+          "chapter_title": "B",
+          "scene_number": 1,
+          "shot_number": 2,
+          "shot_type": "medium shot",
+          "scene_text": "By late July, the stalemate breaks. Operation Cobra begins on 25 July 1944 with a carpet bombing south of Saint-Lô. The US First Army punches through toward Coutances and Avranches. If you’re a farmer near Périers, the ground trembles for hours. You keep your family in the cellar until the dust settles. Once the Americans roll past, you mark your gate with “Civils” or a tricolor flag; you bake bread in communal ovens to feed whoever shows up.",
+          "full_chapter_context": "By late July, the stalemate breaks. Operation Cobra begins on 25 July 1944 with a carpet bombing south of Saint-Lô. The US First Army punches through toward Coutances and Avranches. If you’re a farmer near Périers, the ground trembles for hours. You keep your family in the cellar until the dust settles. Once the Americans roll past, you mark your gate with “Civils” or a tricolor flag; you bake bread in communal ovens to feed whoever shows up.\n\n[SCENE] Early August brings a desperate German counterattack at Mortain—Operation Lüttich—7–12 August 1944. Panzers push west trying to cut off the US Third Army near Avranches. If you live in the hills around Mortain, you see low-flying Allied fighter-bombers, P-47 Thunderbolts, strike columns on narrow roads. You learn to shelter in stone caves, to wait for the whine of dive brakes before you move. Movement in daylight is perilous; stick to hedgerow shadows. Mark your doors with chalk to indicate civilians, elderly, children—anything to slow a trigger finger.\n\nThen comes the closing of the Falaise pocket, 12–21 August 1944. The Allies encircle German forces between Falaise, Argentan, Trun, and Chambois. The Polish 1st Armoured Division holds Hill 262—Mont-Ormel—sealing the escape. The smell of diesel, smoke, and death settles over fields. If you live near Trun, you hunker down while a moving cauldron of vehicles and soldiers tries to flee east. Crossing a road is a life-or-death decision. Better to dig in, wait for silence.\n\n[SCENE] Liberation rolls across Normandy, but survival isn’t over. Mines and booby traps litter lanes. Engineers mark safe paths with white tape. You teach children to follow boot prints, not shortcuts. Disease threatens with broken water mains; you draw from wells only after boiling. The Red Cross and local Secours National deliver blankets and tinned milk. De Gaulle arrives in Normandy on 14 June 1944, landing at Courseulles-sur-Mer, visiting Bayeux, asserting French authority against an Allied military government. Bayeux becomes an administrative anchor while Caen rebuilds. You line up for ration cards again, this time with hope.\n\nWinter 1944–45 is hard. Roofs leak; glass is rare; fuel scarcer. But the front has moved east toward the Seine. Normandy breathes again.",
+          "global_image_id": "5-1-2"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 5,
+          "chapter_title": "B",
+          "scene_number": 1,
+          "shot_number": 3,
+          "shot_type": "close-up detail",
+          "scene_text": "By late July, the stalemate breaks. Operation Cobra begins on 25 July 1944 with a carpet bombing south of Saint-Lô. The US First Army punches through toward Coutances and Avranches. If you’re a farmer near Périers, the ground trembles for hours. You keep your family in the cellar until the dust settles. Once the Americans roll past, you mark your gate with “Civils” or a tricolor flag; you bake bread in communal ovens to feed whoever shows up.",
+          "full_chapter_context": "By late July, the stalemate breaks. Operation Cobra begins on 25 July 1944 with a carpet bombing south of Saint-Lô. The US First Army punches through toward Coutances and Avranches. If you’re a farmer near Périers, the ground trembles for hours. You keep your family in the cellar until the dust settles. Once the Americans roll past, you mark your gate with “Civils” or a tricolor flag; you bake bread in communal ovens to feed whoever shows up.\n\n[SCENE] Early August brings a desperate German counterattack at Mortain—Operation Lüttich—7–12 August 1944. Panzers push west trying to cut off the US Third Army near Avranches. If you live in the hills around Mortain, you see low-flying Allied fighter-bombers, P-47 Thunderbolts, strike columns on narrow roads. You learn to shelter in stone caves, to wait for the whine of dive brakes before you move. Movement in daylight is perilous; stick to hedgerow shadows. Mark your doors with chalk to indicate civilians, elderly, children—anything to slow a trigger finger.\n\nThen comes the closing of the Falaise pocket, 12–21 August 1944. The Allies encircle German forces between Falaise, Argentan, Trun, and Chambois. The Polish 1st Armoured Division holds Hill 262—Mont-Ormel—sealing the escape. The smell of diesel, smoke, and death settles over fields. If you live near Trun, you hunker down while a moving cauldron of vehicles and soldiers tries to flee east. Crossing a road is a life-or-death decision. Better to dig in, wait for silence.\n\n[SCENE] Liberation rolls across Normandy, but survival isn’t over. Mines and booby traps litter lanes. Engineers mark safe paths with white tape. You teach children to follow boot prints, not shortcuts. Disease threatens with broken water mains; you draw from wells only after boiling. The Red Cross and local Secours National deliver blankets and tinned milk. De Gaulle arrives in Normandy on 14 June 1944, landing at Courseulles-sur-Mer, visiting Bayeux, asserting French authority against an Allied military government. Bayeux becomes an administrative anchor while Caen rebuilds. You line up for ration cards again, this time with hope.\n\nWinter 1944–45 is hard. Roofs leak; glass is rare; fuel scarcer. But the front has moved east toward the Seine. Normandy breathes again.",
+          "global_image_id": "5-1-3"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 5,
+          "chapter_title": "B",
+          "scene_number": 2,
+          "shot_number": 1,
+          "shot_type": "wide establishing shot",
+          "scene_text": "Then comes the closing of the Falaise pocket, 12–21 August 1944. The Allies encircle German forces between Falaise, Argentan, Trun, and Chambois. The Polish 1st Armoured Division holds Hill 262—Mont-Ormel—sealing the escape. The smell of diesel, smoke, and death settles over fields. If you live near Trun, you hunker down while a moving cauldron of vehicles and soldiers tries to flee east. Crossing a road is a life-or-death decision. Better to dig in, wait for silence.",
+          "full_chapter_context": "By late July, the stalemate breaks. Operation Cobra begins on 25 July 1944 with a carpet bombing south of Saint-Lô. The US First Army punches through toward Coutances and Avranches. If you’re a farmer near Périers, the ground trembles for hours. You keep your family in the cellar until the dust settles. Once the Americans roll past, you mark your gate with “Civils” or a tricolor flag; you bake bread in communal ovens to feed whoever shows up.\n\n[SCENE] Early August brings a desperate German counterattack at Mortain—Operation Lüttich—7–12 August 1944. Panzers push west trying to cut off the US Third Army near Avranches. If you live in the hills around Mortain, you see low-flying Allied fighter-bombers, P-47 Thunderbolts, strike columns on narrow roads. You learn to shelter in stone caves, to wait for the whine of dive brakes before you move. Movement in daylight is perilous; stick to hedgerow shadows. Mark your doors with chalk to indicate civilians, elderly, children—anything to slow a trigger finger.\n\nThen comes the closing of the Falaise pocket, 12–21 August 1944. The Allies encircle German forces between Falaise, Argentan, Trun, and Chambois. The Polish 1st Armoured Division holds Hill 262—Mont-Ormel—sealing the escape. The smell of diesel, smoke, and death settles over fields. If you live near Trun, you hunker down while a moving cauldron of vehicles and soldiers tries to flee east. Crossing a road is a life-or-death decision. Better to dig in, wait for silence.\n\n[SCENE] Liberation rolls across Normandy, but survival isn’t over. Mines and booby traps litter lanes. Engineers mark safe paths with white tape. You teach children to follow boot prints, not shortcuts. Disease threatens with broken water mains; you draw from wells only after boiling. The Red Cross and local Secours National deliver blankets and tinned milk. De Gaulle arrives in Normandy on 14 June 1944, landing at Courseulles-sur-Mer, visiting Bayeux, asserting French authority against an Allied military government. Bayeux becomes an administrative anchor while Caen rebuilds. You line up for ration cards again, this time with hope.\n\nWinter 1944–45 is hard. Roofs leak; glass is rare; fuel scarcer. But the front has moved east toward the Seine. Normandy breathes again.",
+          "global_image_id": "5-2-1"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 5,
+          "chapter_title": "B",
+          "scene_number": 2,
+          "shot_number": 2,
+          "shot_type": "medium shot",
+          "scene_text": "Then comes the closing of the Falaise pocket, 12–21 August 1944. The Allies encircle German forces between Falaise, Argentan, Trun, and Chambois. The Polish 1st Armoured Division holds Hill 262—Mont-Ormel—sealing the escape. The smell of diesel, smoke, and death settles over fields. If you live near Trun, you hunker down while a moving cauldron of vehicles and soldiers tries to flee east. Crossing a road is a life-or-death decision. Better to dig in, wait for silence.",
+          "full_chapter_context": "By late July, the stalemate breaks. Operation Cobra begins on 25 July 1944 with a carpet bombing south of Saint-Lô. The US First Army punches through toward Coutances and Avranches. If you’re a farmer near Périers, the ground trembles for hours. You keep your family in the cellar until the dust settles. Once the Americans roll past, you mark your gate with “Civils” or a tricolor flag; you bake bread in communal ovens to feed whoever shows up.\n\n[SCENE] Early August brings a desperate German counterattack at Mortain—Operation Lüttich—7–12 August 1944. Panzers push west trying to cut off the US Third Army near Avranches. If you live in the hills around Mortain, you see low-flying Allied fighter-bombers, P-47 Thunderbolts, strike columns on narrow roads. You learn to shelter in stone caves, to wait for the whine of dive brakes before you move. Movement in daylight is perilous; stick to hedgerow shadows. Mark your doors with chalk to indicate civilians, elderly, children—anything to slow a trigger finger.\n\nThen comes the closing of the Falaise pocket, 12–21 August 1944. The Allies encircle German forces between Falaise, Argentan, Trun, and Chambois. The Polish 1st Armoured Division holds Hill 262—Mont-Ormel—sealing the escape. The smell of diesel, smoke, and death settles over fields. If you live near Trun, you hunker down while a moving cauldron of vehicles and soldiers tries to flee east. Crossing a road is a life-or-death decision. Better to dig in, wait for silence.\n\n[SCENE] Liberation rolls across Normandy, but survival isn’t over. Mines and booby traps litter lanes. Engineers mark safe paths with white tape. You teach children to follow boot prints, not shortcuts. Disease threatens with broken water mains; you draw from wells only after boiling. The Red Cross and local Secours National deliver blankets and tinned milk. De Gaulle arrives in Normandy on 14 June 1944, landing at Courseulles-sur-Mer, visiting Bayeux, asserting French authority against an Allied military government. Bayeux becomes an administrative anchor while Caen rebuilds. You line up for ration cards again, this time with hope.\n\nWinter 1944–45 is hard. Roofs leak; glass is rare; fuel scarcer. But the front has moved east toward the Seine. Normandy breathes again.",
+          "global_image_id": "5-2-2"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "chapter",
+          "chapter_number": 5,
+          "chapter_title": "B",
+          "scene_number": 2,
+          "shot_number": 3,
+          "shot_type": "close-up detail",
+          "scene_text": "Then comes the closing of the Falaise pocket, 12–21 August 1944. The Allies encircle German forces between Falaise, Argentan, Trun, and Chambois. The Polish 1st Armoured Division holds Hill 262—Mont-Ormel—sealing the escape. The smell of diesel, smoke, and death settles over fields. If you live near Trun, you hunker down while a moving cauldron of vehicles and soldiers tries to flee east. Crossing a road is a life-or-death decision. Better to dig in, wait for silence.",
+          "full_chapter_context": "By late July, the stalemate breaks. Operation Cobra begins on 25 July 1944 with a carpet bombing south of Saint-Lô. The US First Army punches through toward Coutances and Avranches. If you’re a farmer near Périers, the ground trembles for hours. You keep your family in the cellar until the dust settles. Once the Americans roll past, you mark your gate with “Civils” or a tricolor flag; you bake bread in communal ovens to feed whoever shows up.\n\n[SCENE] Early August brings a desperate German counterattack at Mortain—Operation Lüttich—7–12 August 1944. Panzers push west trying to cut off the US Third Army near Avranches. If you live in the hills around Mortain, you see low-flying Allied fighter-bombers, P-47 Thunderbolts, strike columns on narrow roads. You learn to shelter in stone caves, to wait for the whine of dive brakes before you move. Movement in daylight is perilous; stick to hedgerow shadows. Mark your doors with chalk to indicate civilians, elderly, children—anything to slow a trigger finger.\n\nThen comes the closing of the Falaise pocket, 12–21 August 1944. The Allies encircle German forces between Falaise, Argentan, Trun, and Chambois. The Polish 1st Armoured Division holds Hill 262—Mont-Ormel—sealing the escape. The smell of diesel, smoke, and death settles over fields. If you live near Trun, you hunker down while a moving cauldron of vehicles and soldiers tries to flee east. Crossing a road is a life-or-death decision. Better to dig in, wait for silence.\n\n[SCENE] Liberation rolls across Normandy, but survival isn’t over. Mines and booby traps litter lanes. Engineers mark safe paths with white tape. You teach children to follow boot prints, not shortcuts. Disease threatens with broken water mains; you draw from wells only after boiling. The Red Cross and local Secours National deliver blankets and tinned milk. De Gaulle arrives in Normandy on 14 June 1944, landing at Courseulles-sur-Mer, visiting Bayeux, asserting French authority against an Allied military government. Bayeux becomes an administrative anchor while Caen rebuilds. You line up for ration cards again, this time with hope.\n\nWinter 1944–45 is hard. Roofs leak; glass is rare; fuel scarcer. But the front has moved east toward the Seine. Normandy breathes again.",
+          "global_image_id": "5-2-3"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "outro",
+          "chapter_number": 7,
+          "chapter_title": "OUTRO",
+          "scene_number": 1,
+          "shot_number": 1,
+          "shot_type": "wide establishing shot",
+          "scene_text": "Surviving Normandy in World War II wasn’t a single decision. It was thousands of small ones made under unbearable pressure: when to whisper and when to keep silent; when to run and when to stay; which road to take when both were dangerous. It was about cellars and suitcases, ration cards and radio codes, hedgerows and white flags on doorways. It was about reading the sky—from Rommel’s inspections in early 1944 to the black horizon on 6 June—and adapting, day by day.",
+          "full_chapter_context": "Surviving Normandy in World War II wasn’t a single decision. It was thousands of small ones made under unbearable pressure: when to whisper and when to keep silent; when to run and when to stay; which road to take when both were dangerous. It was about cellars and suitcases, ration cards and radio codes, hedgerows and white flags on doorways. It was about reading the sky—from Rommel’s inspections in early 1944 to the black horizon on 6 June—and adapting, day by day.\n\nAfter August 1944, the headlines move on to Paris and the Rhine, but Normandy carries the scars: Caen’s broken streets, Saint-Lô’s shattered stones, fields seeded with shrapnel and memory. Yet life returns. Markets reopen in Bayeux. Children run in rebuilt schoolyards. Trains, repaired from the Transportation Plan’s wreckage, whistle again through the Orne valley.\n\nIf this story moved you, think of the civilians in every war zone today who make the same impossible choices, and share this video to keep their stories in view. Subscribe for more deep dives into everyday lives caught in extraordinary history, and let me know in the comments which place and period you want to explore next. History isn’t just commanders and campaigns—it’s people like you, surviving, enduring, and rebuilding.",
+          "global_image_id": "7-1-1"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "outro",
+          "chapter_number": 7,
+          "chapter_title": "OUTRO",
+          "scene_number": 1,
+          "shot_number": 2,
+          "shot_type": "medium shot",
+          "scene_text": "Surviving Normandy in World War II wasn’t a single decision. It was thousands of small ones made under unbearable pressure: when to whisper and when to keep silent; when to run and when to stay; which road to take when both were dangerous. It was about cellars and suitcases, ration cards and radio codes, hedgerows and white flags on doorways. It was about reading the sky—from Rommel’s inspections in early 1944 to the black horizon on 6 June—and adapting, day by day.",
+          "full_chapter_context": "Surviving Normandy in World War II wasn’t a single decision. It was thousands of small ones made under unbearable pressure: when to whisper and when to keep silent; when to run and when to stay; which road to take when both were dangerous. It was about cellars and suitcases, ration cards and radio codes, hedgerows and white flags on doorways. It was about reading the sky—from Rommel’s inspections in early 1944 to the black horizon on 6 June—and adapting, day by day.\n\nAfter August 1944, the headlines move on to Paris and the Rhine, but Normandy carries the scars: Caen’s broken streets, Saint-Lô’s shattered stones, fields seeded with shrapnel and memory. Yet life returns. Markets reopen in Bayeux. Children run in rebuilt schoolyards. Trains, repaired from the Transportation Plan’s wreckage, whistle again through the Orne valley.\n\nIf this story moved you, think of the civilians in every war zone today who make the same impossible choices, and share this video to keep their stories in view. Subscribe for more deep dives into everyday lives caught in extraordinary history, and let me know in the comments which place and period you want to explore next. History isn’t just commanders and campaigns—it’s people like you, surviving, enduring, and rebuilding.",
+          "global_image_id": "7-1-2"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "outro",
+          "chapter_number": 7,
+          "chapter_title": "OUTRO",
+          "scene_number": 2,
+          "shot_number": 1,
+          "shot_type": "wide establishing shot",
+          "scene_text": "After August 1944, the headlines move on to Paris and the Rhine, but Normandy carries the scars: Caen’s broken streets, Saint-Lô’s shattered stones, fields seeded with shrapnel and memory. Yet life returns. Markets reopen in Bayeux. Children run in rebuilt schoolyards. Trains, repaired from the Transportation Plan’s wreckage, whistle again through the Orne valley.",
+          "full_chapter_context": "Surviving Normandy in World War II wasn’t a single decision. It was thousands of small ones made under unbearable pressure: when to whisper and when to keep silent; when to run and when to stay; which road to take when both were dangerous. It was about cellars and suitcases, ration cards and radio codes, hedgerows and white flags on doorways. It was about reading the sky—from Rommel’s inspections in early 1944 to the black horizon on 6 June—and adapting, day by day.\n\nAfter August 1944, the headlines move on to Paris and the Rhine, but Normandy carries the scars: Caen’s broken streets, Saint-Lô’s shattered stones, fields seeded with shrapnel and memory. Yet life returns. Markets reopen in Bayeux. Children run in rebuilt schoolyards. Trains, repaired from the Transportation Plan’s wreckage, whistle again through the Orne valley.\n\nIf this story moved you, think of the civilians in every war zone today who make the same impossible choices, and share this video to keep their stories in view. Subscribe for more deep dives into everyday lives caught in extraordinary history, and let me know in the comments which place and period you want to explore next. History isn’t just commanders and campaigns—it’s people like you, surviving, enduring, and rebuilding.",
+          "global_image_id": "7-2-1"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "outro",
+          "chapter_number": 7,
+          "chapter_title": "OUTRO",
+          "scene_number": 2,
+          "shot_number": 2,
+          "shot_type": "medium shot",
+          "scene_text": "After August 1944, the headlines move on to Paris and the Rhine, but Normandy carries the scars: Caen’s broken streets, Saint-Lô’s shattered stones, fields seeded with shrapnel and memory. Yet life returns. Markets reopen in Bayeux. Children run in rebuilt schoolyards. Trains, repaired from the Transportation Plan’s wreckage, whistle again through the Orne valley.",
+          "full_chapter_context": "Surviving Normandy in World War II wasn’t a single decision. It was thousands of small ones made under unbearable pressure: when to whisper and when to keep silent; when to run and when to stay; which road to take when both were dangerous. It was about cellars and suitcases, ration cards and radio codes, hedgerows and white flags on doorways. It was about reading the sky—from Rommel’s inspections in early 1944 to the black horizon on 6 June—and adapting, day by day.\n\nAfter August 1944, the headlines move on to Paris and the Rhine, but Normandy carries the scars: Caen’s broken streets, Saint-Lô’s shattered stones, fields seeded with shrapnel and memory. Yet life returns. Markets reopen in Bayeux. Children run in rebuilt schoolyards. Trains, repaired from the Transportation Plan’s wreckage, whistle again through the Orne valley.\n\nIf this story moved you, think of the civilians in every war zone today who make the same impossible choices, and share this video to keep their stories in view. Subscribe for more deep dives into everyday lives caught in extraordinary history, and let me know in the comments which place and period you want to explore next. History isn’t just commanders and campaigns—it’s people like you, surviving, enduring, and rebuilding.",
+          "global_image_id": "7-2-2"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "outro",
+          "chapter_number": 7,
+          "chapter_title": "OUTRO",
+          "scene_number": 3,
+          "shot_number": 1,
+          "shot_type": "wide establishing shot",
+          "scene_text": "If this story moved you, think of the civilians in every war zone today who make the same impossible choices, and share this video to keep their stories in view. Subscribe for more deep dives into everyday lives caught in extraordinary history, and let me know in the comments which place and period you want to explore next. History isn’t just commanders and campaigns—it’s people like you, surviving, enduring, and rebuilding.",
+          "full_chapter_context": "Surviving Normandy in World War II wasn’t a single decision. It was thousands of small ones made under unbearable pressure: when to whisper and when to keep silent; when to run and when to stay; which road to take when both were dangerous. It was about cellars and suitcases, ration cards and radio codes, hedgerows and white flags on doorways. It was about reading the sky—from Rommel’s inspections in early 1944 to the black horizon on 6 June—and adapting, day by day.\n\nAfter August 1944, the headlines move on to Paris and the Rhine, but Normandy carries the scars: Caen’s broken streets, Saint-Lô’s shattered stones, fields seeded with shrapnel and memory. Yet life returns. Markets reopen in Bayeux. Children run in rebuilt schoolyards. Trains, repaired from the Transportation Plan’s wreckage, whistle again through the Orne valley.\n\nIf this story moved you, think of the civilians in every war zone today who make the same impossible choices, and share this video to keep their stories in view. Subscribe for more deep dives into everyday lives caught in extraordinary history, and let me know in the comments which place and period you want to explore next. History isn’t just commanders and campaigns—it’s people like you, surviving, enduring, and rebuilding.",
+          "global_image_id": "7-3-1"
+        }
+      },
+      {
+        "json": {
+          "chapter_type": "outro",
+          "chapter_number": 7,
+          "chapter_title": "OUTRO",
+          "scene_number": 3,
+          "shot_number": 2,
+          "shot_type": "medium shot",
+          "scene_text": "If this story moved you, think of the civilians in every war zone today who make the same impossible choices, and share this video to keep their stories in view. Subscribe for more deep dives into everyday lives caught in extraordinary history, and let me know in the comments which place and period you want to explore next. History isn’t just commanders and campaigns—it’s people like you, surviving, enduring, and rebuilding.",
+          "full_chapter_context": "Surviving Normandy in World War II wasn’t a single decision. It was thousands of small ones made under unbearable pressure: when to whisper and when to keep silent; when to run and when to stay; which road to take when both were dangerous. It was about cellars and suitcases, ration cards and radio codes, hedgerows and white flags on doorways. It was about reading the sky—from Rommel’s inspections in early 1944 to the black horizon on 6 June—and adapting, day by day.\n\nAfter August 1944, the headlines move on to Paris and the Rhine, but Normandy carries the scars: Caen’s broken streets, Saint-Lô’s shattered stones, fields seeded with shrapnel and memory. Yet life returns. Markets reopen in Bayeux. Children run in rebuilt schoolyards. Trains, repaired from the Transportation Plan’s wreckage, whistle again through the Orne valley.\n\nIf this story moved you, think of the civilians in every war zone today who make the same impossible choices, and share this video to keep their stories in view. Subscribe for more deep dives into everyday lives caught in extraordinary history, and let me know in the comments which place and period you want to explore next. History isn’t just commanders and campaigns—it’s people like you, surviving, enduring, and rebuilding.",
+          "global_image_id": "7-3-2"
+        }
+      }
+    ],
+    "Create Image Prompts": [
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "Panoramic wide establishing shot of coastal Normandy, 1942–44: rolling fields divided by thick bocage hedgerows and a sunken lane leading to a stone village with slate roofs and a slender Gothic church spire. Grey Channel beyond a small fishing harbor with wooden dories and nets. Atlantic Wall defenses on the dunes: barbed wire, Czech hedgehogs, wooden stakes with Teller mines, a low concrete casemate under camouflage netting. Wehrmacht patrol in feldgrau with M35 helmets and Kar98k rifles near a sandbag checkpoint and striped barrier; Opel Blitz truck parked by a wall plastered with “Avis” notices and German signage. Civilians in 1940s rural dress—berets, headscarves, wool coats—keeping to bicycles. Overcast sky, cool muted light, distant smoke on the horizon.",
+            "refusal": null,
+            "annotations": []
+          },
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "Medium shot, eye-level, 50mm, 1940–1944 Normandy, France. Two French civilians by a bocage lane: a woman in a wool coat, floral dress, and headscarf; a teenage boy in a knit sweater, short trousers, and flat cap. The boy holds a folded 1940s road map labeled “Normandie.” A black bicycle with a wicker basket leans against the hedgerow. Background: stone farmhouse with slate roof and timbered facade, a distant church spire, grey Channel with small wooden fishing boats. On a cottage wall, an “Avis” occupation notice in French and German and a wooden road sign pointing “Caen.” Strands of barbed wire and a low concrete bunker on a headland. Far background, out of focus, field-grey sentry with Stahlhelm, Kar98k slung. Overcast coastal light, muted tones.",
+            "refusal": null,
+            "annotations": []
+          },
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "Wide establishing shot of Normandy coast, June 1944: a cobblestoned street in a coastal village leading to dunes and the sea; Norman stone and half‑timber cottages with slate roofs; a Bayeux-style épicerie window showing ration cards, a scale, bread loaves, a small crystal radio half-hidden under a cloth; German occupation posters and “Ausgangssperre” notices; a sandbagged roadblock sign “Achtung Kontrolle,” Wehrmacht helmet silhouette; a farmhand in flat cap, suspenders, muddy boots pushing a bicycle with burlap potato sacks; a fisherman’s daughter in wool sweater, headscarf, holding nets; distant bocage hedgerows and a horse cart; concrete pillbox with MG embrasure and Czech hedgehogs on the beach; cold dawn light, smoke haze; sea packed with landing craft, transports, destroyers, barrage balloons; sky dense with aircraft bearing black‑white invasion stripes.",
+            "refusal": null,
+            "annotations": []
+          },
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "Medium shot; three French civilians in 1944 Normandy near the coast. Left: middle-aged shopkeeper, flour-dusted apron over tweed jacket, flat cap. Center: farmhand with beret, suspenders, rough linen shirt, muddy leather boots. Right: fisherman’s daughter, headscarf, knitted sweater, oiled-canvas jacket, wool skirt, wicker basket holding a loaf, ration cards, and a small valve radio partly hidden. Behind them: limestone shopfront and cobbled street, French and German notices, red-bordered Bekanntmachung poster, blackout curtains. Far background over slate rooftops: grey Channel crowded with landing craft and warships; sky streaked with C-47 formations and fighters. A German sentry at a sandbagged roadblock with MP40 and M40 helmet. Overcast light, smoke haze, muted wartime palette.",
+            "refusal": null,
+            "annotations": []
+          },
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "Wide establishing shot of a Normandy village, pre-dawn. Cobbled square with sandbagged doorways, slate-roofed stone cottages, timber beams, and a Romanesque church tower; a parachute snagged on the belfry. Civilian figures bundled in 1940s attire: women in patterned knee-length dresses, aprons, headscarves; men in berets and wool jackets with bicycles; children in short pants and wooden clogs clutching ration books and tin pails. Wall posters reading “Avis” in French/German; a fingerpost points “Caen,” “Bayeux,” “Ste-Mère-Église.” Bocage hedgerows and sunken lanes radiate outward; bomb-scarred facades, shattered tiles, a burned cart. Dawn-blue light with orange flashes on the horizon, low smoke columns, faint AA tracers and aircraft contrails; scattered descending parachutes over misty fields. Muted wartime color palette, slight grit.",
+            "refusal": null,
+            "annotations": []
+          },
+          "finish_reason": "stop"
+        }
+      }
+    ]
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-02T00:18:13.843Z",
+      "createdAt": "2026-01-02T00:18:13.843Z",
+      "role": "workflow:owner",
+      "workflowId": "c8wTsecxlownNWYE",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [
+    {
+      "updatedAt": "2026-01-02T00:11:45.175Z",
+      "createdAt": "2026-01-02T00:11:45.175Z",
+      "id": "Nv0q5Xe9NlSzAxaP",
+      "name": "Active"
+    },
+    {
+      "updatedAt": "2026-01-01T23:34:57.104Z",
+      "createdAt": "2026-01-01T23:34:57.104Z",
+      "id": "cWvn38zmhXZXXPxj",
+      "name": "Client Work"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-11T02:06:26.211Z",
+  "versionId": "9ae60e37-a43e-41ce-ba4c-dfc494603e7f"
+}
