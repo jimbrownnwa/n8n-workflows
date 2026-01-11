@@ -1,0 +1,1718 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-01-05T18:31:16.000Z",
+    "createdAt": "2026-01-05T18:31:10.848Z",
+    "versionId": "227de394-3676-4079-ae01-79d0ef544a72",
+    "workflowId": "p1nl5OqdqWe0Sem2",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "roi/analyze",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "id": "7ff95248-a72e-421c-81f4-6b16a32284da",
+        "name": "Webhook Trigger",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          -448,
+          160
+        ],
+        "webhookId": "roi-analyze"
+      },
+      {
+        "parameters": {
+          "jsCode": "const body = $input.first().json.body || {};\nconst isScheduled = !$input.first().json.body;\n\n// Determine period dates\nconst now = new Date();\nconst periodRanges = {\n  daily: {\n    start: new Date(now.getTime() - 24 * 60 * 60 * 1000),\n    end: now\n  },\n  weekly: {\n    start: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),\n    end: now\n  },\n  monthly: {\n    start: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),\n    end: now\n  }\n};\n\n// Set defaults\nconst mode = body.mode || 'full';\nconst period = body.period || 'monthly';\n\n// Validate mode\nconst validModes = ['full', 'campaign', 'what-if', 'report'];\nif (!validModes.includes(mode)) {\n  throw new Error(`Invalid mode. Must be one of: ${validModes.join(', ')}`);\n}\n\n// Validate campaign_id for campaign mode\nif (mode === 'campaign' && !body.campaign_id) {\n  throw new Error('campaign_id is required for campaign mode');\n}\n\n// Validate what-if parameters\nif (mode === 'what-if') {\n  if (!body.what_if || !body.what_if.additional_budget) {\n    throw new Error('what_if.additional_budget is required for what-if mode');\n  }\n  if (body.what_if.additional_budget <= 0) {\n    throw new Error('what_if.additional_budget must be positive');\n  }\n}\n\n// Calculate date range\nlet dateRange;\nif (body.date_range && body.date_range.start && body.date_range.end) {\n  dateRange = {\n    start: new Date(body.date_range.start),\n    end: new Date(body.date_range.end)\n  };\n} else {\n  dateRange = periodRanges[period] || periodRanges.monthly;\n}\n\n// Validate date range\nif (dateRange.end < dateRange.start) {\n  throw new Error('end date must be after start date');\n}\n\nconst daysDiff = Math.ceil((dateRange.end - dateRange.start) / (1000 * 60 * 60 * 24));\nif (daysDiff > 365) {\n  throw new Error('Date range cannot exceed 365 days');\n}\n\nreturn [{\n  json: {\n    mode: mode,\n    campaign_id: body.campaign_id || null,\n    period: period,\n    date_range: {\n      start: dateRange.start.toISOString().split('T')[0],\n      end: dateRange.end.toISOString().split('T')[0],\n      days: daysDiff\n    },\n    generate_recommendations: body.generate_recommendations !== false,\n    what_if: body.what_if || null,\n    report_options: body.report_options || {\n      format: 'summary',\n      include_recommendations: true,\n      include_projections: true\n    },\n    triggered_by: isScheduled ? 'schedule' : 'webhook',\n    triggered_at: now.toISOString()\n  }\n}];"
+        },
+        "id": "7c5a435a-9ad3-4ca9-a4d8-7d1eb72b64d3",
+        "name": "Validate Input & Set Defaults",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -224,
+          160
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "getAll",
+          "tableId": "performance_metrics",
+          "limit": 1000,
+          "matchType": "allFilters",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "metric_date",
+                "condition": "dateAfterOrEqual",
+                "keyValue": "={{ $node['Validate Input & Set Defaults'].json.date_range.start }}"
+              },
+              {
+                "keyName": "metric_date",
+                "condition": "dateBeforeOrEqual",
+                "keyValue": "={{ $node['Validate Input & Set Defaults'].json.date_range.end }}"
+              }
+            ]
+          }
+        },
+        "id": "51d73863-c4ff-43b1-8cae-3a7169f53dd1",
+        "name": "Get Performance Metrics",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          0,
+          0
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "H2otb0ZjBMDnmMPT",
+            "name": "LocalPulse Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "getAll",
+          "tableId": "campaigns",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "status",
+                "condition": "equals",
+                "keyValue": "active"
+              },
+              {
+                "keyName": "status",
+                "condition": "equals",
+                "keyValue": "completed"
+              },
+              {
+                "keyName": "status",
+                "condition": "equals",
+                "keyValue": "paused"
+              }
+            ]
+          }
+        },
+        "id": "0ff50093-9a37-43f3-977a-10d162a4f544",
+        "name": "Get Campaign Data",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          0,
+          160
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "H2otb0ZjBMDnmMPT",
+            "name": "LocalPulse Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "getAll",
+          "tableId": "roi_snapshots",
+          "limit": 100,
+          "filterType": "string",
+          "filterString": "order=snapshot_date.desc&limit=100"
+        },
+        "id": "af7de2aa-5b21-4b0a-b316-817518f0b412",
+        "name": "Get Historical Snapshots",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          0,
+          304
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "H2otb0ZjBMDnmMPT",
+            "name": "LocalPulse Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const params = $node['Validate Input & Set Defaults'].json;\nconst metrics = $node['Get Performance Metrics'].json;\nconst campaigns = $node['Get Campaign Data'].json;\nconst historicalSnapshots = $node['Get Historical Snapshots'].json;\n\n// Aggregate metrics by campaign\nconst campaignMetrics = {};\n\nfor (const m of metrics) {\n  const cid = m.campaign_id;\n  if (!campaignMetrics[cid]) {\n    campaignMetrics[cid] = {\n      campaign_id: cid,\n      impressions: 0,\n      reach: 0,\n      engagements: 0,\n      clicks: 0,\n      spend: 0,\n      conversions: 0,\n      conversion_value: 0,\n      days_active: new Set(),\n      platforms: new Set(),\n      daily_metrics: []\n    };\n  }\n  \n  const c = campaignMetrics[cid];\n  c.impressions += m.impressions || 0;\n  c.reach += m.reach || 0;\n  c.engagements += m.engagements || 0;\n  c.clicks += m.clicks || 0;\n  c.spend += m.spend || 0;\n  c.conversions += m.conversions || 0;\n  c.conversion_value += m.conversion_value || 0;\n  c.days_active.add(m.metric_date);\n  c.platforms.add(m.platform);\n  \n  c.daily_metrics.push({\n    date: m.metric_date,\n    platform: m.platform,\n    spend: m.spend,\n    conversions: m.conversions,\n    conversion_value: m.conversion_value\n  });\n}\n\n// Calculate ROI metrics for each campaign\nconst campaignROI = Object.values(campaignMetrics).map(c => {\n  const campaign = campaigns.find(camp => camp.id === c.campaign_id);\n  \n  // Core ROAS calculation\n  const roas = c.spend > 0 \n    ? parseFloat((c.conversion_value / c.spend).toFixed(2))\n    : null;\n  \n  // ROI percentage\n  const roi = c.spend > 0\n    ? parseFloat((((c.conversion_value - c.spend) / c.spend) * 100).toFixed(2))\n    : null;\n  \n  // Cost metrics\n  const cpc = c.clicks > 0 ? parseFloat((c.spend / c.clicks).toFixed(2)) : null;\n  const cpm = c.impressions > 0 ? parseFloat((c.spend / c.impressions * 1000).toFixed(2)) : null;\n  const cpa = c.conversions > 0 ? parseFloat((c.spend / c.conversions).toFixed(2)) : null;\n  const cpe = c.engagements > 0 ? parseFloat((c.spend / c.engagements).toFixed(2)) : null;\n  \n  // Efficiency metrics\n  const engagementRate = c.reach > 0 ? parseFloat(((c.engagements / c.reach) * 100).toFixed(2)) : 0;\n  const ctr = c.impressions > 0 ? parseFloat(((c.clicks / c.impressions) * 100).toFixed(2)) : 0;\n  const conversionRate = c.clicks > 0 ? parseFloat(((c.conversions / c.clicks) * 100).toFixed(2)) : 0;\n  const avgConversionValue = c.conversions > 0 ? parseFloat((c.conversion_value / c.conversions).toFixed(2)) : null;\n  \n  // Daily averages\n  const daysActive = c.days_active.size;\n  const avgDailySpend = daysActive > 0 ? parseFloat((c.spend / daysActive).toFixed(2)) : 0;\n  const avgDailyConversions = daysActive > 0 ? parseFloat((c.conversions / daysActive).toFixed(2)) : 0;\n  \n  // Budget utilization\n  const budgetTotal = campaign?.budget_total || 0;\n  const budgetUtilization = budgetTotal > 0 ? parseFloat(((c.spend / budgetTotal) * 100).toFixed(1)) : null;\n  \n  // Profit calculation\n  const grossProfit = c.conversion_value - c.spend;\n  const profitMargin = c.conversion_value > 0 ? parseFloat(((grossProfit / c.conversion_value) * 100).toFixed(2)) : null;\n  \n  return {\n    campaign_id: c.campaign_id,\n    campaign_name: campaign?.name || 'Unknown',\n    campaign_type: campaign?.campaign_type || 'unknown',\n    campaign_status: campaign?.status || 'unknown',\n    impressions: c.impressions,\n    reach: c.reach,\n    engagements: c.engagements,\n    clicks: c.clicks,\n    conversions: c.conversions,\n    spend: parseFloat(c.spend.toFixed(2)),\n    revenue: parseFloat(c.conversion_value.toFixed(2)),\n    gross_profit: parseFloat(grossProfit.toFixed(2)),\n    roas: roas,\n    roi_percent: roi,\n    profit_margin: profitMargin,\n    cpc: cpc,\n    cpm: cpm,\n    cpa: cpa,\n    cpe: cpe,\n    engagement_rate: engagementRate,\n    ctr: ctr,\n    conversion_rate: conversionRate,\n    avg_conversion_value: avgConversionValue,\n    days_active: daysActive,\n    avg_daily_spend: avgDailySpend,\n    avg_daily_conversions: avgDailyConversions,\n    budget_total: budgetTotal,\n    budget_utilization: budgetUtilization,\n    platforms: Array.from(c.platforms),\n    date_range: params.date_range\n  };\n});\n\n// Calculate overall totals\nconst totals = campaignROI.reduce((acc, c) => {\n  acc.impressions += c.impressions;\n  acc.reach += c.reach;\n  acc.engagements += c.engagements;\n  acc.clicks += c.clicks;\n  acc.conversions += c.conversions;\n  acc.spend += c.spend;\n  acc.revenue += c.revenue;\n  return acc;\n}, {\n  impressions: 0, reach: 0, engagements: 0,\n  clicks: 0, conversions: 0, spend: 0, revenue: 0\n});\n\ntotals.roas = totals.spend > 0 ? parseFloat((totals.revenue / totals.spend).toFixed(2)) : null;\ntotals.gross_profit = parseFloat((totals.revenue - totals.spend).toFixed(2));\ntotals.roi_percent = totals.spend > 0 ? parseFloat((((totals.revenue - totals.spend) / totals.spend) * 100).toFixed(2)) : null;\n\n// Calculate period-over-period change\nlet periodChange = null;\nif (historicalSnapshots.length > 0) {\n  const prevTotalSpend = historicalSnapshots.reduce((sum, s) => sum + (s.total_spend || 0), 0);\n  const prevTotalRevenue = historicalSnapshots.reduce((sum, s) => sum + (s.total_revenue || 0), 0);\n  const prevRoas = prevTotalSpend > 0 ? prevTotalRevenue / prevTotalSpend : null;\n  \n  if (prevRoas && totals.roas) {\n    periodChange = {\n      roas_change: parseFloat((totals.roas - prevRoas).toFixed(2)),\n      roas_change_percent: parseFloat((((totals.roas - prevRoas) / prevRoas) * 100).toFixed(1)),\n      spend_change: parseFloat((totals.spend - prevTotalSpend).toFixed(2)),\n      revenue_change: parseFloat((totals.revenue - prevTotalRevenue).toFixed(2))\n    };\n  }\n}\n\nreturn [{\n  json: {\n    campaigns: campaignROI,\n    totals: totals,\n    period_change: periodChange,\n    analysis_period: params.date_range,\n    campaign_count: campaignROI.length\n  }\n}];"
+        },
+        "id": "1ee62a79-c447-4412-b3d6-aac2236524d8",
+        "name": "Calculate ROAS & ROI Metrics",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          240,
+          160
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const metrics = $node['Get Performance Metrics'].json;\nconst params = $node['Validate Input & Set Defaults'].json;\n\n// Aggregate by channel\nconst channelMetrics = {};\n\nfor (const m of metrics) {\n  const channel = m.platform;\n  if (!channelMetrics[channel]) {\n    channelMetrics[channel] = {\n      channel: channel,\n      impressions: 0,\n      reach: 0,\n      engagements: 0,\n      clicks: 0,\n      spend: 0,\n      conversions: 0,\n      conversion_value: 0,\n      content_count: 0\n    };\n  }\n  \n  const c = channelMetrics[channel];\n  c.impressions += m.impressions || 0;\n  c.reach += m.reach || 0;\n  c.engagements += m.engagements || 0;\n  c.clicks += m.clicks || 0;\n  c.spend += m.spend || 0;\n  c.conversions += m.conversions || 0;\n  c.conversion_value += m.conversion_value || 0;\n  c.content_count++;\n}\n\n// Calculate ROI metrics per channel\nconst channelROI = Object.values(channelMetrics).map(c => {\n  const roas = c.spend > 0 ? parseFloat((c.conversion_value / c.spend).toFixed(2)) : null;\n  const cpa = c.conversions > 0 ? parseFloat((c.spend / c.conversions).toFixed(2)) : null;\n  const cpc = c.clicks > 0 ? parseFloat((c.spend / c.clicks).toFixed(2)) : null;\n  const conversionRate = c.clicks > 0 ? parseFloat(((c.conversions / c.clicks) * 100).toFixed(2)) : 0;\n  const engagementRate = c.reach > 0 ? parseFloat(((c.engagements / c.reach) * 100).toFixed(2)) : 0;\n  \n  return {\n    channel: c.channel,\n    channel_display: {\n      facebook: 'Facebook',\n      instagram: 'Instagram',\n      google_business: 'Google Business'\n    }[c.channel] || c.channel,\n    impressions: c.impressions,\n    reach: c.reach,\n    clicks: c.clicks,\n    conversions: c.conversions,\n    content_count: c.content_count,\n    spend: parseFloat(c.spend.toFixed(2)),\n    revenue: parseFloat(c.conversion_value.toFixed(2)),\n    profit: parseFloat((c.conversion_value - c.spend).toFixed(2)),\n    roas: roas,\n    cpa: cpa,\n    cpc: cpc,\n    conversion_rate: conversionRate,\n    engagement_rate: engagementRate\n  };\n});\n\nchannelROI.sort((a, b) => (b.roas || 0) - (a.roas || 0));\n\nconst totalSpend = channelROI.reduce((sum, c) => sum + c.spend, 0);\nconst totalRevenue = channelROI.reduce((sum, c) => sum + c.revenue, 0);\nconst channelMix = channelROI.map(c => ({\n  channel: c.channel,\n  spend_percent: totalSpend > 0 ? parseFloat(((c.spend / totalSpend) * 100).toFixed(1)) : 0,\n  revenue_percent: totalRevenue > 0 ? parseFloat(((c.revenue / totalRevenue) * 100).toFixed(1)) : 0\n}));\n\nreturn [{\n  json: {\n    channels: channelROI,\n    channel_mix: channelMix,\n    best_performer: channelROI[0]?.channel || null,\n    worst_performer: channelROI[channelROI.length - 1]?.channel || null\n  }\n}];"
+        },
+        "id": "da3f0ab7-0e5e-449f-850a-7696890cbb41",
+        "name": "Calculate Channel Performance",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          240,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const roiData = $node['Calculate ROAS & ROI Metrics'].json;\nconst channelData = $node['Calculate Channel Performance'].json;\n\n// Industry benchmarks for home services\nconst benchmarks = {\n  overall: {\n    roas: { poor: 1.5, average: 3.0, good: 4.5, excellent: 6.0 },\n    cpa: { excellent: 25, good: 45, average: 65, poor: 100 },\n    conversion_rate: { poor: 1, average: 2.5, good: 4, excellent: 6 },\n    engagement_rate: { poor: 1.5, average: 3, good: 5, excellent: 8 },\n    ctr: { poor: 0.5, average: 1, good: 2, excellent: 3.5 },\n    cpc: { excellent: 0.75, good: 1.50, average: 2.50, poor: 4.00 }\n  },\n  byChannel: {\n    facebook: { roas: { average: 3.2 }, cpa: { average: 55 }, cpc: { average: 1.80 }, engagement_rate: { average: 3.5 } },\n    instagram: { roas: { average: 2.8 }, cpa: { average: 60 }, cpc: { average: 2.10 }, engagement_rate: { average: 4.5 } },\n    google_business: { roas: { average: 4.5 }, cpa: { average: 40 }, conversion_rate: { average: 5 } }\n  }\n};\n\nfunction rateMetric(value, thresholds, higherIsBetter = true) {\n  if (value === null || value === undefined) return { rating: 'N/A', score: 0 };\n  if (higherIsBetter) {\n    if (value >= thresholds.excellent) return { rating: 'Excellent', score: 100 };\n    if (value >= thresholds.good) return { rating: 'Good', score: 75 };\n    if (value >= thresholds.average) return { rating: 'Average', score: 50 };\n    return { rating: 'Needs Improvement', score: 25 };\n  } else {\n    if (value <= thresholds.excellent) return { rating: 'Excellent', score: 100 };\n    if (value <= thresholds.good) return { rating: 'Good', score: 75 };\n    if (value <= thresholds.average) return { rating: 'Average', score: 50 };\n    return { rating: 'Needs Improvement', score: 25 };\n  }\n}\n\nconst avgCpa = roiData.campaigns.length > 0 ? roiData.campaigns.reduce((sum, c) => sum + (c.cpa || 0), 0) / Math.max(1, roiData.campaigns.filter(c => c.cpa).length) : null;\nconst avgConvRate = roiData.campaigns.length > 0 ? roiData.campaigns.reduce((sum, c) => sum + (c.conversion_rate || 0), 0) / Math.max(1, roiData.campaigns.length) : null;\n\nconst overallAssessment = {\n  roas: { value: roiData.totals.roas, ...rateMetric(roiData.totals.roas, benchmarks.overall.roas, true), benchmark: benchmarks.overall.roas.average },\n  cpa: { value: avgCpa, ...rateMetric(avgCpa, benchmarks.overall.cpa, false), benchmark: benchmarks.overall.cpa.average },\n  conversion_rate: { value: avgConvRate, ...rateMetric(avgConvRate, benchmarks.overall.conversion_rate, true), benchmark: benchmarks.overall.conversion_rate.average }\n};\n\nconst healthScores = [overallAssessment.roas.score, overallAssessment.cpa.score, overallAssessment.conversion_rate.score].filter(s => s > 0);\nconst overallHealthScore = healthScores.length > 0 ? Math.round(healthScores.reduce((a, b) => a + b, 0) / healthScores.length) : 0;\nconst healthStatus = overallHealthScore >= 75 ? 'Excellent' : overallHealthScore >= 50 ? 'Good' : overallHealthScore >= 25 ? 'Needs Attention' : 'Critical';\n\nconst channelAssessments = channelData.channels.map(ch => {\n  const channelBench = benchmarks.byChannel[ch.channel] || benchmarks.byChannel.facebook;\n  return {\n    channel: ch.channel,\n    roas: {\n      value: ch.roas,\n      vs_benchmark: ch.roas && channelBench.roas.average ? parseFloat(((ch.roas / channelBench.roas.average - 1) * 100).toFixed(1)) : null,\n      benchmark: channelBench.roas.average\n    },\n    cpa: {\n      value: ch.cpa,\n      vs_benchmark: ch.cpa && channelBench.cpa.average ? parseFloat(((1 - ch.cpa / channelBench.cpa.average) * 100).toFixed(1)) : null,\n      benchmark: channelBench.cpa.average\n    }\n  };\n});\n\nreturn [{\n  json: {\n    overall_health: {\n      score: overallHealthScore,\n      status: healthStatus,\n      color: healthStatus === 'Excellent' ? 'green' : healthStatus === 'Good' ? 'blue' : healthStatus === 'Needs Attention' ? 'yellow' : 'red'\n    },\n    metrics_assessment: overallAssessment,\n    channel_assessments: channelAssessments,\n    benchmarks: benchmarks,\n    summary: {\n      above_benchmark: Object.values(overallAssessment).filter(m => m.score >= 75).length,\n      at_benchmark: Object.values(overallAssessment).filter(m => m.score >= 50 && m.score < 75).length,\n      below_benchmark: Object.values(overallAssessment).filter(m => m.score < 50 && m.score > 0).length\n    }\n  }\n}];"
+        },
+        "id": "13264521-9c26-4957-a042-9b5fdec92120",
+        "name": "Compare to Benchmarks",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          464,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict"
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $node['Validate Input & Set Defaults'].json.mode }}",
+                      "rightValue": "full",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "full"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict"
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $node['Validate Input & Set Defaults'].json.mode }}",
+                      "rightValue": "campaign",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "campaign"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict"
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $node['Validate Input & Set Defaults'].json.mode }}",
+                      "rightValue": "what-if",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "what-if"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict"
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $node['Validate Input & Set Defaults'].json.mode }}",
+                      "rightValue": "report",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "report"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "25f7b2cf-a09d-43ae-922c-d2efc7a225c2",
+        "name": "Switch by Mode",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3,
+        "position": [
+          672,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const params = $node['Validate Input & Set Defaults'].json;\nconst roiData = $node['Calculate ROAS & ROI Metrics'].json;\nconst channelData = $node['Calculate Channel Performance'].json;\nconst benchmarkData = $node['Compare to Benchmarks'].json;\n\nconst prompt = `You are an expert marketing ROI analyst for a home services company (HVAC, Plumbing, Electrical). Analyze this performance data and provide actionable recommendations.\n\n## Analysis Period\n${params.date_range.start} to ${params.date_range.end} (${params.date_range.days} days)\n\n## Overall Performance\n- Total Spend: $${roiData.totals.spend.toFixed(2)}\n- Total Revenue: $${roiData.totals.revenue.toFixed(2)}\n- Gross Profit: $${roiData.totals.gross_profit.toFixed(2)}\n- Overall ROAS: ${roiData.totals.roas}x\n- Overall ROI: ${roiData.totals.roi_percent}%\n- Total Conversions: ${roiData.totals.conversions}\n\n## Health Score\n- Score: ${benchmarkData.overall_health.score}/100\n- Status: ${benchmarkData.overall_health.status}\n\n## Campaign Performance\n${roiData.campaigns.map(c => `\n### ${c.campaign_name}\n- Status: ${c.campaign_status}\n- Spend: $${c.spend} | Revenue: $${c.revenue}\n- ROAS: ${c.roas}x | ROI: ${c.roi_percent}%\n- CPA: $${c.cpa} | Conversion Rate: ${c.conversion_rate}%\n- Budget Utilization: ${c.budget_utilization}%\n`).join('\\n')}\n\n## Channel Performance\n${channelData.channels.map(ch => `\n### ${ch.channel_display}\n- Spend: $${ch.spend} (${channelData.channel_mix.find(m => m.channel === ch.channel)?.spend_percent}% of total)\n- Revenue: $${ch.revenue}\n- ROAS: ${ch.roas}x\n- CPA: $${ch.cpa}\n- Conversion Rate: ${ch.conversion_rate}%\n`).join('\\n')}\n\n## Benchmark Comparison\n- Best Performing Channel: ${channelData.best_performer}\n- Worst Performing Channel: ${channelData.worst_performer}\n- Metrics Above Benchmark: ${benchmarkData.summary.above_benchmark}\n- Metrics Below Benchmark: ${benchmarkData.summary.below_benchmark}\n\n## Task\nGenerate 4-6 specific, actionable recommendations. For each recommendation:\n\n1. **Type**: One of: 'boost', 'pause', 'reallocate', 'optimize', 'create'\n2. **Priority**: 'high', 'medium', or 'low'\n3. **Title**: Clear, action-oriented (max 60 chars)\n4. **Description**: What specific action to take\n5. **Rationale**: Why, backed by data\n6. **Expected Impact**: Quantified improvement estimate\n7. **Suggested Action**: Specific implementation steps\n\n## Output Format (JSON)\n{\n  \"recommendations\": [\n    {\n      \"recommendation_type\": \"reallocate\",\n      \"priority\": \"high\",\n      \"title\": \"Shift Budget from Instagram to Google Business\",\n      \"description\": \"Reallocate 30% of Instagram budget to Google Business Profile campaigns\",\n      \"rationale\": \"Google Business is achieving 4.2x ROAS vs Instagram's 2.1x, with 40% lower CPA\",\n      \"expected_impact\": {\n        \"metric\": \"overall_roas\",\n        \"current_value\": 3.2,\n        \"projected_value\": 3.8,\n        \"improvement\": \"+18.75%\"\n      },\n      \"suggested_action\": {\n        \"action\": \"Reduce Instagram daily budget from $25 to $17.50, increase Google Business from $15 to $22.50\",\n        \"timeline\": \"Implement within 3 days\",\n        \"monitor\": \"Review after 7 days\"\n      },\n      \"related_campaign_id\": null,\n      \"related_channel\": \"google_business\"\n    }\n  ],\n  \"summary\": {\n    \"overall_assessment\": \"Your marketing is performing above/at/below industry benchmarks...\",\n    \"top_opportunity\": \"Brief description of biggest opportunity\",\n    \"biggest_risk\": \"Brief description of main concern\",\n    \"recommended_monthly_budget\": 1500\n  }\n}\n\nReturn ONLY valid JSON, no additional text.`;\n\nreturn [{\n  json: {\n    model: 'claude-sonnet-4-20250514',\n    max_tokens: 4096,\n    messages: [{\n      role: 'user',\n      content: prompt\n    }]\n  }\n}];"
+        },
+        "id": "fa335ebf-75cb-4b15-94a0-6e022b07ab29",
+        "name": "Build AI Recommendations Prompt",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          896,
+          64
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.anthropic.com/v1/messages",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "anthropicApi",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "anthropic-version",
+                "value": "2023-06-01"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ $json }}",
+          "options": {
+            "timeout": 30000
+          }
+        },
+        "id": "e9e65dc9-9b95-4d17-a75b-bdd0867e30e6",
+        "name": "Generate AI Recommendations",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [
+          1120,
+          64
+        ],
+        "credentials": {
+          "anthropicApi": {
+            "id": "QIUyAAWFmOxaIZc6",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const params = $node['Validate Input & Set Defaults'].json;\nconst roiData = $node['Calculate ROAS & ROI Metrics'].json;\nconst channelData = $node['Calculate Channel Performance'].json;\n\nconst whatIf = params.what_if;\nconst additionalBudget = whatIf.additional_budget;\nconst targetChannel = whatIf.target_channel || channelData.best_performer;\nconst durationDays = whatIf.duration_days || 14;\n\nconst channelPerf = channelData.channels.find(c => c.channel === targetChannel);\n\nif (!channelPerf) {\n  return [{ json: { success: false, error: `No data available for channel: ${targetChannel}` } }];\n}\n\nconst currentCPC = channelPerf.cpc || 2.00;\nconst currentConversionRate = channelPerf.conversion_rate || 2.5;\nconst currentROAS = channelPerf.roas || 3.0;\nconst avgConversionValue = channelPerf.revenue / Math.max(1, channelPerf.conversions) || 250;\n\nconst projectedClicks = Math.floor(additionalBudget / currentCPC);\nconst projectedConversions = Math.floor(projectedClicks * (currentConversionRate / 100));\nconst projectedRevenue = projectedConversions * avgConversionValue;\nconst projectedROAS = additionalBudget > 0 ? projectedRevenue / additionalBudget : 0;\nconst projectedProfit = projectedRevenue - additionalBudget;\n\nconst dataPoints = channelPerf.content_count || 1;\nconst confidence = Math.min(95, 50 + (dataPoints * 5));\n\nconst conservativeMultiplier = 0.7;\nconst optimisticMultiplier = 1.3;\n\nconst scenarios = {\n  conservative: {\n    conversions: Math.floor(projectedConversions * conservativeMultiplier),\n    revenue: parseFloat((projectedRevenue * conservativeMultiplier).toFixed(2)),\n    roas: parseFloat((projectedROAS * conservativeMultiplier).toFixed(2)),\n    profit: parseFloat((projectedProfit * conservativeMultiplier).toFixed(2))\n  },\n  projected: {\n    conversions: projectedConversions,\n    revenue: parseFloat(projectedRevenue.toFixed(2)),\n    roas: parseFloat(projectedROAS.toFixed(2)),\n    profit: parseFloat(projectedProfit.toFixed(2))\n  },\n  optimistic: {\n    conversions: Math.floor(projectedConversions * optimisticMultiplier),\n    revenue: parseFloat((projectedRevenue * optimisticMultiplier).toFixed(2)),\n    roas: parseFloat((projectedROAS * optimisticMultiplier).toFixed(2)),\n    profit: parseFloat((projectedProfit * optimisticMultiplier).toFixed(2))\n  }\n};\n\nconst dailyBudget = additionalBudget / durationDays;\nconst dailyProjectedConversions = projectedConversions / durationDays;\nconst breakEvenConversions = Math.ceil(additionalBudget / avgConversionValue);\nconst breakEvenDays = dailyProjectedConversions > 0 ? Math.ceil(breakEvenConversions / dailyProjectedConversions) : null;\n\nlet recommendation;\nif (projectedROAS >= 3.0) {\n  recommendation = { action: 'Strongly Recommend', reason: `Projected ${projectedROAS.toFixed(2)}x ROAS exceeds industry average of 3.0x`, confidence: 'High' };\n} else if (projectedROAS >= 2.0) {\n  recommendation = { action: 'Cautiously Recommend', reason: `Projected ${projectedROAS.toFixed(2)}x ROAS is acceptable but below optimal`, confidence: 'Medium' };\n} else {\n  recommendation = { action: 'Not Recommended', reason: `Projected ${projectedROAS.toFixed(2)}x ROAS is below acceptable threshold`, confidence: 'Medium' };\n}\n\nreturn [{\n  json: {\n    success: true,\n    what_if_params: { additional_budget: additionalBudget, target_channel: targetChannel, duration_days: durationDays, daily_budget: parseFloat(dailyBudget.toFixed(2)) },\n    current_performance: { channel: targetChannel, cpc: currentCPC, conversion_rate: currentConversionRate, roas: currentROAS, avg_conversion_value: parseFloat(avgConversionValue.toFixed(2)) },\n    projections: { additional_clicks: projectedClicks, scenarios: scenarios },\n    break_even: { conversions_needed: breakEvenConversions, estimated_days: breakEvenDays },\n    recommendation: recommendation,\n    confidence_level: `${confidence}%`,\n    assumptions: ['Performance remains consistent with historical data', 'No significant market changes during projection period', 'Ad fatigue effects not factored in for periods over 30 days']\n  }\n}];"
+        },
+        "id": "b30011fc-8f3e-4c4b-bdfd-4fd4de8de93a",
+        "name": "What-If Projections",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          896,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const params = $node['Validate Input & Set Defaults'].json;\nconst roiData = $node['Calculate ROAS & ROI Metrics'].json;\nconst channelData = $node['Calculate Channel Performance'].json;\nconst benchmarkData = $node['Compare to Benchmarks'].json;\n\nconst reportFormat = params.report_options.format;\n\nconst prompt = `You are a marketing analyst creating a ${reportFormat} ROI report for a home services company.\n\n## Report Parameters\n- Period: ${params.date_range.start} to ${params.date_range.end}\n- Format: ${reportFormat}\n- Include Recommendations: ${params.report_options.include_recommendations}\n- Include Projections: ${params.report_options.include_projections}\n\n## Performance Data\n${JSON.stringify({ totals: roiData.totals, campaigns: roiData.campaigns, channels: channelData.channels, health: benchmarkData.overall_health, period_change: roiData.period_change }, null, 2)}\n\n## Task\nGenerate a professional marketing ROI report in JSON:\n\n{\n  \"report\": {\n    \"title\": \"Marketing ROI Report - [Period]\",\n    \"executive_summary\": \"2-3 paragraph overview...\",\n    \"key_metrics\": { \"total_spend\": \"$X\", \"total_revenue\": \"$X\", \"roas\": \"Xx\", \"conversions\": X, \"health_score\": \"X/100\" },\n    \"highlights\": [\"Key achievement 1\", \"Key achievement 2\"],\n    \"concerns\": [\"Area needing attention 1\"],\n    \"channel_breakdown\": { \"facebook\": { \"summary\": \"...\", \"recommendation\": \"...\" } },\n    \"campaign_performance\": [{ \"name\": \"Campaign Name\", \"status\": \"active\", \"performance\": \"Above benchmark\", \"key_stat\": \"4.2x ROAS\" }],\n    ${params.report_options.include_recommendations ? '\"recommendations\": [{ \"priority\": \"high\", \"action\": \"...\", \"expected_impact\": \"...\" }],' : ''}\n    ${params.report_options.include_projections ? '\"next_period_outlook\": { \"projected_spend\": \"$X\", \"projected_revenue\": \"$X\", \"projected_roas\": \"Xx\", \"key_focus_areas\": [\"Focus 1\"] },' : ''}\n    \"conclusion\": \"Final summary...\"\n  }\n}\n\n${reportFormat === 'summary' ? 'Keep it concise - 1 page equivalent.' : 'Provide detailed analysis.'}\nReturn ONLY valid JSON.`;\n\nreturn [{\n  json: {\n    model: 'claude-sonnet-4-20250514',\n    max_tokens: reportFormat === 'detailed' ? 8192 : 4096,\n    messages: [{ role: 'user', content: prompt }]\n  }\n}];"
+        },
+        "id": "66ca7d1e-1381-4df4-b32d-648b465c5a7c",
+        "name": "Build Report Prompt",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          896,
+          400
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.anthropic.com/v1/messages",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "anthropicApi",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "anthropic-version",
+                "value": "2023-06-01"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ $json }}",
+          "options": {
+            "timeout": 30000
+          }
+        },
+        "id": "3620eecb-ea81-4556-8146-1f4a7721f554",
+        "name": "Generate Report",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [
+          1120,
+          400
+        ],
+        "credentials": {
+          "anthropicApi": {
+            "id": "QIUyAAWFmOxaIZc6",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const params = $node['Validate Input & Set Defaults'].json;\nconst aiResponse = $input.first().json;\n\nlet parsedResponse;\n\nif (params.mode === 'what-if') {\n  parsedResponse = $node['What-If Projections'].json;\n} else {\n  const rawContent = aiResponse.content?.[0]?.text || aiResponse.text || '';\n  \n  try {\n    let cleanContent = rawContent.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n    const jsonMatch = cleanContent.match(/\\{[\\s\\S]*\\}/);\n    if (jsonMatch) {\n      cleanContent = jsonMatch[0];\n    }\n    parsedResponse = JSON.parse(cleanContent);\n  } catch (error) {\n    console.error('Failed to parse AI response:', rawContent);\n    throw new Error(`Failed to parse AI response: ${error.message}`);\n  }\n}\n\nif (params.mode === 'report') {\n  if (!parsedResponse.report) throw new Error('Report response missing report object');\n} else if (params.mode === 'full' || params.mode === 'campaign') {\n  if (!parsedResponse.recommendations) throw new Error('Response missing recommendations array');\n}\n\nreturn [{ json: { mode: params.mode, response: parsedResponse } }];"
+        },
+        "id": "67bb702d-009f-4121-aae4-5bc0c5075fca",
+        "name": "Parse AI Response",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1344,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const params = $node['Validate Input & Set Defaults'].json;\nconst roiData = $node['Calculate ROAS & ROI Metrics'].json;\nconst channelData = $node['Calculate Channel Performance'].json;\nconst benchmarkData = $node['Compare to Benchmarks'].json;\nconst parsedAI = $node['Parse AI Response'].json;\n\nconst finalResult = {\n  analysis_period: params.date_range,\n  overall_health: benchmarkData.overall_health,\n  totals: roiData.totals,\n  period_change: roiData.period_change,\n  campaigns: roiData.campaigns,\n  channels: channelData.channels,\n  channel_mix: channelData.channel_mix,\n  benchmark_comparison: {\n    metrics: benchmarkData.metrics_assessment,\n    channels: benchmarkData.channel_assessments,\n    summary: benchmarkData.summary\n  }\n};\n\nswitch (params.mode) {\n  case 'full':\n  case 'campaign':\n    finalResult.recommendations = parsedAI.response.recommendations || [];\n    finalResult.ai_summary = parsedAI.response.summary || null;\n    break;\n  case 'what-if':\n    finalResult.what_if_analysis = parsedAI.response;\n    break;\n  case 'report':\n    finalResult.report = parsedAI.response.report;\n    break;\n}\n\nreturn [{ json: finalResult }];"
+        },
+        "id": "2596ab26-6594-4506-a868-0b59ed97a0c1",
+        "name": "Merge Results",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1552,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const result = $node['Merge Results'].json;\nconst params = $node['Validate Input & Set Defaults'].json;\n\nconst overallSnapshot = {\n  snapshot_date: new Date().toISOString().split('T')[0],\n  period_type: params.period,\n  channel: 'all',\n  campaign_id: params.campaign_id,\n  total_spend: result.totals.spend,\n  total_revenue: result.totals.revenue,\n  roas: result.totals.roas,\n  cpc: result.campaigns.length > 0 ? result.campaigns.reduce((sum, c) => sum + (c.cpc || 0), 0) / result.campaigns.filter(c => c.cpc).length : null,\n  cpm: result.campaigns.length > 0 ? result.campaigns.reduce((sum, c) => sum + (c.cpm || 0), 0) / result.campaigns.filter(c => c.cpm).length : null,\n  cpa: result.campaigns.length > 0 ? result.campaigns.reduce((sum, c) => sum + (c.cpa || 0), 0) / result.campaigns.filter(c => c.cpa).length : null,\n  total_conversions: result.totals.conversions\n};\n\nconst channelSnapshots = result.channels.map(ch => ({\n  snapshot_date: new Date().toISOString().split('T')[0],\n  period_type: params.period,\n  channel: ch.channel,\n  campaign_id: null,\n  total_spend: ch.spend,\n  total_revenue: ch.revenue,\n  roas: ch.roas,\n  cpc: ch.cpc,\n  cpm: null,\n  cpa: ch.cpa,\n  total_conversions: ch.conversions\n}));\n\nreturn [overallSnapshot, ...channelSnapshots].map(s => ({ json: s }));"
+        },
+        "id": "8f3306fd-cc38-4f70-9bc5-ba1f6670fd58",
+        "name": "Prepare ROI Snapshots",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1776,
+          112
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "insert"
+        },
+        "id": "14867245-012c-4bec-9cf7-76570bbea0a1",
+        "name": "Save ROI Snapshots",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          2000,
+          112
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "H2otb0ZjBMDnmMPT",
+            "name": "LocalPulse Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const result = $node['Merge Results'].json;\nconst params = $node['Validate Input & Set Defaults'].json;\n\nif (!result.recommendations || result.recommendations.length === 0) {\n  return [{ json: { skip: true, reason: 'no_recommendations' } }];\n}\n\nconst recommendations = result.recommendations.map(rec => ({\n  json: {\n    recommendation_type: rec.recommendation_type,\n    priority: rec.priority,\n    title: rec.title,\n    description: rec.description,\n    rationale: rec.rationale,\n    related_campaign_id: rec.related_campaign_id || params.campaign_id,\n    related_content_id: rec.related_content_id || null,\n    suggested_action: JSON.stringify(rec.suggested_action),\n    potential_impact: JSON.stringify(rec.expected_impact),\n    status: 'pending'\n  }\n}));\n\nreturn recommendations;"
+        },
+        "id": "b0dcec4f-fe5f-44e5-91b5-8a1b2920d0c9",
+        "name": "Prepare Recommendations",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1776,
+          256
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "insert"
+        },
+        "id": "467d26c2-c7b2-41d5-9fe1-eaef80a53966",
+        "name": "Save Recommendations",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          2000,
+          256
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "H2otb0ZjBMDnmMPT",
+            "name": "LocalPulse Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "tableId": "ai_recommendations",
+          "matchType": "allFilters",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "status",
+                "condition": "equals",
+                "keyValue": "pending"
+              }
+            ]
+          },
+          "fieldsUi": {
+            "fieldValues": [
+              {
+                "fieldId": "status",
+                "fieldValue": "expired"
+              }
+            ]
+          }
+        },
+        "id": "8191de84-36ea-4cb4-82f9-e4594f874ec1",
+        "name": "Expire Old Recommendations",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          2000,
+          400
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "H2otb0ZjBMDnmMPT",
+            "name": "LocalPulse Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "insert"
+        },
+        "id": "e3e37276-f144-4440-9fe3-70f0d1b45e8e",
+        "name": "Log Activity",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          2224,
+          240
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "H2otb0ZjBMDnmMPT",
+            "name": "LocalPulse Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ JSON.stringify({ success: true, data: $node['Merge Results'].json, meta: { mode: $node['Validate Input & Set Defaults'].json.mode, period: $node['Validate Input & Set Defaults'].json.period, date_range: $node['Validate Input & Set Defaults'].json.date_range, processing_time_ms: Date.now() - new Date($node['Validate Input & Set Defaults'].json.triggered_at).getTime() } }, null, 2) }}",
+          "options": {}
+        },
+        "id": "33f7264c-a76d-4720-b875-ee8ef465ef3d",
+        "name": "Respond to Webhook",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1,
+        "position": [
+          2432,
+          240
+        ]
+      }
+    ],
+    "connections": {
+      "Webhook Trigger": {
+        "main": [
+          [
+            {
+              "node": "Validate Input & Set Defaults",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Validate Input & Set Defaults": {
+        "main": [
+          [
+            {
+              "node": "Get Performance Metrics",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Get Campaign Data",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Get Historical Snapshots",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Performance Metrics": {
+        "main": [
+          [
+            {
+              "node": "Calculate ROAS & ROI Metrics",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Calculate Channel Performance",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Campaign Data": {
+        "main": [
+          [
+            {
+              "node": "Calculate ROAS & ROI Metrics",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Historical Snapshots": {
+        "main": [
+          [
+            {
+              "node": "Calculate ROAS & ROI Metrics",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Calculate ROAS & ROI Metrics": {
+        "main": [
+          [
+            {
+              "node": "Compare to Benchmarks",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Calculate Channel Performance": {
+        "main": [
+          [
+            {
+              "node": "Compare to Benchmarks",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Compare to Benchmarks": {
+        "main": [
+          [
+            {
+              "node": "Switch by Mode",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Switch by Mode": {
+        "main": [
+          [
+            {
+              "node": "Build AI Recommendations Prompt",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Build AI Recommendations Prompt",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "What-If Projections",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Build Report Prompt",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build AI Recommendations Prompt": {
+        "main": [
+          [
+            {
+              "node": "Generate AI Recommendations",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generate AI Recommendations": {
+        "main": [
+          [
+            {
+              "node": "Parse AI Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "What-If Projections": {
+        "main": [
+          [
+            {
+              "node": "Parse AI Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Report Prompt": {
+        "main": [
+          [
+            {
+              "node": "Generate Report",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generate Report": {
+        "main": [
+          [
+            {
+              "node": "Parse AI Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse AI Response": {
+        "main": [
+          [
+            {
+              "node": "Merge Results",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Merge Results": {
+        "main": [
+          [
+            {
+              "node": "Prepare ROI Snapshots",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Prepare Recommendations",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prepare ROI Snapshots": {
+        "main": [
+          [
+            {
+              "node": "Save ROI Snapshots",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Save ROI Snapshots": {
+        "main": [
+          [
+            {
+              "node": "Log Activity",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prepare Recommendations": {
+        "main": [
+          [
+            {
+              "node": "Save Recommendations",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Save Recommendations": {
+        "main": [
+          [
+            {
+              "node": "Expire Old Recommendations",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Log Activity",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Expire Old Recommendations": {
+        "main": [
+          [
+            {
+              "node": "Log Activity",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Log Activity": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "James Brown",
+    "name": "Version 227de394",
+    "description": "",
+    "autosaved": false
+  },
+  "activeVersionId": "227de394-3676-4079-ae01-79d0ef544a72",
+  "connections": {
+    "Validate Input & Set Defaults": {
+      "main": [
+        [
+          {
+            "node": "Get Performance Metrics",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Campaign Data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Historical Snapshots",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Performance Metrics": {
+      "main": [
+        [
+          {
+            "node": "Calculate ROAS & ROI Metrics",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Calculate Channel Performance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Campaign Data": {
+      "main": [
+        [
+          {
+            "node": "Calculate ROAS & ROI Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Historical Snapshots": {
+      "main": [
+        [
+          {
+            "node": "Calculate ROAS & ROI Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate ROAS & ROI Metrics": {
+      "main": [
+        [
+          {
+            "node": "Compare to Benchmarks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Channel Performance": {
+      "main": [
+        [
+          {
+            "node": "Compare to Benchmarks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compare to Benchmarks": {
+      "main": [
+        [
+          {
+            "node": "Switch by Mode",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch by Mode": {
+      "main": [
+        [
+          {
+            "node": "Build AI Recommendations Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build AI Recommendations Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "What-If Projections",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Report Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build AI Recommendations Prompt": {
+      "main": [
+        [
+          {
+            "node": "Generate AI Recommendations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate AI Recommendations": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "What-If Projections": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Report Prompt": {
+      "main": [
+        [
+          {
+            "node": "Generate Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Report": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Response": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Results": {
+      "main": [
+        [
+          {
+            "node": "Prepare ROI Snapshots",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Prepare Recommendations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare ROI Snapshots": {
+      "main": [
+        [
+          {
+            "node": "Save ROI Snapshots",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save ROI Snapshots": {
+      "main": [
+        [
+          {
+            "node": "Log Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Recommendations": {
+      "main": [
+        [
+          {
+            "node": "Save Recommendations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Recommendations": {
+      "main": [
+        [
+          {
+            "node": "Expire Old Recommendations",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Expire Old Recommendations": {
+      "main": [
+        [
+          {
+            "node": "Log Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Activity": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Triggers": {
+      "main": [
+        [
+          {
+            "node": "Validate Input & Set Defaults",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-05T18:08:05.955Z",
+  "id": "p1nl5OqdqWe0Sem2",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "ROAS Optimizer",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body || {};\nconst isScheduled = !$input.first().json.body;\n\n// Determine period dates\nconst now = new Date();\nconst periodRanges = {\n  daily: {\n    start: new Date(now.getTime() - 24 * 60 * 60 * 1000),\n    end: now\n  },\n  weekly: {\n    start: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),\n    end: now\n  },\n  monthly: {\n    start: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),\n    end: now\n  }\n};\n\n// Set defaults\nconst mode = body.mode || 'full';\nconst period = body.period || 'monthly';\n\n// Validate mode\nconst validModes = ['full', 'campaign', 'what-if', 'report'];\nif (!validModes.includes(mode)) {\n  throw new Error(`Invalid mode. Must be one of: ${validModes.join(', ')}`);\n}\n\n// Validate campaign_id for campaign mode\nif (mode === 'campaign' && !body.campaign_id) {\n  throw new Error('campaign_id is required for campaign mode');\n}\n\n// Validate what-if parameters\nif (mode === 'what-if') {\n  if (!body.what_if || !body.what_if.additional_budget) {\n    throw new Error('what_if.additional_budget is required for what-if mode');\n  }\n  if (body.what_if.additional_budget <= 0) {\n    throw new Error('what_if.additional_budget must be positive');\n  }\n}\n\n// Calculate date range\nlet dateRange;\nif (body.date_range && body.date_range.start && body.date_range.end) {\n  dateRange = {\n    start: new Date(body.date_range.start),\n    end: new Date(body.date_range.end)\n  };\n} else {\n  dateRange = periodRanges[period] || periodRanges.monthly;\n}\n\n// Validate date range\nif (dateRange.end < dateRange.start) {\n  throw new Error('end date must be after start date');\n}\n\nconst daysDiff = Math.ceil((dateRange.end - dateRange.start) / (1000 * 60 * 60 * 24));\nif (daysDiff > 365) {\n  throw new Error('Date range cannot exceed 365 days');\n}\n\nreturn [{\n  json: {\n    mode: mode,\n    campaign_id: body.campaign_id || null,\n    period: period,\n    date_range: {\n      start: dateRange.start.toISOString().split('T')[0],\n      end: dateRange.end.toISOString().split('T')[0],\n      days: daysDiff\n    },\n    generate_recommendations: body.generate_recommendations !== false,\n    what_if: body.what_if || null,\n    report_options: body.report_options || {\n      format: 'summary',\n      include_recommendations: true,\n      include_projections: true\n    },\n    triggered_by: isScheduled ? 'schedule' : 'webhook',\n    triggered_at: now.toISOString()\n  }\n}];"
+      },
+      "id": "7c5a435a-9ad3-4ca9-a4d8-7d1eb72b64d3",
+      "name": "Validate Input & Set Defaults",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "performance_metrics",
+        "limit": 1000,
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "metric_date",
+              "condition": "dateAfterOrEqual",
+              "keyValue": "={{ $node['Validate Input & Set Defaults'].json.date_range.start }}"
+            },
+            {
+              "keyName": "metric_date",
+              "condition": "dateBeforeOrEqual",
+              "keyValue": "={{ $node['Validate Input & Set Defaults'].json.date_range.end }}"
+            }
+          ]
+        }
+      },
+      "id": "51d73863-c4ff-43b1-8cae-3a7169f53dd1",
+      "name": "Get Performance Metrics",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "campaigns",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "status",
+              "condition": "equals",
+              "keyValue": "active"
+            },
+            {
+              "keyName": "status",
+              "condition": "equals",
+              "keyValue": "completed"
+            },
+            {
+              "keyName": "status",
+              "condition": "equals",
+              "keyValue": "paused"
+            }
+          ]
+        }
+      },
+      "id": "0ff50093-9a37-43f3-977a-10d162a4f544",
+      "name": "Get Campaign Data",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        0,
+        160
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "roi_snapshots",
+        "limit": 100,
+        "filterType": "string",
+        "filterString": "order=snapshot_date.desc&limit=100"
+      },
+      "id": "af7de2aa-5b21-4b0a-b316-817518f0b412",
+      "name": "Get Historical Snapshots",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        0,
+        304
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const params = $node['Validate Input & Set Defaults'].json;\nconst metrics = $node['Get Performance Metrics'].json;\nconst campaigns = $node['Get Campaign Data'].json;\nconst historicalSnapshots = $node['Get Historical Snapshots'].json;\n\n// Aggregate metrics by campaign\nconst campaignMetrics = {};\n\nfor (const m of metrics) {\n  const cid = m.campaign_id;\n  if (!campaignMetrics[cid]) {\n    campaignMetrics[cid] = {\n      campaign_id: cid,\n      impressions: 0,\n      reach: 0,\n      engagements: 0,\n      clicks: 0,\n      spend: 0,\n      conversions: 0,\n      conversion_value: 0,\n      days_active: new Set(),\n      platforms: new Set(),\n      daily_metrics: []\n    };\n  }\n  \n  const c = campaignMetrics[cid];\n  c.impressions += m.impressions || 0;\n  c.reach += m.reach || 0;\n  c.engagements += m.engagements || 0;\n  c.clicks += m.clicks || 0;\n  c.spend += m.spend || 0;\n  c.conversions += m.conversions || 0;\n  c.conversion_value += m.conversion_value || 0;\n  c.days_active.add(m.metric_date);\n  c.platforms.add(m.platform);\n  \n  c.daily_metrics.push({\n    date: m.metric_date,\n    platform: m.platform,\n    spend: m.spend,\n    conversions: m.conversions,\n    conversion_value: m.conversion_value\n  });\n}\n\n// Calculate ROI metrics for each campaign\nconst campaignROI = Object.values(campaignMetrics).map(c => {\n  const campaign = campaigns.find(camp => camp.id === c.campaign_id);\n  \n  // Core ROAS calculation\n  const roas = c.spend > 0 \n    ? parseFloat((c.conversion_value / c.spend).toFixed(2))\n    : null;\n  \n  // ROI percentage\n  const roi = c.spend > 0\n    ? parseFloat((((c.conversion_value - c.spend) / c.spend) * 100).toFixed(2))\n    : null;\n  \n  // Cost metrics\n  const cpc = c.clicks > 0 ? parseFloat((c.spend / c.clicks).toFixed(2)) : null;\n  const cpm = c.impressions > 0 ? parseFloat((c.spend / c.impressions * 1000).toFixed(2)) : null;\n  const cpa = c.conversions > 0 ? parseFloat((c.spend / c.conversions).toFixed(2)) : null;\n  const cpe = c.engagements > 0 ? parseFloat((c.spend / c.engagements).toFixed(2)) : null;\n  \n  // Efficiency metrics\n  const engagementRate = c.reach > 0 ? parseFloat(((c.engagements / c.reach) * 100).toFixed(2)) : 0;\n  const ctr = c.impressions > 0 ? parseFloat(((c.clicks / c.impressions) * 100).toFixed(2)) : 0;\n  const conversionRate = c.clicks > 0 ? parseFloat(((c.conversions / c.clicks) * 100).toFixed(2)) : 0;\n  const avgConversionValue = c.conversions > 0 ? parseFloat((c.conversion_value / c.conversions).toFixed(2)) : null;\n  \n  // Daily averages\n  const daysActive = c.days_active.size;\n  const avgDailySpend = daysActive > 0 ? parseFloat((c.spend / daysActive).toFixed(2)) : 0;\n  const avgDailyConversions = daysActive > 0 ? parseFloat((c.conversions / daysActive).toFixed(2)) : 0;\n  \n  // Budget utilization\n  const budgetTotal = campaign?.budget_total || 0;\n  const budgetUtilization = budgetTotal > 0 ? parseFloat(((c.spend / budgetTotal) * 100).toFixed(1)) : null;\n  \n  // Profit calculation\n  const grossProfit = c.conversion_value - c.spend;\n  const profitMargin = c.conversion_value > 0 ? parseFloat(((grossProfit / c.conversion_value) * 100).toFixed(2)) : null;\n  \n  return {\n    campaign_id: c.campaign_id,\n    campaign_name: campaign?.name || 'Unknown',\n    campaign_type: campaign?.campaign_type || 'unknown',\n    campaign_status: campaign?.status || 'unknown',\n    impressions: c.impressions,\n    reach: c.reach,\n    engagements: c.engagements,\n    clicks: c.clicks,\n    conversions: c.conversions,\n    spend: parseFloat(c.spend.toFixed(2)),\n    revenue: parseFloat(c.conversion_value.toFixed(2)),\n    gross_profit: parseFloat(grossProfit.toFixed(2)),\n    roas: roas,\n    roi_percent: roi,\n    profit_margin: profitMargin,\n    cpc: cpc,\n    cpm: cpm,\n    cpa: cpa,\n    cpe: cpe,\n    engagement_rate: engagementRate,\n    ctr: ctr,\n    conversion_rate: conversionRate,\n    avg_conversion_value: avgConversionValue,\n    days_active: daysActive,\n    avg_daily_spend: avgDailySpend,\n    avg_daily_conversions: avgDailyConversions,\n    budget_total: budgetTotal,\n    budget_utilization: budgetUtilization,\n    platforms: Array.from(c.platforms),\n    date_range: params.date_range\n  };\n});\n\n// Calculate overall totals\nconst totals = campaignROI.reduce((acc, c) => {\n  acc.impressions += c.impressions;\n  acc.reach += c.reach;\n  acc.engagements += c.engagements;\n  acc.clicks += c.clicks;\n  acc.conversions += c.conversions;\n  acc.spend += c.spend;\n  acc.revenue += c.revenue;\n  return acc;\n}, {\n  impressions: 0, reach: 0, engagements: 0,\n  clicks: 0, conversions: 0, spend: 0, revenue: 0\n});\n\ntotals.roas = totals.spend > 0 ? parseFloat((totals.revenue / totals.spend).toFixed(2)) : null;\ntotals.gross_profit = parseFloat((totals.revenue - totals.spend).toFixed(2));\ntotals.roi_percent = totals.spend > 0 ? parseFloat((((totals.revenue - totals.spend) / totals.spend) * 100).toFixed(2)) : null;\n\n// Calculate period-over-period change\nlet periodChange = null;\nif (historicalSnapshots.length > 0) {\n  const prevTotalSpend = historicalSnapshots.reduce((sum, s) => sum + (s.total_spend || 0), 0);\n  const prevTotalRevenue = historicalSnapshots.reduce((sum, s) => sum + (s.total_revenue || 0), 0);\n  const prevRoas = prevTotalSpend > 0 ? prevTotalRevenue / prevTotalSpend : null;\n  \n  if (prevRoas && totals.roas) {\n    periodChange = {\n      roas_change: parseFloat((totals.roas - prevRoas).toFixed(2)),\n      roas_change_percent: parseFloat((((totals.roas - prevRoas) / prevRoas) * 100).toFixed(1)),\n      spend_change: parseFloat((totals.spend - prevTotalSpend).toFixed(2)),\n      revenue_change: parseFloat((totals.revenue - prevTotalRevenue).toFixed(2))\n    };\n  }\n}\n\nreturn [{\n  json: {\n    campaigns: campaignROI,\n    totals: totals,\n    period_change: periodChange,\n    analysis_period: params.date_range,\n    campaign_count: campaignROI.length\n  }\n}];"
+      },
+      "id": "1ee62a79-c447-4412-b3d6-aac2236524d8",
+      "name": "Calculate ROAS & ROI Metrics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const metrics = $node['Get Performance Metrics'].json;\nconst params = $node['Validate Input & Set Defaults'].json;\n\n// Aggregate by channel\nconst channelMetrics = {};\n\nfor (const m of metrics) {\n  const channel = m.platform;\n  if (!channelMetrics[channel]) {\n    channelMetrics[channel] = {\n      channel: channel,\n      impressions: 0,\n      reach: 0,\n      engagements: 0,\n      clicks: 0,\n      spend: 0,\n      conversions: 0,\n      conversion_value: 0,\n      content_count: 0\n    };\n  }\n  \n  const c = channelMetrics[channel];\n  c.impressions += m.impressions || 0;\n  c.reach += m.reach || 0;\n  c.engagements += m.engagements || 0;\n  c.clicks += m.clicks || 0;\n  c.spend += m.spend || 0;\n  c.conversions += m.conversions || 0;\n  c.conversion_value += m.conversion_value || 0;\n  c.content_count++;\n}\n\n// Calculate ROI metrics per channel\nconst channelROI = Object.values(channelMetrics).map(c => {\n  const roas = c.spend > 0 ? parseFloat((c.conversion_value / c.spend).toFixed(2)) : null;\n  const cpa = c.conversions > 0 ? parseFloat((c.spend / c.conversions).toFixed(2)) : null;\n  const cpc = c.clicks > 0 ? parseFloat((c.spend / c.clicks).toFixed(2)) : null;\n  const conversionRate = c.clicks > 0 ? parseFloat(((c.conversions / c.clicks) * 100).toFixed(2)) : 0;\n  const engagementRate = c.reach > 0 ? parseFloat(((c.engagements / c.reach) * 100).toFixed(2)) : 0;\n  \n  return {\n    channel: c.channel,\n    channel_display: {\n      facebook: 'Facebook',\n      instagram: 'Instagram',\n      google_business: 'Google Business'\n    }[c.channel] || c.channel,\n    impressions: c.impressions,\n    reach: c.reach,\n    clicks: c.clicks,\n    conversions: c.conversions,\n    content_count: c.content_count,\n    spend: parseFloat(c.spend.toFixed(2)),\n    revenue: parseFloat(c.conversion_value.toFixed(2)),\n    profit: parseFloat((c.conversion_value - c.spend).toFixed(2)),\n    roas: roas,\n    cpa: cpa,\n    cpc: cpc,\n    conversion_rate: conversionRate,\n    engagement_rate: engagementRate\n  };\n});\n\nchannelROI.sort((a, b) => (b.roas || 0) - (a.roas || 0));\n\nconst totalSpend = channelROI.reduce((sum, c) => sum + c.spend, 0);\nconst totalRevenue = channelROI.reduce((sum, c) => sum + c.revenue, 0);\nconst channelMix = channelROI.map(c => ({\n  channel: c.channel,\n  spend_percent: totalSpend > 0 ? parseFloat(((c.spend / totalSpend) * 100).toFixed(1)) : 0,\n  revenue_percent: totalRevenue > 0 ? parseFloat(((c.revenue / totalRevenue) * 100).toFixed(1)) : 0\n}));\n\nreturn [{\n  json: {\n    channels: channelROI,\n    channel_mix: channelMix,\n    best_performer: channelROI[0]?.channel || null,\n    worst_performer: channelROI[channelROI.length - 1]?.channel || null\n  }\n}];"
+      },
+      "id": "da3f0ab7-0e5e-449f-850a-7696890cbb41",
+      "name": "Calculate Channel Performance",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const roiData = $node['Calculate ROAS & ROI Metrics'].json;\nconst channelData = $node['Calculate Channel Performance'].json;\n\n// Industry benchmarks for home services\nconst benchmarks = {\n  overall: {\n    roas: { poor: 1.5, average: 3.0, good: 4.5, excellent: 6.0 },\n    cpa: { excellent: 25, good: 45, average: 65, poor: 100 },\n    conversion_rate: { poor: 1, average: 2.5, good: 4, excellent: 6 },\n    engagement_rate: { poor: 1.5, average: 3, good: 5, excellent: 8 },\n    ctr: { poor: 0.5, average: 1, good: 2, excellent: 3.5 },\n    cpc: { excellent: 0.75, good: 1.50, average: 2.50, poor: 4.00 }\n  },\n  byChannel: {\n    facebook: { roas: { average: 3.2 }, cpa: { average: 55 }, cpc: { average: 1.80 }, engagement_rate: { average: 3.5 } },\n    instagram: { roas: { average: 2.8 }, cpa: { average: 60 }, cpc: { average: 2.10 }, engagement_rate: { average: 4.5 } },\n    google_business: { roas: { average: 4.5 }, cpa: { average: 40 }, conversion_rate: { average: 5 } }\n  }\n};\n\nfunction rateMetric(value, thresholds, higherIsBetter = true) {\n  if (value === null || value === undefined) return { rating: 'N/A', score: 0 };\n  if (higherIsBetter) {\n    if (value >= thresholds.excellent) return { rating: 'Excellent', score: 100 };\n    if (value >= thresholds.good) return { rating: 'Good', score: 75 };\n    if (value >= thresholds.average) return { rating: 'Average', score: 50 };\n    return { rating: 'Needs Improvement', score: 25 };\n  } else {\n    if (value <= thresholds.excellent) return { rating: 'Excellent', score: 100 };\n    if (value <= thresholds.good) return { rating: 'Good', score: 75 };\n    if (value <= thresholds.average) return { rating: 'Average', score: 50 };\n    return { rating: 'Needs Improvement', score: 25 };\n  }\n}\n\nconst avgCpa = roiData.campaigns.length > 0 ? roiData.campaigns.reduce((sum, c) => sum + (c.cpa || 0), 0) / Math.max(1, roiData.campaigns.filter(c => c.cpa).length) : null;\nconst avgConvRate = roiData.campaigns.length > 0 ? roiData.campaigns.reduce((sum, c) => sum + (c.conversion_rate || 0), 0) / Math.max(1, roiData.campaigns.length) : null;\n\nconst overallAssessment = {\n  roas: { value: roiData.totals.roas, ...rateMetric(roiData.totals.roas, benchmarks.overall.roas, true), benchmark: benchmarks.overall.roas.average },\n  cpa: { value: avgCpa, ...rateMetric(avgCpa, benchmarks.overall.cpa, false), benchmark: benchmarks.overall.cpa.average },\n  conversion_rate: { value: avgConvRate, ...rateMetric(avgConvRate, benchmarks.overall.conversion_rate, true), benchmark: benchmarks.overall.conversion_rate.average }\n};\n\nconst healthScores = [overallAssessment.roas.score, overallAssessment.cpa.score, overallAssessment.conversion_rate.score].filter(s => s > 0);\nconst overallHealthScore = healthScores.length > 0 ? Math.round(healthScores.reduce((a, b) => a + b, 0) / healthScores.length) : 0;\nconst healthStatus = overallHealthScore >= 75 ? 'Excellent' : overallHealthScore >= 50 ? 'Good' : overallHealthScore >= 25 ? 'Needs Attention' : 'Critical';\n\nconst channelAssessments = channelData.channels.map(ch => {\n  const channelBench = benchmarks.byChannel[ch.channel] || benchmarks.byChannel.facebook;\n  return {\n    channel: ch.channel,\n    roas: {\n      value: ch.roas,\n      vs_benchmark: ch.roas && channelBench.roas.average ? parseFloat(((ch.roas / channelBench.roas.average - 1) * 100).toFixed(1)) : null,\n      benchmark: channelBench.roas.average\n    },\n    cpa: {\n      value: ch.cpa,\n      vs_benchmark: ch.cpa && channelBench.cpa.average ? parseFloat(((1 - ch.cpa / channelBench.cpa.average) * 100).toFixed(1)) : null,\n      benchmark: channelBench.cpa.average\n    }\n  };\n});\n\nreturn [{\n  json: {\n    overall_health: {\n      score: overallHealthScore,\n      status: healthStatus,\n      color: healthStatus === 'Excellent' ? 'green' : healthStatus === 'Good' ? 'blue' : healthStatus === 'Needs Attention' ? 'yellow' : 'red'\n    },\n    metrics_assessment: overallAssessment,\n    channel_assessments: channelAssessments,\n    benchmarks: benchmarks,\n    summary: {\n      above_benchmark: Object.values(overallAssessment).filter(m => m.score >= 75).length,\n      at_benchmark: Object.values(overallAssessment).filter(m => m.score >= 50 && m.score < 75).length,\n      below_benchmark: Object.values(overallAssessment).filter(m => m.score < 50 && m.score > 0).length\n    }\n  }\n}];"
+      },
+      "id": "13264521-9c26-4957-a042-9b5fdec92120",
+      "name": "Compare to Benchmarks",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $node['Validate Input & Set Defaults'].json.mode }}",
+                    "rightValue": "full",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "full"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $node['Validate Input & Set Defaults'].json.mode }}",
+                    "rightValue": "campaign",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "campaign"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $node['Validate Input & Set Defaults'].json.mode }}",
+                    "rightValue": "what-if",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "what-if"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $node['Validate Input & Set Defaults'].json.mode }}",
+                    "rightValue": "report",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "report"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "25f7b2cf-a09d-43ae-922c-d2efc7a225c2",
+      "name": "Switch by Mode",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        672,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const params = $node['Validate Input & Set Defaults'].json;\nconst roiData = $node['Calculate ROAS & ROI Metrics'].json;\nconst channelData = $node['Calculate Channel Performance'].json;\nconst benchmarkData = $node['Compare to Benchmarks'].json;\n\nconst prompt = `You are an expert marketing ROI analyst for a home services company (HVAC, Plumbing, Electrical). Analyze this performance data and provide actionable recommendations.\n\n## Analysis Period\n${params.date_range.start} to ${params.date_range.end} (${params.date_range.days} days)\n\n## Overall Performance\n- Total Spend: $${roiData.totals.spend.toFixed(2)}\n- Total Revenue: $${roiData.totals.revenue.toFixed(2)}\n- Gross Profit: $${roiData.totals.gross_profit.toFixed(2)}\n- Overall ROAS: ${roiData.totals.roas}x\n- Overall ROI: ${roiData.totals.roi_percent}%\n- Total Conversions: ${roiData.totals.conversions}\n\n## Health Score\n- Score: ${benchmarkData.overall_health.score}/100\n- Status: ${benchmarkData.overall_health.status}\n\n## Campaign Performance\n${roiData.campaigns.map(c => `\n### ${c.campaign_name}\n- Status: ${c.campaign_status}\n- Spend: $${c.spend} | Revenue: $${c.revenue}\n- ROAS: ${c.roas}x | ROI: ${c.roi_percent}%\n- CPA: $${c.cpa} | Conversion Rate: ${c.conversion_rate}%\n- Budget Utilization: ${c.budget_utilization}%\n`).join('\\n')}\n\n## Channel Performance\n${channelData.channels.map(ch => `\n### ${ch.channel_display}\n- Spend: $${ch.spend} (${channelData.channel_mix.find(m => m.channel === ch.channel)?.spend_percent}% of total)\n- Revenue: $${ch.revenue}\n- ROAS: ${ch.roas}x\n- CPA: $${ch.cpa}\n- Conversion Rate: ${ch.conversion_rate}%\n`).join('\\n')}\n\n## Benchmark Comparison\n- Best Performing Channel: ${channelData.best_performer}\n- Worst Performing Channel: ${channelData.worst_performer}\n- Metrics Above Benchmark: ${benchmarkData.summary.above_benchmark}\n- Metrics Below Benchmark: ${benchmarkData.summary.below_benchmark}\n\n## Task\nGenerate 4-6 specific, actionable recommendations. For each recommendation:\n\n1. **Type**: One of: 'boost', 'pause', 'reallocate', 'optimize', 'create'\n2. **Priority**: 'high', 'medium', or 'low'\n3. **Title**: Clear, action-oriented (max 60 chars)\n4. **Description**: What specific action to take\n5. **Rationale**: Why, backed by data\n6. **Expected Impact**: Quantified improvement estimate\n7. **Suggested Action**: Specific implementation steps\n\n## Output Format (JSON)\n{\n  \"recommendations\": [\n    {\n      \"recommendation_type\": \"reallocate\",\n      \"priority\": \"high\",\n      \"title\": \"Shift Budget from Instagram to Google Business\",\n      \"description\": \"Reallocate 30% of Instagram budget to Google Business Profile campaigns\",\n      \"rationale\": \"Google Business is achieving 4.2x ROAS vs Instagram's 2.1x, with 40% lower CPA\",\n      \"expected_impact\": {\n        \"metric\": \"overall_roas\",\n        \"current_value\": 3.2,\n        \"projected_value\": 3.8,\n        \"improvement\": \"+18.75%\"\n      },\n      \"suggested_action\": {\n        \"action\": \"Reduce Instagram daily budget from $25 to $17.50, increase Google Business from $15 to $22.50\",\n        \"timeline\": \"Implement within 3 days\",\n        \"monitor\": \"Review after 7 days\"\n      },\n      \"related_campaign_id\": null,\n      \"related_channel\": \"google_business\"\n    }\n  ],\n  \"summary\": {\n    \"overall_assessment\": \"Your marketing is performing above/at/below industry benchmarks...\",\n    \"top_opportunity\": \"Brief description of biggest opportunity\",\n    \"biggest_risk\": \"Brief description of main concern\",\n    \"recommended_monthly_budget\": 1500\n  }\n}\n\nReturn ONLY valid JSON, no additional text.`;\n\nreturn [{\n  json: {\n    model: 'claude-sonnet-4-20250514',\n    max_tokens: 4096,\n    messages: [{\n      role: 'user',\n      content: prompt\n    }]\n  }\n}];"
+      },
+      "id": "fa335ebf-75cb-4b15-94a0-6e022b07ab29",
+      "name": "Build AI Recommendations Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "e9e65dc9-9b95-4d17-a75b-bdd0867e30e6",
+      "name": "Generate AI Recommendations",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1120,
+        64
+      ],
+      "credentials": {
+        "anthropicApi": {
+          "id": "QIUyAAWFmOxaIZc6",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const params = $node['Validate Input & Set Defaults'].json;\nconst roiData = $node['Calculate ROAS & ROI Metrics'].json;\nconst channelData = $node['Calculate Channel Performance'].json;\n\nconst whatIf = params.what_if;\nconst additionalBudget = whatIf.additional_budget;\nconst targetChannel = whatIf.target_channel || channelData.best_performer;\nconst durationDays = whatIf.duration_days || 14;\n\nconst channelPerf = channelData.channels.find(c => c.channel === targetChannel);\n\nif (!channelPerf) {\n  return [{ json: { success: false, error: `No data available for channel: ${targetChannel}` } }];\n}\n\nconst currentCPC = channelPerf.cpc || 2.00;\nconst currentConversionRate = channelPerf.conversion_rate || 2.5;\nconst currentROAS = channelPerf.roas || 3.0;\nconst avgConversionValue = channelPerf.revenue / Math.max(1, channelPerf.conversions) || 250;\n\nconst projectedClicks = Math.floor(additionalBudget / currentCPC);\nconst projectedConversions = Math.floor(projectedClicks * (currentConversionRate / 100));\nconst projectedRevenue = projectedConversions * avgConversionValue;\nconst projectedROAS = additionalBudget > 0 ? projectedRevenue / additionalBudget : 0;\nconst projectedProfit = projectedRevenue - additionalBudget;\n\nconst dataPoints = channelPerf.content_count || 1;\nconst confidence = Math.min(95, 50 + (dataPoints * 5));\n\nconst conservativeMultiplier = 0.7;\nconst optimisticMultiplier = 1.3;\n\nconst scenarios = {\n  conservative: {\n    conversions: Math.floor(projectedConversions * conservativeMultiplier),\n    revenue: parseFloat((projectedRevenue * conservativeMultiplier).toFixed(2)),\n    roas: parseFloat((projectedROAS * conservativeMultiplier).toFixed(2)),\n    profit: parseFloat((projectedProfit * conservativeMultiplier).toFixed(2))\n  },\n  projected: {\n    conversions: projectedConversions,\n    revenue: parseFloat(projectedRevenue.toFixed(2)),\n    roas: parseFloat(projectedROAS.toFixed(2)),\n    profit: parseFloat(projectedProfit.toFixed(2))\n  },\n  optimistic: {\n    conversions: Math.floor(projectedConversions * optimisticMultiplier),\n    revenue: parseFloat((projectedRevenue * optimisticMultiplier).toFixed(2)),\n    roas: parseFloat((projectedROAS * optimisticMultiplier).toFixed(2)),\n    profit: parseFloat((projectedProfit * optimisticMultiplier).toFixed(2))\n  }\n};\n\nconst dailyBudget = additionalBudget / durationDays;\nconst dailyProjectedConversions = projectedConversions / durationDays;\nconst breakEvenConversions = Math.ceil(additionalBudget / avgConversionValue);\nconst breakEvenDays = dailyProjectedConversions > 0 ? Math.ceil(breakEvenConversions / dailyProjectedConversions) : null;\n\nlet recommendation;\nif (projectedROAS >= 3.0) {\n  recommendation = { action: 'Strongly Recommend', reason: `Projected ${projectedROAS.toFixed(2)}x ROAS exceeds industry average of 3.0x`, confidence: 'High' };\n} else if (projectedROAS >= 2.0) {\n  recommendation = { action: 'Cautiously Recommend', reason: `Projected ${projectedROAS.toFixed(2)}x ROAS is acceptable but below optimal`, confidence: 'Medium' };\n} else {\n  recommendation = { action: 'Not Recommended', reason: `Projected ${projectedROAS.toFixed(2)}x ROAS is below acceptable threshold`, confidence: 'Medium' };\n}\n\nreturn [{\n  json: {\n    success: true,\n    what_if_params: { additional_budget: additionalBudget, target_channel: targetChannel, duration_days: durationDays, daily_budget: parseFloat(dailyBudget.toFixed(2)) },\n    current_performance: { channel: targetChannel, cpc: currentCPC, conversion_rate: currentConversionRate, roas: currentROAS, avg_conversion_value: parseFloat(avgConversionValue.toFixed(2)) },\n    projections: { additional_clicks: projectedClicks, scenarios: scenarios },\n    break_even: { conversions_needed: breakEvenConversions, estimated_days: breakEvenDays },\n    recommendation: recommendation,\n    confidence_level: `${confidence}%`,\n    assumptions: ['Performance remains consistent with historical data', 'No significant market changes during projection period', 'Ad fatigue effects not factored in for periods over 30 days']\n  }\n}];"
+      },
+      "id": "b30011fc-8f3e-4c4b-bdfd-4fd4de8de93a",
+      "name": "What-If Projections",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const params = $node['Validate Input & Set Defaults'].json;\nconst roiData = $node['Calculate ROAS & ROI Metrics'].json;\nconst channelData = $node['Calculate Channel Performance'].json;\nconst benchmarkData = $node['Compare to Benchmarks'].json;\n\nconst reportFormat = params.report_options.format;\n\nconst prompt = `You are a marketing analyst creating a ${reportFormat} ROI report for a home services company.\n\n## Report Parameters\n- Period: ${params.date_range.start} to ${params.date_range.end}\n- Format: ${reportFormat}\n- Include Recommendations: ${params.report_options.include_recommendations}\n- Include Projections: ${params.report_options.include_projections}\n\n## Performance Data\n${JSON.stringify({ totals: roiData.totals, campaigns: roiData.campaigns, channels: channelData.channels, health: benchmarkData.overall_health, period_change: roiData.period_change }, null, 2)}\n\n## Task\nGenerate a professional marketing ROI report in JSON:\n\n{\n  \"report\": {\n    \"title\": \"Marketing ROI Report - [Period]\",\n    \"executive_summary\": \"2-3 paragraph overview...\",\n    \"key_metrics\": { \"total_spend\": \"$X\", \"total_revenue\": \"$X\", \"roas\": \"Xx\", \"conversions\": X, \"health_score\": \"X/100\" },\n    \"highlights\": [\"Key achievement 1\", \"Key achievement 2\"],\n    \"concerns\": [\"Area needing attention 1\"],\n    \"channel_breakdown\": { \"facebook\": { \"summary\": \"...\", \"recommendation\": \"...\" } },\n    \"campaign_performance\": [{ \"name\": \"Campaign Name\", \"status\": \"active\", \"performance\": \"Above benchmark\", \"key_stat\": \"4.2x ROAS\" }],\n    ${params.report_options.include_recommendations ? '\"recommendations\": [{ \"priority\": \"high\", \"action\": \"...\", \"expected_impact\": \"...\" }],' : ''}\n    ${params.report_options.include_projections ? '\"next_period_outlook\": { \"projected_spend\": \"$X\", \"projected_revenue\": \"$X\", \"projected_roas\": \"Xx\", \"key_focus_areas\": [\"Focus 1\"] },' : ''}\n    \"conclusion\": \"Final summary...\"\n  }\n}\n\n${reportFormat === 'summary' ? 'Keep it concise - 1 page equivalent.' : 'Provide detailed analysis.'}\nReturn ONLY valid JSON.`;\n\nreturn [{\n  json: {\n    model: 'claude-sonnet-4-20250514',\n    max_tokens: reportFormat === 'detailed' ? 8192 : 4096,\n    messages: [{ role: 'user', content: prompt }]\n  }\n}];"
+      },
+      "id": "66ca7d1e-1381-4df4-b32d-648b465c5a7c",
+      "name": "Build Report Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "3620eecb-ea81-4556-8146-1f4a7721f554",
+      "name": "Generate Report",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1120,
+        400
+      ],
+      "credentials": {
+        "anthropicApi": {
+          "id": "QIUyAAWFmOxaIZc6",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const params = $node['Validate Input & Set Defaults'].json;\nconst aiResponse = $input.first().json;\n\nlet parsedResponse;\n\nif (params.mode === 'what-if') {\n  parsedResponse = $node['What-If Projections'].json;\n} else {\n  const rawContent = aiResponse.content?.[0]?.text || aiResponse.text || '';\n  \n  try {\n    let cleanContent = rawContent.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n    const jsonMatch = cleanContent.match(/\\{[\\s\\S]*\\}/);\n    if (jsonMatch) {\n      cleanContent = jsonMatch[0];\n    }\n    parsedResponse = JSON.parse(cleanContent);\n  } catch (error) {\n    console.error('Failed to parse AI response:', rawContent);\n    throw new Error(`Failed to parse AI response: ${error.message}`);\n  }\n}\n\nif (params.mode === 'report') {\n  if (!parsedResponse.report) throw new Error('Report response missing report object');\n} else if (params.mode === 'full' || params.mode === 'campaign') {\n  if (!parsedResponse.recommendations) throw new Error('Response missing recommendations array');\n}\n\nreturn [{ json: { mode: params.mode, response: parsedResponse } }];"
+      },
+      "id": "67bb702d-009f-4121-aae4-5bc0c5075fca",
+      "name": "Parse AI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const params = $node['Validate Input & Set Defaults'].json;\nconst roiData = $node['Calculate ROAS & ROI Metrics'].json;\nconst channelData = $node['Calculate Channel Performance'].json;\nconst benchmarkData = $node['Compare to Benchmarks'].json;\nconst parsedAI = $node['Parse AI Response'].json;\n\nconst finalResult = {\n  analysis_period: params.date_range,\n  overall_health: benchmarkData.overall_health,\n  totals: roiData.totals,\n  period_change: roiData.period_change,\n  campaigns: roiData.campaigns,\n  channels: channelData.channels,\n  channel_mix: channelData.channel_mix,\n  benchmark_comparison: {\n    metrics: benchmarkData.metrics_assessment,\n    channels: benchmarkData.channel_assessments,\n    summary: benchmarkData.summary\n  }\n};\n\nswitch (params.mode) {\n  case 'full':\n  case 'campaign':\n    finalResult.recommendations = parsedAI.response.recommendations || [];\n    finalResult.ai_summary = parsedAI.response.summary || null;\n    break;\n  case 'what-if':\n    finalResult.what_if_analysis = parsedAI.response;\n    break;\n  case 'report':\n    finalResult.report = parsedAI.response.report;\n    break;\n}\n\nreturn [{ json: finalResult }];"
+      },
+      "id": "2596ab26-6594-4506-a868-0b59ed97a0c1",
+      "name": "Merge Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1552,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $node['Merge Results'].json;\nconst params = $node['Validate Input & Set Defaults'].json;\n\nconst overallSnapshot = {\n  snapshot_date: new Date().toISOString().split('T')[0],\n  period_type: params.period,\n  channel: 'all',\n  campaign_id: params.campaign_id,\n  total_spend: result.totals.spend,\n  total_revenue: result.totals.revenue,\n  roas: result.totals.roas,\n  cpc: result.campaigns.length > 0 ? result.campaigns.reduce((sum, c) => sum + (c.cpc || 0), 0) / result.campaigns.filter(c => c.cpc).length : null,\n  cpm: result.campaigns.length > 0 ? result.campaigns.reduce((sum, c) => sum + (c.cpm || 0), 0) / result.campaigns.filter(c => c.cpm).length : null,\n  cpa: result.campaigns.length > 0 ? result.campaigns.reduce((sum, c) => sum + (c.cpa || 0), 0) / result.campaigns.filter(c => c.cpa).length : null,\n  total_conversions: result.totals.conversions\n};\n\nconst channelSnapshots = result.channels.map(ch => ({\n  snapshot_date: new Date().toISOString().split('T')[0],\n  period_type: params.period,\n  channel: ch.channel,\n  campaign_id: null,\n  total_spend: ch.spend,\n  total_revenue: ch.revenue,\n  roas: ch.roas,\n  cpc: ch.cpc,\n  cpm: null,\n  cpa: ch.cpa,\n  total_conversions: ch.conversions\n}));\n\nreturn [overallSnapshot, ...channelSnapshots].map(s => ({ json: s }));"
+      },
+      "id": "8f3306fd-cc38-4f70-9bc5-ba1f6670fd58",
+      "name": "Prepare ROI Snapshots",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1776,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "insert"
+      },
+      "id": "14867245-012c-4bec-9cf7-76570bbea0a1",
+      "name": "Save ROI Snapshots",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2000,
+        112
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $node['Merge Results'].json;\nconst params = $node['Validate Input & Set Defaults'].json;\n\nif (!result.recommendations || result.recommendations.length === 0) {\n  return [{ json: { skip: true, reason: 'no_recommendations' } }];\n}\n\nconst recommendations = result.recommendations.map(rec => ({\n  json: {\n    recommendation_type: rec.recommendation_type,\n    priority: rec.priority,\n    title: rec.title,\n    description: rec.description,\n    rationale: rec.rationale,\n    related_campaign_id: rec.related_campaign_id || params.campaign_id,\n    related_content_id: rec.related_content_id || null,\n    suggested_action: JSON.stringify(rec.suggested_action),\n    potential_impact: JSON.stringify(rec.expected_impact),\n    status: 'pending'\n  }\n}));\n\nreturn recommendations;"
+      },
+      "id": "b0dcec4f-fe5f-44e5-91b5-8a1b2920d0c9",
+      "name": "Prepare Recommendations",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1776,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "insert"
+      },
+      "id": "467d26c2-c7b2-41d5-9fe1-eaef80a53966",
+      "name": "Save Recommendations",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2000,
+        256
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "ai_recommendations",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "status",
+              "condition": "equals",
+              "keyValue": "pending"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "status",
+              "fieldValue": "expired"
+            }
+          ]
+        }
+      },
+      "id": "8191de84-36ea-4cb4-82f9-e4594f874ec1",
+      "name": "Expire Old Recommendations",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2000,
+        400
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "insert"
+      },
+      "id": "e3e37276-f144-4440-9fe3-70f0d1b45e8e",
+      "name": "Log Activity",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2224,
+        240
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, data: $node['Merge Results'].json, meta: { mode: $node['Validate Input & Set Defaults'].json.mode, period: $node['Validate Input & Set Defaults'].json.period, date_range: $node['Validate Input & Set Defaults'].json.date_range, processing_time_ms: Date.now() - new Date($node['Validate Input & Set Defaults'].json.triggered_at).getTime() } }, null, 2) }}",
+        "options": {}
+      },
+      "id": "33f7264c-a76d-4720-b875-ee8ef465ef3d",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        2432,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "roi/analyze",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "7ff95248-a72e-421c-81f4-6b16a32284da",
+      "name": "Webhook Triggers",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        160
+      ],
+      "webhookId": "roi-analyze"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-05T18:08:05.957Z",
+      "createdAt": "2026-01-05T18:08:05.957Z",
+      "role": "workflow:owner",
+      "workflowId": "p1nl5OqdqWe0Sem2",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-01-11T02:12:00.537Z",
+  "versionId": "7bee647e-e876-447a-8c62-a02ebae185ec"
+}
