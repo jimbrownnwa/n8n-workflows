@@ -1,0 +1,1155 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-01-11T01:59:18.000Z",
+    "createdAt": "2026-01-11T01:59:13.961Z",
+    "versionId": "fc8d3124-a473-4ef5-a96e-d29a9968b09b",
+    "workflowId": "3VxE6GWfRNGEe5Iw",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "triggerAtHour": 7
+              }
+            ]
+          }
+        },
+        "id": "84ed3eda-a720-452e-9a4d-42ffd0b30a32",
+        "name": "Schedule Trigger - 7AM Daily",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          16,
+          400
+        ]
+      },
+      {
+        "parameters": {
+          "url": "https://www.wired.com/feed/tag/ai/latest/rss",
+          "options": {}
+        },
+        "id": "b98c645d-bc85-40d5-8702-abdf88e59e3a",
+        "name": "Fetch Wired AI RSS",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "position": [
+          272,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "url": "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
+          "options": {}
+        },
+        "id": "f1275934-b1ba-46b0-8a63-3ec510b40317",
+        "name": "Fetch Verge AI RSS",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "position": [
+          272,
+          512
+        ]
+      },
+      {
+        "parameters": {},
+        "id": "c2a45a0a-6741-4ba5-b293-a5e0974f98c2",
+        "name": "Merge RSS Feeds",
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 2.1,
+        "position": [
+          480,
+          416
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "title",
+                "name": "title",
+                "value": "={{ $json.title }}",
+                "type": "string"
+              },
+              {
+                "id": "link",
+                "name": "link",
+                "value": "={{ $json.link }}",
+                "type": "string"
+              },
+              {
+                "id": "description",
+                "name": "description",
+                "value": "={{ $json.contentSnippet || $json.description }}",
+                "type": "string"
+              },
+              {
+                "id": "pubDate",
+                "name": "pubDate",
+                "value": "={{ $json.pubDate || $json.isoDate }}",
+                "type": "string"
+              },
+              {
+                "id": "source",
+                "name": "source",
+                "value": "={{ $json.link.includes('wired.com') ? 'Wired' : 'The Verge' }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "50892ad9-c65a-4de7-9d54-875e5e67e7d3",
+        "name": "Normalize Article Data",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.3,
+        "position": [
+          672,
+          416
+        ]
+      },
+      {
+        "parameters": {
+          "aggregate": "aggregateAllItemData",
+          "options": {}
+        },
+        "id": "28da5d54-331f-43bb-a46a-055dcdc18139",
+        "name": "Aggregate All Articles",
+        "type": "n8n-nodes-base.aggregate",
+        "typeVersion": 1,
+        "position": [
+          880,
+          416
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "articles_json",
+                "name": "articles_json",
+                "value": "={{ JSON.stringify($input.first().json.data) }}",
+                "type": "string"
+              },
+              {
+                "id": "article_count",
+                "name": "article_count",
+                "value": "={{ $input.first().json.data.length }}",
+                "type": "number"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "658d6042-0f9e-432c-b2f5-7bdb709074f5",
+        "name": "Prepare for AI Analysis",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.3,
+        "position": [
+          1104,
+          416
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Parse the AI response\nconst aiResponse = JSON.parse($input.first().json.message.content);\nconst today = new Date().toLocaleDateString('en-US', { \n  weekday: 'long', \n  year: 'numeric', \n  month: 'long', \n  day: 'numeric' \n});\n\n// Build the email content\nlet emailBody = `<h1>${today}: Daily AI News Digest</h1>\\n\\n`;\nemailBody += `<h2>📰 Quick hits on the ${aiResponse.topStories.length} most interesting stories for Acme Corp:</h2>\\n<ul>\\n`;\n\n// Add top stories with blurbs\nfor (const story of aiResponse.topStories) {\n  emailBody += `<li><strong>${story.title}</strong> <a href=\"${story.link}\">[Link]</a> (${story.source})<br/>\\n`;\n  emailBody += `<em>${story.blurb}</em></li>\\n\\n`;\n}\n\nemailBody += `</ul>\\n\\n`;\n\n// Add other articles if any\nif (aiResponse.otherArticles && aiResponse.otherArticles.length > 0) {\n  emailBody += `<h2>📚 Other Relevant Articles:</h2>\\n<ul>\\n`;\n  \n  for (const article of aiResponse.otherArticles) {\n    emailBody += `<li><strong>${article.title}</strong> <a href=\"${article.link}\">[Link]</a> (${article.source})</li>\\n`;\n  }\n  \n  emailBody += `</ul>\\n\\n`;\n}\n\n// Add footer\nemailBody += `<hr/>\\n<p><small>Filtered from ${$('Prepare for AI Analysis').first().json.article_count} articles | `;\nemailBody += `${aiResponse.rejectedCount || 0} not relevant | Automated by n8n</small></p>`;\n\nreturn {\n  json: {\n    subject: `${today}: Daily AI News Digest`,\n    body: emailBody,\n    topStoriesCount: aiResponse.topStories.length,\n    otherArticlesCount: aiResponse.otherArticles?.length || 0,\n    totalProcessed: $('Prepare for AI Analysis').first().json.article_count\n  }\n};"
+        },
+        "id": "b74468f6-8a15-44d4-8193-9b156ef2ba54",
+        "name": "Format Email Digest",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1680,
+          416
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "success",
+                "name": "success",
+                "value": true,
+                "type": "boolean"
+              },
+              {
+                "id": "timestamp",
+                "name": "timestamp",
+                "value": "={{ $now.toISO() }}",
+                "type": "string"
+              },
+              {
+                "id": "summary",
+                "name": "summary",
+                "value": "=Email sent successfully: {{ $('Format Email Digest').first().json.topStoriesCount }} top stories, {{ $('Format Email Digest').first().json.otherArticlesCount }} other articles",
+                "type": "string"
+              },
+              {
+                "id": "topStoriesCount",
+                "name": "topStoriesCount",
+                "value": "={{ $('Format Email Digest').first().json.topStoriesCount }}",
+                "type": "number"
+              },
+              {
+                "id": "otherArticlesCount",
+                "name": "otherArticlesCount",
+                "value": "={{ $('Format Email Digest').first().json.otherArticlesCount }}",
+                "type": "number"
+              },
+              {
+                "id": "totalProcessed",
+                "name": "totalProcessed",
+                "value": "={{ $('Format Email Digest').first().json.totalProcessed }}",
+                "type": "number"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "09b2f0f3-5f28-402c-ba69-f85c7e097934",
+        "name": "Log Success",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.3,
+        "position": [
+          2112,
+          416
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "append",
+          "documentId": {
+            "__rl": true,
+            "value": "1SpU0ySdDVgqCXy7pdVDA2t31RG9_ZSKPz1YtT1iALyY",
+            "mode": "list",
+            "cachedResultName": "diviup Daily Digest",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SpU0ySdDVgqCXy7pdVDA2t31RG9_ZSKPz1YtT1iALyY/edit?usp=drivesdk"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "gid=0",
+            "mode": "list",
+            "cachedResultName": "Daily Log Success",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SpU0ySdDVgqCXy7pdVDA2t31RG9_ZSKPz1YtT1iALyY/edit#gid=0"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Timestamp": "={{ $json.timestamp }}",
+              "Summary": "={{ $json.summary }}",
+              "Status": "Success",
+              "Top Stories": "={{ $json.topStoriesCount }}",
+              "Other Articles": "={{ $json.otherArticlesCount }}",
+              "Total Processed": "={{ $json.totalProcessed }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "Timestamp",
+                "displayName": "Timestamp",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Status",
+                "displayName": "Status",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Top Stories",
+                "displayName": "Top Stories",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Other Articles",
+                "displayName": "Other Articles",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Total Processed",
+                "displayName": "Total Processed",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Feed Failures",
+                "displayName": "Feed Failures",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Summary",
+                "displayName": "Summary",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "id": "ad08f4ff-3956-4a7b-80d7-089efb691ae0",
+        "name": "Log to Google Sheets",
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.4,
+        "position": [
+          2352,
+          416
+        ],
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "eOPhFUrfwo2AgnTD",
+            "name": "NWA Boost:Google Sheets"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "sendTo": "jimbrown131@gmail.com",
+          "subject": "={{ $json.subject }}",
+          "message": "={{ $json.body }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.1,
+        "position": [
+          1888,
+          416
+        ],
+        "id": "97628d16-a3d2-40eb-abf0-200a487b9665",
+        "name": "Send a message",
+        "webhookId": "bc368b9f-2691-4915-acdd-bdd4ef14edc0",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "dmIKVw4RuLHhcC3Y",
+            "name": "Nwa Boost:Gmail"
+          }
+        }
+      },
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          0,
+          0
+        ],
+        "id": "1e21d0df-0f99-4721-a4e7-e7952ea2c878",
+        "name": "When clicking ‘Execute workflow’"
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "gpt-4.1-mini",
+            "mode": "list",
+            "cachedResultName": "GPT-4.1-MINI"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "You are an AI assistant helping filter and summarize tech news articles for an operations consultancy focused on AI integration. Your task is to:\\n\\n1. Review the provided articles\\n2. Filter for relevance based on these topics:\\n   - Big tech announcements (OpenAI, Google, Microsoft, Meta, etc.)\\n   - Controversial research studies\\n   - Ethics debates\\n   - Unusual or high-value funding rounds\\n   - Signals of market shifts\\n\\n3. For relevant articles, create a 10-20 word blurb explaining why it matters\\n4. Rank the top 5 most interesting/important articles\\n\\nReturn a JSON object with this structure:\\n{\\n  \\\"topStories\\\": [\\n    {\\n      \\\"title\\\": \\\"Article Title\\\",\\n      \\\"link\\\": \\\"URL\\\",\\n      \\\"blurb\\\": \\\"10-20 word explanation of relevance\\\",\\n      \\\"source\\\": \\\"Wired or The Verge\\\"\\n    }\\n  ],\\n  \\\"otherArticles\\\": [\\n    {\\n      \\\"title\\\": \\\"Article Title\\\",\\n      \\\"link\\\": \\\"URL\\\",\\n      \\\"source\\\": \\\"Wired or The Verge\\\"\\n    }\\n  ],\\n  \\\"rejectedCount\\\": 0\\n}\"",
+                "role": "system"
+              },
+              {
+                "content": "=Analyze these {{ $json.article_count }} articles and filter/rank them:\\n\\n{{ $json.articles_json }}\"\n            }"
+              }
+            ]
+          },
+          "options": {
+            "temperature": 0.3
+          }
+        },
+        "id": "5b57c53b-3591-450a-b9b9-378803ac835d",
+        "name": "Filter & Rank Articles",
+        "type": "@n8n/n8n-nodes-langchain.openAi",
+        "typeVersion": 1.3,
+        "position": [
+          1328,
+          416
+        ],
+        "credentials": {
+          "openAiApi": {
+            "id": "6sKwLZ4CBgrhQ8HO",
+            "name": "Hostinger n8n"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Schedule Trigger - 7AM Daily": {
+        "main": [
+          [
+            {
+              "node": "Fetch Wired AI RSS",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Fetch Verge AI RSS",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch Wired AI RSS": {
+        "main": [
+          [
+            {
+              "node": "Merge RSS Feeds",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch Verge AI RSS": {
+        "main": [
+          [
+            {
+              "node": "Merge RSS Feeds",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Merge RSS Feeds": {
+        "main": [
+          [
+            {
+              "node": "Normalize Article Data",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Normalize Article Data": {
+        "main": [
+          [
+            {
+              "node": "Aggregate All Articles",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Aggregate All Articles": {
+        "main": [
+          [
+            {
+              "node": "Prepare for AI Analysis",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prepare for AI Analysis": {
+        "main": [
+          [
+            {
+              "node": "Filter & Rank Articles",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Format Email Digest": {
+        "main": [
+          [
+            {
+              "node": "Send a message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Log Success": {
+        "main": [
+          [
+            {
+              "node": "Log to Google Sheets",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send a message": {
+        "main": [
+          [
+            {
+              "node": "Log Success",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "When clicking ‘Execute workflow’": {
+        "main": [
+          [
+            {
+              "node": "Fetch Wired AI RSS",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Fetch Verge AI RSS",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Filter & Rank Articles": {
+        "main": [
+          [
+            {
+              "node": "Format Email Digest",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "James Brown",
+    "name": "Version fc8d3124",
+    "description": "",
+    "autosaved": false
+  },
+  "activeVersionId": "fc8d3124-a473-4ef5-a96e-d29a9968b09b",
+  "connections": {
+    "Schedule Trigger - 7AM Daily": {
+      "main": [
+        [
+          {
+            "node": "Fetch Wired AI RSS",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Verge AI RSS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Wired AI RSS": {
+      "main": [
+        [
+          {
+            "node": "Merge RSS Feeds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Verge AI RSS": {
+      "main": [
+        [
+          {
+            "node": "Merge RSS Feeds",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge RSS Feeds": {
+      "main": [
+        [
+          {
+            "node": "Normalize Article Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Article Data": {
+      "main": [
+        [
+          {
+            "node": "Aggregate All Articles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate All Articles": {
+      "main": [
+        [
+          {
+            "node": "Prepare for AI Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare for AI Analysis": {
+      "main": [
+        [
+          {
+            "node": "Filter & Rank Articles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Email Digest": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Success": {
+      "main": [
+        [
+          {
+            "node": "Log to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Log Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Fetch Wired AI RSS",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Verge AI RSS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter & Rank Articles": {
+      "main": [
+        [
+          {
+            "node": "Format Email Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-01T03:42:57.973Z",
+  "id": "3VxE6GWfRNGEe5Iw",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "AI Daily News Digest",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 7
+            }
+          ]
+        }
+      },
+      "id": "84ed3eda-a720-452e-9a4d-42ffd0b30a32",
+      "name": "Schedule Trigger - 7AM Daily",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        16,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://www.wired.com/feed/tag/ai/latest/rss",
+        "options": {}
+      },
+      "id": "b98c645d-bc85-40d5-8702-abdf88e59e3a",
+      "name": "Fetch Wired AI RSS",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        272,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
+        "options": {}
+      },
+      "id": "f1275934-b1ba-46b0-8a63-3ec510b40317",
+      "name": "Fetch Verge AI RSS",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        272,
+        512
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "c2a45a0a-6741-4ba5-b293-a5e0974f98c2",
+      "name": "Merge RSS Feeds",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [
+        480,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "title",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "link",
+              "name": "link",
+              "value": "={{ $json.link }}",
+              "type": "string"
+            },
+            {
+              "id": "description",
+              "name": "description",
+              "value": "={{ $json.contentSnippet || $json.description }}",
+              "type": "string"
+            },
+            {
+              "id": "pubDate",
+              "name": "pubDate",
+              "value": "={{ $json.pubDate || $json.isoDate }}",
+              "type": "string"
+            },
+            {
+              "id": "source",
+              "name": "source",
+              "value": "={{ $json.link.includes('wired.com') ? 'Wired' : 'The Verge' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "50892ad9-c65a-4de7-9d54-875e5e67e7d3",
+      "name": "Normalize Article Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [
+        672,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "id": "28da5d54-331f-43bb-a46a-055dcdc18139",
+      "name": "Aggregate All Articles",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        880,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "articles_json",
+              "name": "articles_json",
+              "value": "={{ JSON.stringify($input.first().json.data) }}",
+              "type": "string"
+            },
+            {
+              "id": "article_count",
+              "name": "article_count",
+              "value": "={{ $input.first().json.data.length }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "658d6042-0f9e-432c-b2f5-7bdb709074f5",
+      "name": "Prepare for AI Analysis",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [
+        1104,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse the AI response\nconst aiResponse = JSON.parse($input.first().json.message.content);\nconst today = new Date().toLocaleDateString('en-US', { \n  weekday: 'long', \n  year: 'numeric', \n  month: 'long', \n  day: 'numeric' \n});\n\n// Build the email content\nlet emailBody = `<h1>${today}: Daily AI News Digest</h1>\\n\\n`;\nemailBody += `<h2>📰 Quick hits on the ${aiResponse.topStories.length} most interesting stories for Acme Corp:</h2>\\n<ul>\\n`;\n\n// Add top stories with blurbs\nfor (const story of aiResponse.topStories) {\n  emailBody += `<li><strong>${story.title}</strong> <a href=\"${story.link}\">[Link]</a> (${story.source})<br/>\\n`;\n  emailBody += `<em>${story.blurb}</em></li>\\n\\n`;\n}\n\nemailBody += `</ul>\\n\\n`;\n\n// Add other articles if any\nif (aiResponse.otherArticles && aiResponse.otherArticles.length > 0) {\n  emailBody += `<h2>📚 Other Relevant Articles:</h2>\\n<ul>\\n`;\n  \n  for (const article of aiResponse.otherArticles) {\n    emailBody += `<li><strong>${article.title}</strong> <a href=\"${article.link}\">[Link]</a> (${article.source})</li>\\n`;\n  }\n  \n  emailBody += `</ul>\\n\\n`;\n}\n\n// Add footer\nemailBody += `<hr/>\\n<p><small>Filtered from ${$('Prepare for AI Analysis').first().json.article_count} articles | `;\nemailBody += `${aiResponse.rejectedCount || 0} not relevant | Automated by n8n</small></p>`;\n\nreturn {\n  json: {\n    subject: `${today}: Daily AI News Digest`,\n    body: emailBody,\n    topStoriesCount: aiResponse.topStories.length,\n    otherArticlesCount: aiResponse.otherArticles?.length || 0,\n    totalProcessed: $('Prepare for AI Analysis').first().json.article_count\n  }\n};"
+      },
+      "id": "b74468f6-8a15-44d4-8193-9b156ef2ba54",
+      "name": "Format Email Digest",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1680,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "success",
+              "name": "success",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "timestamp",
+              "name": "timestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "summary",
+              "name": "summary",
+              "value": "=Email sent successfully: {{ $('Format Email Digest').first().json.topStoriesCount }} top stories, {{ $('Format Email Digest').first().json.otherArticlesCount }} other articles",
+              "type": "string"
+            },
+            {
+              "id": "topStoriesCount",
+              "name": "topStoriesCount",
+              "value": "={{ $('Format Email Digest').first().json.topStoriesCount }}",
+              "type": "number"
+            },
+            {
+              "id": "otherArticlesCount",
+              "name": "otherArticlesCount",
+              "value": "={{ $('Format Email Digest').first().json.otherArticlesCount }}",
+              "type": "number"
+            },
+            {
+              "id": "totalProcessed",
+              "name": "totalProcessed",
+              "value": "={{ $('Format Email Digest').first().json.totalProcessed }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "09b2f0f3-5f28-402c-ba69-f85c7e097934",
+      "name": "Log Success",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [
+        2112,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1SpU0ySdDVgqCXy7pdVDA2t31RG9_ZSKPz1YtT1iALyY",
+          "mode": "list",
+          "cachedResultName": "diviup Daily Digest",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SpU0ySdDVgqCXy7pdVDA2t31RG9_ZSKPz1YtT1iALyY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Daily Log Success",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SpU0ySdDVgqCXy7pdVDA2t31RG9_ZSKPz1YtT1iALyY/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $json.timestamp }}",
+            "Summary": "={{ $json.summary }}",
+            "Status": "Success",
+            "Top Stories": "={{ $json.topStoriesCount }}",
+            "Other Articles": "={{ $json.otherArticlesCount }}",
+            "Total Processed": "={{ $json.totalProcessed }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Top Stories",
+              "displayName": "Top Stories",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Other Articles",
+              "displayName": "Other Articles",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Total Processed",
+              "displayName": "Total Processed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Feed Failures",
+              "displayName": "Feed Failures",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "ad08f4ff-3956-4a7b-80d7-089efb691ae0",
+      "name": "Log to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [
+        2352,
+        416
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "eOPhFUrfwo2AgnTD",
+          "name": "NWA Boost:Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "jimbrown131@gmail.com",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1888,
+        416
+      ],
+      "id": "97628d16-a3d2-40eb-abf0-200a487b9665",
+      "name": "Send a message",
+      "webhookId": "bc368b9f-2691-4915-acdd-bdd4ef14edc0",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "dmIKVw4RuLHhcC3Y",
+          "name": "Nwa Boost:Gmail"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "1e21d0df-0f99-4721-a4e7-e7952ea2c878",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are an AI assistant helping filter and summarize tech news articles for an operations consultancy focused on AI integration. Your task is to:\\n\\n1. Review the provided articles\\n2. Filter for relevance based on these topics:\\n   - Big tech announcements (OpenAI, Google, Microsoft, Meta, etc.)\\n   - Controversial research studies\\n   - Ethics debates\\n   - Unusual or high-value funding rounds\\n   - Signals of market shifts\\n\\n3. For relevant articles, create a 10-20 word blurb explaining why it matters\\n4. Rank the top 5 most interesting/important articles\\n\\nReturn a JSON object with this structure:\\n{\\n  \\\"topStories\\\": [\\n    {\\n      \\\"title\\\": \\\"Article Title\\\",\\n      \\\"link\\\": \\\"URL\\\",\\n      \\\"blurb\\\": \\\"10-20 word explanation of relevance\\\",\\n      \\\"source\\\": \\\"Wired or The Verge\\\"\\n    }\\n  ],\\n  \\\"otherArticles\\\": [\\n    {\\n      \\\"title\\\": \\\"Article Title\\\",\\n      \\\"link\\\": \\\"URL\\\",\\n      \\\"source\\\": \\\"Wired or The Verge\\\"\\n    }\\n  ],\\n  \\\"rejectedCount\\\": 0\\n}\"",
+              "role": "system"
+            },
+            {
+              "content": "=Analyze these {{ $json.article_count }} articles and filter/rank them:\\n\\n{{ $json.articles_json }}\"\n            }"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "id": "5b57c53b-3591-450a-b9b9-378803ac835d",
+      "name": "Filter & Rank Articles",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        1328,
+        416
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "6sKwLZ4CBgrhQ8HO",
+          "name": "Hostinger n8n"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "America/Chicago",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "hPNAxDZJU5QxfDtl"
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-01T03:42:57.975Z",
+      "createdAt": "2026-01-01T03:42:57.975Z",
+      "role": "workflow:owner",
+      "workflowId": "3VxE6GWfRNGEe5Iw",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": {
+    "node:Schedule Trigger - 7AM Daily": {
+      "recurrenceRules": []
+    }
+  },
+  "tags": [
+    {
+      "updatedAt": "2026-01-01T03:42:22.588Z",
+      "createdAt": "2026-01-01T03:42:22.588Z",
+      "id": "qYEpcppqDWzmBx4r",
+      "name": "LLM Used"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2026-01-11T01:59:13.960Z",
+  "versionId": "fc8d3124-a473-4ef5-a96e-d29a9968b09b"
+}
