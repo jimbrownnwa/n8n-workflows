@@ -123,13 +123,7 @@
     },
     "Loop Over Items": {
       "main": [
-        [
-          {
-            "node": "Completed Notification",
-            "type": "main",
-            "index": 0
-          }
-        ],
+        [],
         [
           {
             "node": "Get a file",
@@ -725,8 +719,8 @@
       "name": "Completed Notification",
       "type": "n8n-nodes-base.slack",
       "position": [
-        3024,
-        -208
+        2896,
+        -352
       ],
       "webhookId": "a0c6e8c8-5d71-40fa-b02b-63a7ed5726c4",
       "executeOnce": true,
@@ -815,6 +809,6 @@
   "staticData": null,
   "tags": [],
   "triggerCount": 0,
-  "updatedAt": "2026-01-11T01:48:30.587Z",
-  "versionId": "1c2a4544-a561-46bb-bed3-b07141ad6fce"
+  "updatedAt": "2026-01-11T01:53:10.945Z",
+  "versionId": "87c79c49-532c-47f4-aa56-6336b91c95d8"
 }
