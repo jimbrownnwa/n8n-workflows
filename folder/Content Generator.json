@@ -1,0 +1,1076 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-01-05T02:17:38.592Z",
+    "createdAt": "2026-01-05T02:17:38.592Z",
+    "versionId": "5661b009-0289-4779-8d1d-fadf9c6310e9",
+    "workflowId": "rJRFnIFGDa07s3Y2",
+    "nodes": [
+      {
+        "parameters": {
+          "path": "content/generate",
+          "httpMethod": "POST",
+          "responseMode": "responseNode",
+          "options": {
+            "onError": "continueRegularOutput"
+          }
+        },
+        "id": "b71b841c-2828-49a3-a24f-e1e0a1dd9613",
+        "name": "Webhook Trigger",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          -48,
+          -48
+        ],
+        "webhookId": "d8b50b42-9872-4038-8756-6f192d98b99b"
+      },
+      {
+        "parameters": {
+          "jsCode": "const body = $input.first().json.body;\n\n// Validate required fields\nif (!body.opportunity_id) {\n  throw new Error('opportunity_id is required');\n}\n\n// Validate UUID format\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;\nif (!uuidRegex.test(body.opportunity_id)) {\n  throw new Error('opportunity_id must be a valid UUID');\n}\n\n// Set defaults\nconst validContentTypes = ['social_post', 'ad_copy', 'email', 'google_post', 'blog_outline'];\nconst validPlatforms = ['facebook', 'instagram', 'google_business'];\n\nconst contentTypes = (body.content_types || ['social_post'])\n  .filter(t => validContentTypes.includes(t));\n\nconst platforms = (body.platforms || ['facebook'])\n  .filter(p => validPlatforms.includes(p));\n\nif (contentTypes.length === 0) {\n  throw new Error('At least one valid content_type is required');\n}\n\nif (platforms.length === 0) {\n  throw new Error('At least one valid platform is required');\n}\n\nreturn [{\n  json: {\n    opportunity_id: body.opportunity_id,\n    content_types: contentTypes,\n    platforms: platforms,\n    generate_variants: body.generate_variants !== false,\n    variant_count: Math.min(body.variant_count || 2, 3),\n    custom_instructions: body.custom_instructions || null\n  }\n}];"
+        },
+        "id": "cd749818-9049-4aab-af34-46c4b1f156a4",
+        "name": "Validate Input",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          176,
+          -48
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "tableId": "content_opportunities",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "id",
+                "keyValue": "={{ $json.opportunity_id }}"
+              }
+            ]
+          }
+        },
+        "id": "1bc782e3-c57a-4aa8-b704-9fc525e061de",
+        "name": "Get Opportunity Details",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          400,
+          -48
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "H2otb0ZjBMDnmMPT",
+            "name": "LocalPulse Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "getAll",
+          "tableId": "business_profile",
+          "limit": 1
+        },
+        "id": "67701e88-97c8-4fff-8324-ba43de52a0e5",
+        "name": "Get Business Profile",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          624,
+          -48
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "H2otb0ZjBMDnmMPT",
+            "name": "LocalPulse Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "getAll",
+          "tableId": "content_library",
+          "limit": 10
+        },
+        "id": "3ae3a4c7-38c7-40e1-8a5b-bc5044379280",
+        "name": "Get Recent Content",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          832,
+          -48
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "H2otb0ZjBMDnmMPT",
+            "name": "LocalPulse Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $('Validate Input').item.json;\nconst opportunity = $('Get Opportunity Details').item.json;\nconst business = $('Get Business Profile').item.json;\nconst recentContent = $('Get Recent Content').all().map(i => i.json);\n\n// Platform-specific requirements\nconst platformSpecs = {\n  facebook: {\n    name: 'Facebook',\n    char_limit: 2200,\n    hashtag_style: 'minimal (3-5)',\n    tone: 'conversational, community-focused',\n    cta_options: ['Learn More', 'Book Now', 'Call Now', 'Get Quote', 'Message Us']\n  },\n  instagram: {\n    name: 'Instagram',\n    char_limit: 2200,\n    hashtag_style: 'extensive (15-25 relevant)',\n    tone: 'visual-first, engaging, emoji-friendly',\n    cta_options: ['Link in bio', 'DM us', 'Comment below']\n  },\n  google_business: {\n    name: 'Google Business Profile',\n    char_limit: 1500,\n    hashtag_style: 'none',\n    tone: 'professional, local-focused, SEO-aware',\n    cta_options: ['Book', 'Order', 'Learn more', 'Call', 'Get quote']\n  }\n};\n\n// Content type specifications\nconst contentTypeSpecs = {\n  social_post: {\n    name: 'Social Media Post',\n    components: ['caption', 'hashtags', 'image_prompt', 'cta'],\n    length: 'short-medium (100-280 chars for caption)'\n  },\n  ad_copy: {\n    name: 'Advertisement',\n    components: ['headline (30 chars)', 'primary_text (125 chars)', 'description (30 chars)', 'cta'],\n    length: 'concise, punchy'\n  },\n  email: {\n    name: 'Email Campaign',\n    components: ['subject_line (50 chars)', 'preview_text (90 chars)', 'body', 'cta'],\n    length: 'medium (body 150-300 words)'\n  },\n  google_post: {\n    name: 'Google Business Post',\n    components: ['text (300-500 chars)', 'cta_button'],\n    length: 'concise, local-focused'\n  },\n  blog_outline: {\n    name: 'Blog Post Outline',\n    components: ['title', 'meta_description', 'sections', 'key_points'],\n    length: 'outline only, 5-7 sections'\n  }\n};\n\n// Build platform specs\nconst selectedPlatformSpecs = input.platforms\n  .map(p => `### ${platformSpecs[p].name}\\n- Character limit: ${platformSpecs[p].char_limit}\\n- Hashtag style: ${platformSpecs[p].hashtag_style}\\n- Tone: ${platformSpecs[p].tone}\\n- CTA options: ${platformSpecs[p].cta_options.join(', ')}`)\n  .join('\\n\\n');\n\n// Build content type specs\nconst selectedContentTypeSpecs = input.content_types\n  .map(t => `### ${contentTypeSpecs[t].name}\\n- Components: ${contentTypeSpecs[t].components.join(', ')}\\n- Length: ${contentTypeSpecs[t].length}`)\n  .join('\\n\\n');\n\n// Format recent content\nconst recentContentSummary = recentContent.length > 0\n  ? recentContent.map(c => `- ${c.content_type} (${c.platform}): \"${c.headline || c.body_text?.substring(0, 50)}...\"`).join('\\n')\n  : 'No recent content found.';\n\nconst prompt = `You are an expert marketing copywriter for a home services business.\n\n## Business Profile\n- **Company:** ${business.name}\n- **Tagline:** ${business.tagline}\n- **Services:** ${JSON.stringify(business.services)}\n- **Service Area:** ${business.service_area}\n\n## Brand Voice Guidelines\n${JSON.stringify(business.brand_voice, null, 2)}\n\n## Content Opportunity\n- **Title:** ${opportunity.title}\n- **Description:** ${opportunity.description}\n- **Type:** ${opportunity.opportunity_type}\n- **Service Focus:** ${opportunity.related_service}\n- **Keywords:** ${JSON.stringify(opportunity.keywords)}\n\n## Platform Specifications\n${selectedPlatformSpecs}\n\n## Content Types Requested\n${selectedContentTypeSpecs}\n\n## Recent Content (avoid similar angles)\n${recentContentSummary}\n\n## Generation Requirements\n- **Content Types:** ${input.content_types.join(', ')}\n- **Platforms:** ${input.platforms.join(', ')}\n- **Generate Variants:** ${input.generate_variants ? 'Yes' : 'No'}\n- **Variants per piece:** ${input.variant_count}\n\n${input.custom_instructions ? `## Custom Instructions\\n${input.custom_instructions}` : ''}\n\n## Task\nGenerate marketing content for each combination of content type and platform requested.\n\n${input.generate_variants ? `For each piece, create ${input.variant_count} variants:\\n- Variant A: Lead with the problem/pain point\\n- Variant B: Lead with the benefit/solution${input.variant_count > 2 ? '\\n- Variant C: Lead with urgency/limited time' : ''}` : ''}\n\nReturn a JSON object with this structure:\n{\n  \"content_pieces\": [\n    {\n      \"content_type\": \"social_post|ad_copy|email|google_post|blog_outline\",\n      \"platform\": \"facebook|instagram|google_business|email|blog\",\n      \"variant\": \"A|B|C\",\n      \"headline\": \"Optional hook line\",\n      \"body_text\": \"Main content text\",\n      \"cta_text\": \"Call to action\",\n      \"cta_url_path\": \"/path\",\n      \"hashtags\": [\"tag1\", \"tag2\"],\n      \"image_prompt\": \"Detailed image description\",\n      \"notes\": \"Strategic notes\"\n    }\n  ],\n  \"generation_notes\": \"Overall notes\",\n  \"recommended_posting_order\": []\n}\n\nReturn ONLY valid JSON, no markdown code blocks.`;\n\nreturn [{\n  json: {\n    prompt: prompt,\n    opportunity_id: input.opportunity_id,\n    request_params: input\n  }\n}];"
+        },
+        "id": "669715e7-0778-423f-81f5-1b3f71073b75",
+        "name": "Build AI Prompt",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1056,
+          -48
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.anthropic.com/v1/messages",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "anthropicApi",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "anthropic-version",
+                "value": "2023-06-01"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({\n  model: 'claude-sonnet-4-20250514',\n  max_tokens: 8192,\n  messages: [\n    {\n      role: 'user',\n      content: $json.prompt\n    }\n  ]\n}) }}",
+          "options": {}
+        },
+        "id": "67e88066-46a4-42eb-8f15-8d10d9c17326",
+        "name": "Generate Content",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [
+          1280,
+          -48
+        ],
+        "credentials": {
+          "anthropicApi": {
+            "id": "QIUyAAWFmOxaIZc6",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const aiResponse = $input.first().json;\nconst requestParams = $('Build AI Prompt').item.json.request_params;\nconst opportunityId = $('Build AI Prompt').item.json.opportunity_id;\n\nconst rawContent = aiResponse.content[0].text;\n\nlet parsed;\ntry {\n  let cleanContent = rawContent\n    .replace(/```json\\n?/g, '')\n    .replace(/```\\n?/g, '')\n    .trim();\n  \n  const jsonMatch = cleanContent.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    cleanContent = jsonMatch[0];\n  }\n  \n  parsed = JSON.parse(cleanContent);\n} catch (error) {\n  console.log('Raw AI response:', rawContent);\n  throw new Error(`Failed to parse AI response: ${error.message}`);\n}\n\nif (!parsed.content_pieces || !Array.isArray(parsed.content_pieces)) {\n  throw new Error('AI response missing content_pieces array');\n}\n\nconst validatedPieces = parsed.content_pieces.map((piece, index) => {\n  if (!piece.content_type) {\n    throw new Error(`Content piece ${index} missing content_type`);\n  }\n  if (!piece.body_text) {\n    throw new Error(`Content piece ${index} missing body_text`);\n  }\n  \n  if (!piece.platform) {\n    piece.platform = requestParams.platforms[0];\n  }\n  \n  if (!piece.variant) {\n    piece.variant = 'A';\n  }\n  \n  if (piece.hashtags && !Array.isArray(piece.hashtags)) {\n    piece.hashtags = [piece.hashtags];\n  }\n  \n  piece.opportunity_id = opportunityId;\n  \n  return piece;\n});\n\nreturn [{\n  json: {\n    content_pieces: validatedPieces,\n    generation_notes: parsed.generation_notes || null,\n    recommended_posting_order: parsed.recommended_posting_order || null,\n    total_pieces: validatedPieces.length\n  }\n}];"
+        },
+        "id": "2b9e5850-6477-4cc1-8ea9-204a8d9f30b9",
+        "name": "Parse AI Response",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1456,
+          -48
+        ]
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "const inputData = $input.first().json;\nconst pieces = inputData.content_pieces;\nconst context = {\n  opportunity_id: $('Validate Input').first().json.opportunity_id,\n  opportunity_title: $('Get Opportunity Details').first().json.title,\n  content_types: $('Validate Input').first().json.content_types,\n  platforms: $('Validate Input').first().json.platforms,\n  generate_variants: $('Validate Input').first().json.generate_variants,\n  generation_notes: inputData.generation_notes\n};\n\nreturn pieces.map(piece => ({ \n  json: { \n    ...piece, \n    _context: context \n  } \n}));"
+        },
+        "id": "f2746395-24b1-49f4-b0e3-0e7e27bdd24d",
+        "name": "Expand Content Pieces",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1632,
+          -48
+        ]
+      },
+      {
+        "parameters": {
+          "batchSize": 1,
+          "options": {
+            "reset": false
+          }
+        },
+        "id": "571e13eb-2c61-4d98-986f-36c20d8beaa3",
+        "name": "Split Content Pieces",
+        "type": "n8n-nodes-base.splitInBatches",
+        "typeVersion": 3,
+        "position": [
+          1872,
+          -48
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "create",
+          "tableId": "content_library",
+          "dataToSend": "defineBelow",
+          "fieldsUi": {
+            "fieldValues": [
+              {
+                "fieldId": "opportunity_id",
+                "fieldValue": "={{ $json.opportunity_id }}"
+              },
+              {
+                "fieldId": "content_type",
+                "fieldValue": "={{ $json.content_type }}"
+              },
+              {
+                "fieldId": "platform",
+                "fieldValue": "={{ $json.platform }}"
+              },
+              {
+                "fieldId": "headline",
+                "fieldValue": "={{ $json.headline }}"
+              },
+              {
+                "fieldId": "body_text",
+                "fieldValue": "={{ $json.body_text }}"
+              },
+              {
+                "fieldId": "cta_text",
+                "fieldValue": "={{ $json.cta_text }}"
+              },
+              {
+                "fieldId": "cta_url",
+                "fieldValue": "={{ $json.cta_url_path }}"
+              },
+              {
+                "fieldId": "image_prompt",
+                "fieldValue": "={{ $json.image_prompt }}"
+              },
+              {
+                "fieldId": "hashtags",
+                "fieldValue": "={{ JSON.stringify($json.hashtags) }}"
+              },
+              {
+                "fieldId": "variant_label",
+                "fieldValue": "={{ $json.variant }}"
+              },
+              {
+                "fieldId": "status",
+                "fieldValue": "draft"
+              }
+            ]
+          }
+        },
+        "id": "04fc87b3-32eb-456b-81a6-1774567b4623",
+        "name": "Save to Content Library",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          2080,
+          -320
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "H2otb0ZjBMDnmMPT",
+            "name": "LocalPulse Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "aggregate": "aggregateAllItemData",
+          "options": {}
+        },
+        "id": "7ae9d14c-db19-4f40-adb4-41513625283c",
+        "name": "Aggregate Results",
+        "type": "n8n-nodes-base.aggregate",
+        "typeVersion": 1,
+        "position": [
+          2144,
+          -32
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "tableId": "content_opportunities",
+          "filterType": "manual",
+          "matchType": "anyFilter",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "id",
+                "condition": "eq",
+                "keyValue": "={{ $first().json.opportunity_id }}"
+              }
+            ]
+          },
+          "dataToSend": "defineBelow",
+          "fieldsUi": {
+            "fieldValues": [
+              {
+                "fieldId": "status",
+                "fieldValue": "in_progress"
+              }
+            ]
+          }
+        },
+        "id": "cb5c6df6-9d3f-4a07-95b5-43b4e5ef7c45",
+        "name": "Update Opportunity Status",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          2352,
+          -64
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "H2otb0ZjBMDnmMPT",
+            "name": "LocalPulse Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "create",
+          "tableId": "activity_log",
+          "dataToSend": "defineBelow",
+          "fieldsUi": {
+            "fieldValues": [
+              {
+                "fieldId": "activity_type",
+                "fieldValue": "content_generated"
+              },
+              {
+                "fieldId": "entity_type",
+                "fieldValue": "content_library"
+              },
+              {
+                "fieldId": "entity_id",
+                "fieldValue": "={{ $('Update Opportunity Status').first().json.id }}"
+              },
+              {
+                "fieldId": "description",
+                "fieldValue": "={{ 'Generated ' + $('Save to Content Library').all().length + ' content pieces' }}"
+              },
+              {
+                "fieldId": "metadata",
+                "fieldValue": "={{ JSON.stringify({ opportunity_id: $('Update Opportunity Status').first().json.id, pieces_created: $('Save to Content Library').all().length }) }}"
+              }
+            ]
+          }
+        },
+        "id": "5c8e6832-8e4a-4e3a-bf95-ca701177b8f5",
+        "name": "Log Activity",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          2592,
+          -64
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "H2otb0ZjBMDnmMPT",
+            "name": "LocalPulse Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ JSON.stringify({\n  success: true,\n  data: {\n    opportunity: {\n      id: $('Update Opportunity Status').first().json.id,\n      title: $('Update Opportunity Status').first().json.title\n    },\n    content_created: $('Save to Content Library').all().map(item => ({\n      id: item.json.id,\n      content_type: item.json.content_type,\n      platform: item.json.platform,\n      variant: item.json.variant_label,\n      headline: item.json.headline,\n      status: item.json.status\n    })),\n    total_pieces: $('Save to Content Library').all().length,\n    generation_notes: $('Save to Content Library').first().json._context.generation_notes\n  },\n  meta: {\n    content_types: $('Save to Content Library').first().json._context.content_types,\n    platforms: $('Save to Content Library').first().json._context.platforms,\n    variants_generated: $('Save to Content Library').first().json._context.generate_variants\n  }\n}) }}",
+          "options": {}
+        },
+        "id": "3214ed3f-e3b2-496b-9ce6-06ac28661869",
+        "name": "Respond to Webhook",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1,
+        "position": [
+          2816,
+          -64
+        ]
+      }
+    ],
+    "connections": {
+      "Webhook Trigger": {
+        "main": [
+          [
+            {
+              "node": "Validate Input",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Validate Input": {
+        "main": [
+          [
+            {
+              "node": "Get Opportunity Details",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Opportunity Details": {
+        "main": [
+          [
+            {
+              "node": "Get Business Profile",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Business Profile": {
+        "main": [
+          [
+            {
+              "node": "Get Recent Content",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Recent Content": {
+        "main": [
+          [
+            {
+              "node": "Build AI Prompt",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build AI Prompt": {
+        "main": [
+          [
+            {
+              "node": "Generate Content",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generate Content": {
+        "main": [
+          [
+            {
+              "node": "Parse AI Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse AI Response": {
+        "main": [
+          [
+            {
+              "node": "Expand Content Pieces",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Expand Content Pieces": {
+        "main": [
+          [
+            {
+              "node": "Split Content Pieces",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Save to Content Library",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Split Content Pieces": {
+        "main": [
+          [
+            {
+              "node": "Save to Content Library",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Aggregate Results",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Save to Content Library": {
+        "main": [
+          [
+            {
+              "node": "Split Content Pieces",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Update Opportunity Status",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Aggregate Results": {
+        "main": [
+          [
+            {
+              "node": "Update Opportunity Status",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Update Opportunity Status": {
+        "main": [
+          [
+            {
+              "node": "Log Activity",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Log Activity": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "James Brown",
+    "name": null,
+    "description": null,
+    "autosaved": false
+  },
+  "activeVersionId": "5661b009-0289-4779-8d1d-fadf9c6310e9",
+  "connections": {
+    "Validate Input": {
+      "main": [
+        [
+          {
+            "node": "Get Opportunity Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Opportunity Details": {
+      "main": [
+        [
+          {
+            "node": "Get Business Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Business Profile": {
+      "main": [
+        [
+          {
+            "node": "Get Recent Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Recent Content": {
+      "main": [
+        [
+          {
+            "node": "Build AI Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build AI Prompt": {
+      "main": [
+        [
+          {
+            "node": "Generate Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Content": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Response": {
+      "main": [
+        [
+          {
+            "node": "Expand Content Pieces",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Expand Content Pieces": {
+      "main": [
+        [
+          {
+            "node": "Split Content Pieces",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Content Pieces": {
+      "main": [
+        [
+          {
+            "node": "Save to Content Library",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Aggregate Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Content Library": {
+      "main": [
+        [
+          {
+            "node": "Split Content Pieces",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Results": {
+      "main": [
+        [
+          {
+            "node": "Update Opportunity Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Opportunity Status": {
+      "main": [
+        [
+          {
+            "node": "Log Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Activity": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Triggers": {
+      "main": [
+        [
+          {
+            "node": "Validate Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-05T01:42:36.103Z",
+  "id": "rJRFnIFGDa07s3Y2",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Content Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body;\n\n// Validate required fields\nif (!body.opportunity_id) {\n  throw new Error('opportunity_id is required');\n}\n\n// Validate UUID format\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;\nif (!uuidRegex.test(body.opportunity_id)) {\n  throw new Error('opportunity_id must be a valid UUID');\n}\n\n// Set defaults\nconst validContentTypes = ['social_post', 'ad_copy', 'email', 'google_post', 'blog_outline'];\nconst validPlatforms = ['facebook', 'instagram', 'google_business'];\n\nconst contentTypes = (body.content_types || ['social_post'])\n  .filter(t => validContentTypes.includes(t));\n\nconst platforms = (body.platforms || ['facebook'])\n  .filter(p => validPlatforms.includes(p));\n\nif (contentTypes.length === 0) {\n  throw new Error('At least one valid content_type is required');\n}\n\nif (platforms.length === 0) {\n  throw new Error('At least one valid platform is required');\n}\n\nreturn [{\n  json: {\n    opportunity_id: body.opportunity_id,\n    content_types: contentTypes,\n    platforms: platforms,\n    generate_variants: body.generate_variants !== false,\n    variant_count: Math.min(body.variant_count || 2, 3),\n    custom_instructions: body.custom_instructions || null\n  }\n}];"
+      },
+      "id": "cd749818-9049-4aab-af34-46c4b1f156a4",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        176,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "content_opportunities",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "keyValue": "={{ $json.opportunity_id }}"
+            }
+          ]
+        }
+      },
+      "id": "1bc782e3-c57a-4aa8-b704-9fc525e061de",
+      "name": "Get Opportunity Details",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        400,
+        -48
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "business_profile",
+        "limit": 1
+      },
+      "id": "67701e88-97c8-4fff-8324-ba43de52a0e5",
+      "name": "Get Business Profile",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        624,
+        -48
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "content_library",
+        "limit": 10
+      },
+      "id": "3ae3a4c7-38c7-40e1-8a5b-bc5044379280",
+      "name": "Get Recent Content",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        832,
+        -48
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $('Validate Input').item.json;\nconst opportunity = $('Get Opportunity Details').item.json;\nconst business = $('Get Business Profile').item.json;\nconst recentContent = $('Get Recent Content').all().map(i => i.json);\n\n// Platform-specific requirements\nconst platformSpecs = {\n  facebook: {\n    name: 'Facebook',\n    char_limit: 2200,\n    hashtag_style: 'minimal (3-5)',\n    tone: 'conversational, community-focused',\n    cta_options: ['Learn More', 'Book Now', 'Call Now', 'Get Quote', 'Message Us']\n  },\n  instagram: {\n    name: 'Instagram',\n    char_limit: 2200,\n    hashtag_style: 'extensive (15-25 relevant)',\n    tone: 'visual-first, engaging, emoji-friendly',\n    cta_options: ['Link in bio', 'DM us', 'Comment below']\n  },\n  google_business: {\n    name: 'Google Business Profile',\n    char_limit: 1500,\n    hashtag_style: 'none',\n    tone: 'professional, local-focused, SEO-aware',\n    cta_options: ['Book', 'Order', 'Learn more', 'Call', 'Get quote']\n  }\n};\n\n// Content type specifications\nconst contentTypeSpecs = {\n  social_post: {\n    name: 'Social Media Post',\n    components: ['caption', 'hashtags', 'image_prompt', 'cta'],\n    length: 'short-medium (100-280 chars for caption)'\n  },\n  ad_copy: {\n    name: 'Advertisement',\n    components: ['headline (30 chars)', 'primary_text (125 chars)', 'description (30 chars)', 'cta'],\n    length: 'concise, punchy'\n  },\n  email: {\n    name: 'Email Campaign',\n    components: ['subject_line (50 chars)', 'preview_text (90 chars)', 'body', 'cta'],\n    length: 'medium (body 150-300 words)'\n  },\n  google_post: {\n    name: 'Google Business Post',\n    components: ['text (300-500 chars)', 'cta_button'],\n    length: 'concise, local-focused'\n  },\n  blog_outline: {\n    name: 'Blog Post Outline',\n    components: ['title', 'meta_description', 'sections', 'key_points'],\n    length: 'outline only, 5-7 sections'\n  }\n};\n\n// Build platform specs\nconst selectedPlatformSpecs = input.platforms\n  .map(p => `### ${platformSpecs[p].name}\\n- Character limit: ${platformSpecs[p].char_limit}\\n- Hashtag style: ${platformSpecs[p].hashtag_style}\\n- Tone: ${platformSpecs[p].tone}\\n- CTA options: ${platformSpecs[p].cta_options.join(', ')}`)\n  .join('\\n\\n');\n\n// Build content type specs\nconst selectedContentTypeSpecs = input.content_types\n  .map(t => `### ${contentTypeSpecs[t].name}\\n- Components: ${contentTypeSpecs[t].components.join(', ')}\\n- Length: ${contentTypeSpecs[t].length}`)\n  .join('\\n\\n');\n\n// Format recent content\nconst recentContentSummary = recentContent.length > 0\n  ? recentContent.map(c => `- ${c.content_type} (${c.platform}): \"${c.headline || c.body_text?.substring(0, 50)}...\"`).join('\\n')\n  : 'No recent content found.';\n\nconst prompt = `You are an expert marketing copywriter for a home services business.\n\n## Business Profile\n- **Company:** ${business.name}\n- **Tagline:** ${business.tagline}\n- **Services:** ${JSON.stringify(business.services)}\n- **Service Area:** ${business.service_area}\n\n## Brand Voice Guidelines\n${JSON.stringify(business.brand_voice, null, 2)}\n\n## Content Opportunity\n- **Title:** ${opportunity.title}\n- **Description:** ${opportunity.description}\n- **Type:** ${opportunity.opportunity_type}\n- **Service Focus:** ${opportunity.related_service}\n- **Keywords:** ${JSON.stringify(opportunity.keywords)}\n\n## Platform Specifications\n${selectedPlatformSpecs}\n\n## Content Types Requested\n${selectedContentTypeSpecs}\n\n## Recent Content (avoid similar angles)\n${recentContentSummary}\n\n## Generation Requirements\n- **Content Types:** ${input.content_types.join(', ')}\n- **Platforms:** ${input.platforms.join(', ')}\n- **Generate Variants:** ${input.generate_variants ? 'Yes' : 'No'}\n- **Variants per piece:** ${input.variant_count}\n\n${input.custom_instructions ? `## Custom Instructions\\n${input.custom_instructions}` : ''}\n\n## Task\nGenerate marketing content for each combination of content type and platform requested.\n\n${input.generate_variants ? `For each piece, create ${input.variant_count} variants:\\n- Variant A: Lead with the problem/pain point\\n- Variant B: Lead with the benefit/solution${input.variant_count > 2 ? '\\n- Variant C: Lead with urgency/limited time' : ''}` : ''}\n\nReturn a JSON object with this structure:\n{\n  \"content_pieces\": [\n    {\n      \"content_type\": \"social_post|ad_copy|email|google_post|blog_outline\",\n      \"platform\": \"facebook|instagram|google_business|email|blog\",\n      \"variant\": \"A|B|C\",\n      \"headline\": \"Optional hook line\",\n      \"body_text\": \"Main content text\",\n      \"cta_text\": \"Call to action\",\n      \"cta_url_path\": \"/path\",\n      \"hashtags\": [\"tag1\", \"tag2\"],\n      \"image_prompt\": \"Detailed image description\",\n      \"notes\": \"Strategic notes\"\n    }\n  ],\n  \"generation_notes\": \"Overall notes\",\n  \"recommended_posting_order\": []\n}\n\nReturn ONLY valid JSON, no markdown code blocks.`;\n\nreturn [{\n  json: {\n    prompt: prompt,\n    opportunity_id: input.opportunity_id,\n    request_params: input\n  }\n}];"
+      },
+      "id": "669715e7-0778-423f-81f5-1b3f71073b75",
+      "name": "Build AI Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1056,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: 'claude-sonnet-4-20250514',\n  max_tokens: 8192,\n  messages: [\n    {\n      role: 'user',\n      content: $json.prompt\n    }\n  ]\n}) }}",
+        "options": {}
+      },
+      "id": "67e88066-46a4-42eb-8f15-8d10d9c17326",
+      "name": "Generate Content",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1264,
+        -48
+      ],
+      "credentials": {
+        "anthropicApi": {
+          "id": "QIUyAAWFmOxaIZc6",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const aiResponse = $input.first().json;\nconst requestParams = $('Build AI Prompt').item.json.request_params;\nconst opportunityId = $('Build AI Prompt').item.json.opportunity_id;\n\nconst rawContent = aiResponse.content[0].text;\n\nlet parsed;\ntry {\n  let cleanContent = rawContent\n    .replace(/```json\\n?/g, '')\n    .replace(/```\\n?/g, '')\n    .trim();\n  \n  const jsonMatch = cleanContent.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    cleanContent = jsonMatch[0];\n  }\n  \n  parsed = JSON.parse(cleanContent);\n} catch (error) {\n  console.log('Raw AI response:', rawContent);\n  throw new Error(`Failed to parse AI response: ${error.message}`);\n}\n\nif (!parsed.content_pieces || !Array.isArray(parsed.content_pieces)) {\n  throw new Error('AI response missing content_pieces array');\n}\n\nconst validatedPieces = parsed.content_pieces.map((piece, index) => {\n  if (!piece.content_type) {\n    throw new Error(`Content piece ${index} missing content_type`);\n  }\n  if (!piece.body_text) {\n    throw new Error(`Content piece ${index} missing body_text`);\n  }\n  \n  if (!piece.platform) {\n    piece.platform = requestParams.platforms[0];\n  }\n  \n  if (!piece.variant) {\n    piece.variant = 'A';\n  }\n  \n  if (piece.hashtags && !Array.isArray(piece.hashtags)) {\n    piece.hashtags = [piece.hashtags];\n  }\n  \n  piece.opportunity_id = opportunityId;\n  \n  return piece;\n});\n\nreturn [{\n  json: {\n    content_pieces: validatedPieces,\n    generation_notes: parsed.generation_notes || null,\n    recommended_posting_order: parsed.recommended_posting_order || null,\n    total_pieces: validatedPieces.length\n  }\n}];"
+      },
+      "id": "2b9e5850-6477-4cc1-8ea9-204a8d9f30b9",
+      "name": "Parse AI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1456,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputData = $input.first().json;\nconst pieces = inputData.content_pieces;\nconst context = {\n  opportunity_id: $('Validate Input').first().json.opportunity_id,\n  opportunity_title: $('Get Opportunity Details').first().json.title,\n  content_types: $('Validate Input').first().json.content_types,\n  platforms: $('Validate Input').first().json.platforms,\n  generate_variants: $('Validate Input').first().json.generate_variants,\n  generation_notes: inputData.generation_notes\n};\n\nreturn pieces.map(piece => ({ \n  json: { \n    ...piece, \n    _context: context \n  } \n}));"
+      },
+      "id": "f2746395-24b1-49f4-b0e3-0e7e27bdd24d",
+      "name": "Expand Content Pieces",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1632,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "id": "571e13eb-2c61-4d98-986f-36c20d8beaa3",
+      "name": "Split Content Pieces",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1872,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "tableId": "content_library",
+        "dataToSend": "autoMapInputData"
+      },
+      "id": "04fc87b3-32eb-456b-81a6-1774567b4623",
+      "name": "Save to Content Library",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2080,
+        -320
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "id": "7ae9d14c-db19-4f40-adb4-41513625283c",
+      "name": "Aggregate Results",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        2144,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "content_opportunities",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $json.data[0].opportunity_id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "status",
+              "fieldValue": "in_progress"
+            }
+          ]
+        }
+      },
+      "id": "cb5c6df6-9d3f-4a07-95b5-43b4e5ef7c45",
+      "name": "Update Opportunity Status",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2368,
+        -32
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "activity_log",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "activity_type",
+              "fieldValue": "content_generated"
+            },
+            {
+              "fieldId": "entity_type",
+              "fieldValue": "content_library"
+            },
+            {
+              "fieldId": "entity_id",
+              "fieldValue": "={{ $json.id }}"
+            },
+            {
+              "fieldId": "description",
+              "fieldValue": "={{ 'Generated ' + $('Aggregate Results').first().json.data.length + ' content pieces' }}"
+            },
+            {
+              "fieldId": "metadata",
+              "fieldValue": "={{ JSON.stringify({ opportunity_id: $json.id, pieces_created: $('Aggregate Results').first().json.data.length }) }}"
+            }
+          ]
+        }
+      },
+      "id": "5c8e6832-8e4a-4e3a-bf95-ca701177b8f5",
+      "name": "Log Activity",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2592,
+        -32
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({\n  success: true,\n  data: {\n    opportunity: {\n      id: $('Update Opportunity Status').first().json.id,\n      title: $('Aggregate Results').first().json.data[0]._context.opportunity_title\n    },\n    content_created: $('Aggregate Results').first().json.data.map(item => ({\n      id: item.id,\n      content_type: item.content_type,\n      platform: item.platform,\n      variant: item.variant_label,\n      headline: item.headline,\n      status: item.status\n    })),\n    total_pieces: $('Aggregate Results').first().json.data.length,\n    generation_notes: $('Aggregate Results').first().json.data[0]._context.generation_notes\n  },\n  meta: {\n    content_types: $('Aggregate Results').first().json.data[0]._context.content_types,\n    platforms: $('Aggregate Results').first().json.data[0]._context.platforms,\n    variants_generated: $('Aggregate Results').first().json.data[0]._context.generate_variants\n  }\n}) }}",
+        "options": {}
+      },
+      "id": "3214ed3f-e3b2-496b-9ce6-06ac28661869",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        2816,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "content/generate",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "b71b841c-2828-49a3-a24f-e1e0a1dd9613",
+      "name": "Webhook Triggers",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -48,
+        -48
+      ],
+      "webhookId": "d8b50b42-9872-4038-8756-6f192d98b99b"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-05T01:42:36.105Z",
+      "createdAt": "2026-01-05T01:42:36.105Z",
+      "role": "workflow:owner",
+      "workflowId": "rJRFnIFGDa07s3Y2",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-01-11T02:10:45.087Z",
+  "versionId": "6ec9fab4-8633-4c27-8a74-b3945ea0ee99"
+}
