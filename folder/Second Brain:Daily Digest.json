@@ -1,0 +1,666 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-01-10T18:23:00.000Z",
+    "createdAt": "2026-01-10T18:22:56.736Z",
+    "versionId": "0ea410c7-ac64-4459-95bd-0a5d6b93290b",
+    "workflowId": "Al1eG9doUELUbCc6",
+    "nodes": [
+      {
+        "parameters": {
+          "resource": "databasePage",
+          "operation": "getAll",
+          "databaseId": {
+            "__rl": true,
+            "value": "2e4f2f77-bba7-801a-a4ec-c0f089830493",
+            "mode": "list",
+            "cachedResultName": "Projects",
+            "cachedResultUrl": "https://www.notion.so/2e4f2f77bba7801aa4ecc0f089830493"
+          },
+          "limit": 20,
+          "filterType": "manual",
+          "filters": {
+            "conditions": [
+              {
+                "key": "Status|select",
+                "condition": "equals",
+                "selectValue": "Active"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.notion",
+        "typeVersion": 2.2,
+        "position": [
+          -288,
+          32
+        ],
+        "id": "30d34f7d-8175-407a-a130-771be6374001",
+        "name": "Get Projects",
+        "credentials": {
+          "notionApi": {
+            "id": "1MLEZcGgowzdt5uf",
+            "name": "Notion account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "databasePage",
+          "operation": "getAll",
+          "databaseId": {
+            "__rl": true,
+            "value": "2e4f2f77-bba7-8000-a7a9-d58439ea317c",
+            "mode": "list",
+            "cachedResultName": "People",
+            "cachedResultUrl": "https://www.notion.so/2e4f2f77bba78000a7a9d58439ea317c"
+          },
+          "limit": 20,
+          "filterType": "manual",
+          "filters": {
+            "conditions": [
+              {
+                "key": "Follow Ups|rich_text",
+                "condition": "is_not_empty"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.notion",
+        "typeVersion": 2.2,
+        "position": [
+          -288,
+          -160
+        ],
+        "id": "040de87d-65cd-4460-906e-0446f3e7d80b",
+        "name": "Get People",
+        "credentials": {
+          "notionApi": {
+            "id": "1MLEZcGgowzdt5uf",
+            "name": "Notion account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "databasePage",
+          "operation": "getAll",
+          "databaseId": {
+            "__rl": true,
+            "value": "2e4f2f77-bba7-80c3-8c57-dbcfd1525ab6",
+            "mode": "list",
+            "cachedResultName": "Admin",
+            "cachedResultUrl": "https://www.notion.so/2e4f2f77bba780c38c57dbcfd1525ab6"
+          },
+          "filterType": "manual",
+          "filters": {
+            "conditions": [
+              {
+                "key": "Due Date|date",
+                "condition": "on_or_before",
+                "date": "={{ $today }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.notion",
+        "typeVersion": 2.2,
+        "position": [
+          -288,
+          224
+        ],
+        "id": "c91bc0db-d4b1-4ff0-a3fc-420319017ce2",
+        "name": "Get Admin",
+        "credentials": {
+          "notionApi": {
+            "id": "1MLEZcGgowzdt5uf",
+            "name": "Notion account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "claude-3-5-haiku-20241022",
+            "mode": "list",
+            "cachedResultName": "claude-3-5-haiku-20241022"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=The Daily Digest Prompt\nYou are a personal productivity assistant. Generate a concise daily digest based on the following data.\n{{ $json.projects_json }}\n{{ $json.people_json }}\n{{ $json.admin_json }}\n\n\nDate: {{ $json.today }}\n\n\nINSTRUCTIONS:\nCreate a digest with EXACTLY this format. Keep it under 150 words total.\n\n---\n\n☀️ **Good morning!**\n\n**🎯 Top 3 Actions Today:**\n1. [Most important/urgent action from projects or admin]\n2. [Second priority]\n3. [Third priority]\n\n**👥 People to Connect With:**\n- [Person name]: [Brief follow-up reminder]\n\n**⚠️ Watch Out For:**\n[One thing that might be stuck, overdue, or getting neglected]\n\n**💪 One Small Win to Notice:**\n[Something positive or progress made, or encouraging thought]\n\n---\n\nRULES:\n- Be specific and actionable, not motivational\n- Prioritize overdue items and concrete next actions\n- If there's nothing in a section, omit it entirely\n- Keep language direct and practical\n- Don't add explanations or commentary outside the format\n"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.anthropic",
+        "typeVersion": 1,
+        "position": [
+          384,
+          32
+        ],
+        "id": "4104d0ba-6022-42db-812e-abf4f2142b83",
+        "name": "Message a model",
+        "credentials": {
+          "anthropicApi": {
+            "id": "QIUyAAWFmOxaIZc6",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "select": "channel",
+          "channelId": {
+            "__rl": true,
+            "value": "C0A82N7UPUL",
+            "mode": "list",
+            "cachedResultName": "daily-digest"
+          },
+          "text": "={{ $json.content[0].text }}",
+          "otherOptions": {}
+        },
+        "type": "n8n-nodes-base.slack",
+        "typeVersion": 2.4,
+        "position": [
+          736,
+          32
+        ],
+        "id": "6494866d-abe0-4721-be15-537b9cc10ef3",
+        "name": "Send a message",
+        "webhookId": "15b0d077-4bbf-429f-bd98-c1bd27d3ce39",
+        "credentials": {
+          "slackApi": {
+            "id": "pBtkFKk519i0rGOe",
+            "name": "NWA Shop Local"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "numberInputs": 3
+        },
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3.2,
+        "position": [
+          -64,
+          16
+        ],
+        "id": "2df60d39-34d5-4be3-997b-94aa0cf61c02",
+        "name": "Merge"
+      },
+      {
+        "parameters": {
+          "jsCode": "const projects = $items(\"Get Projects\").map(i => i.json);\nconst people   = $items(\"Get People\").map(i => i.json);\nconst admin    = $items(\"Get Admin\").map(i => i.json);\n\nreturn [{\n  json: {\n    projects_json: JSON.stringify(projects, null, 2),\n    people_json: JSON.stringify(people, null, 2),\n    admin_json: JSON.stringify(admin, null, 2),\n    today: $today\n  }\n}];\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          160,
+          32
+        ],
+        "id": "960d6da3-0712-4ea7-870d-29a1e1f81ba8",
+        "name": "Code in JavaScript"
+      },
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "triggerAtHour": 7
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.3,
+        "position": [
+          -512,
+          32
+        ],
+        "id": "8104a608-2a49-4354-a772-f5fe8dc804e6",
+        "name": "Schedule Trigger"
+      }
+    ],
+    "connections": {
+      "Get Projects": {
+        "main": [
+          [
+            {
+              "node": "Merge",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Get People": {
+        "main": [
+          [
+            {
+              "node": "Merge",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Admin": {
+        "main": [
+          [
+            {
+              "node": "Merge",
+              "type": "main",
+              "index": 2
+            }
+          ]
+        ]
+      },
+      "Message a model": {
+        "main": [
+          [
+            {
+              "node": "Send a message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Merge": {
+        "main": [
+          [
+            {
+              "node": "Code in JavaScript",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Code in JavaScript": {
+        "main": [
+          [
+            {
+              "node": "Message a model",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Schedule Trigger": {
+        "main": [
+          [
+            {
+              "node": "Get Projects",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Get People",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Get Admin",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "James Brown",
+    "name": "Version 0ea410c7",
+    "description": "",
+    "autosaved": false
+  },
+  "activeVersionId": "0ea410c7-ac64-4459-95bd-0a5d6b93290b",
+  "connections": {
+    "Get Projects": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Get People": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Admin": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Projects",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get People",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Admin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-10T17:20:05.458Z",
+  "id": "Al1eG9doUELUbCc6",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Second Brain:Daily Digest",
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "2e4f2f77-bba7-801a-a4ec-c0f089830493",
+          "mode": "list",
+          "cachedResultName": "Projects",
+          "cachedResultUrl": "https://www.notion.so/2e4f2f77bba7801aa4ecc0f089830493"
+        },
+        "limit": 20,
+        "filterType": "manual",
+        "filters": {
+          "conditions": [
+            {
+              "key": "Status|select",
+              "condition": "equals",
+              "selectValue": "Active"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        -288,
+        32
+      ],
+      "id": "30d34f7d-8175-407a-a130-771be6374001",
+      "name": "Get Projects",
+      "credentials": {
+        "notionApi": {
+          "id": "1MLEZcGgowzdt5uf",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "2e4f2f77-bba7-8000-a7a9-d58439ea317c",
+          "mode": "list",
+          "cachedResultName": "People",
+          "cachedResultUrl": "https://www.notion.so/2e4f2f77bba78000a7a9d58439ea317c"
+        },
+        "limit": 20,
+        "filterType": "manual",
+        "filters": {
+          "conditions": [
+            {
+              "key": "Follow Ups|rich_text",
+              "condition": "is_not_empty"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        -288,
+        -160
+      ],
+      "id": "040de87d-65cd-4460-906e-0446f3e7d80b",
+      "name": "Get People",
+      "credentials": {
+        "notionApi": {
+          "id": "1MLEZcGgowzdt5uf",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "2e4f2f77-bba7-80c3-8c57-dbcfd1525ab6",
+          "mode": "list",
+          "cachedResultName": "Admin",
+          "cachedResultUrl": "https://www.notion.so/2e4f2f77bba780c38c57dbcfd1525ab6"
+        },
+        "filterType": "manual",
+        "filters": {
+          "conditions": [
+            {
+              "key": "Due Date|date",
+              "condition": "on_or_before",
+              "date": "={{ $today }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        -288,
+        224
+      ],
+      "id": "c91bc0db-d4b1-4ff0-a3fc-420319017ce2",
+      "name": "Get Admin",
+      "credentials": {
+        "notionApi": {
+          "id": "1MLEZcGgowzdt5uf",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-3-5-haiku-20241022",
+          "mode": "list",
+          "cachedResultName": "claude-3-5-haiku-20241022"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=The Daily Digest Prompt\nYou are a personal productivity assistant. Generate a concise daily digest based on the following data.\n{{ $json.projects_json }}\n{{ $json.people_json }}\n{{ $json.admin_json }}\n\n\nDate: {{ $json.today }}\n\n\nINSTRUCTIONS:\nCreate a digest with EXACTLY this format. Keep it under 150 words total.\n\n---\n\n☀️ **Good morning!**\n\n**🎯 Top 3 Actions Today:**\n1. [Most important/urgent action from projects or admin]\n2. [Second priority]\n3. [Third priority]\n\n**👥 People to Connect With:**\n- [Person name]: [Brief follow-up reminder]\n\n**⚠️ Watch Out For:**\n[One thing that might be stuck, overdue, or getting neglected]\n\n**💪 One Small Win to Notice:**\n[Something positive or progress made, or encouraging thought]\n\n---\n\nRULES:\n- Be specific and actionable, not motivational\n- Prioritize overdue items and concrete next actions\n- If there's nothing in a section, omit it entirely\n- Keep language direct and practical\n- Don't add explanations or commentary outside the format\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        384,
+        32
+      ],
+      "id": "4104d0ba-6022-42db-812e-abf4f2142b83",
+      "name": "Message a model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "QIUyAAWFmOxaIZc6",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0A82N7UPUL",
+          "mode": "list",
+          "cachedResultName": "daily-digest"
+        },
+        "text": "={{ $json.content[0].text }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        736,
+        32
+      ],
+      "id": "6494866d-abe0-4721-be15-537b9cc10ef3",
+      "name": "Send a message",
+      "webhookId": "15b0d077-4bbf-429f-bd98-c1bd27d3ce39",
+      "credentials": {
+        "slackApi": {
+          "id": "pBtkFKk519i0rGOe",
+          "name": "NWA Shop Local"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -64,
+        16
+      ],
+      "id": "2df60d39-34d5-4be3-997b-94aa0cf61c02",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const projects = $items(\"Get Projects\").map(i => i.json);\nconst people   = $items(\"Get People\").map(i => i.json);\nconst admin    = $items(\"Get Admin\").map(i => i.json);\n\nreturn [{\n  json: {\n    projects_json: JSON.stringify(projects, null, 2),\n    people_json: JSON.stringify(people, null, 2),\n    admin_json: JSON.stringify(admin, null, 2),\n    today: $today\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        160,
+        32
+      ],
+      "id": "960d6da3-0712-4ea7-870d-29a1e1f81ba8",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 7
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -512,
+        32
+      ],
+      "id": "8104a608-2a49-4354-a772-f5fe8dc804e6",
+      "name": "Schedule Trigger"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-10T17:20:05.460Z",
+      "createdAt": "2026-01-10T17:20:05.460Z",
+      "role": "workflow:owner",
+      "workflowId": "Al1eG9doUELUbCc6",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-01-10T18:22:56.734Z",
+  "versionId": "0ea410c7-ac64-4459-95bd-0a5d6b93290b"
+}
