@@ -1,0 +1,1034 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-01-05T01:11:52.383Z",
+    "createdAt": "2026-01-05T01:11:52.383Z",
+    "versionId": "6c1beeb7-73f4-4cef-9865-ff255532bd10",
+    "workflowId": "KygAKzQulAVGM4v7",
+    "nodes": [
+      {
+        "parameters": {
+          "path": "ideation/generate",
+          "httpMethod": "POST",
+          "responseMode": "responseNode"
+        },
+        "id": "73174bfd-2aa1-4d7e-a482-6530df51a3b6",
+        "name": "Webhook Trigger",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          -592,
+          224
+        ],
+        "webhookId": "0358e3cb-444f-4930-959e-99d3c03e6dda"
+      },
+      {
+        "parameters": {
+          "operation": "getAll",
+          "tableId": "business_profile",
+          "limit": 1
+        },
+        "id": "65ccec29-b234-422f-9875-f13e46c93b38",
+        "name": "Get Business Profile",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          -352,
+          224
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "H2otb0ZjBMDnmMPT",
+            "name": "LocalPulse Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "rules",
+          "dataType": "string",
+          "value1": "={{ $('Webhook Trigger').item.json.body.mode }}",
+          "rules": {
+            "rules": [
+              {
+                "operation": "equal",
+                "value2": "full",
+                "output": 0
+              },
+              {
+                "operation": "equal",
+                "value2": "refresh",
+                "output": 1
+              },
+              {
+                "operation": "equal",
+                "value2": "manual",
+                "output": 2
+              }
+            ]
+          },
+          "fallbackOutput": -1
+        },
+        "id": "2a5fb400-9ab5-4140-86b8-654d35c3fd83",
+        "name": "Switch by Mode",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 1,
+        "position": [
+          -144,
+          176
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const now = new Date();\nconst month = now.getMonth();\nconst year = now.getFullYear();\n\nconst seasonalCalendar = {\n  0: [\n    { title: \"New Year HVAC Resolution\", service: \"hvac\", type: \"seasonal\", description: \"Start the year with a furnace tune-up\" },\n    { title: \"Frozen Pipe Prevention\", service: \"plumbing\", type: \"educational\", description: \"Tips to prevent winter pipe disasters\" },\n    { title: \"Post-Holiday Electrical Check\", service: \"electrical\", type: \"safety\", description: \"Check outlets after holiday decorations\" }\n  ],\n  1: [\n    { title: \"Valentine's Day - Love Your Home\", service: \"general\", type: \"promotional\", description: \"Show your home some love with maintenance\" },\n    { title: \"Pre-Spring AC Inspection\", service: \"hvac\", type: \"seasonal\", description: \"Get ahead of the rush\" },\n    { title: \"Winter Storm Prep\", service: \"general\", type: \"emergency\", description: \"Emergency preparedness tips\" }\n  ],\n  2: [\n    { title: \"Spring Cleaning - HVAC Edition\", service: \"hvac\", type: \"seasonal\", description: \"Air filter replacement campaign\" },\n    { title: \"Daylight Saving - Check Detectors\", service: \"electrical\", type: \"safety\", description: \"Smoke detector battery reminder\" },\n    { title: \"Spring Plumbing Inspection\", service: \"plumbing\", type: \"seasonal\", description: \"Check for winter damage\" }\n  ],\n  3: [\n    { title: \"Earth Day Energy Efficiency\", service: \"hvac\", type: \"promotional\", description: \"Green HVAC tips and upgrades\" },\n    { title: \"Spring Rain - Sump Pump Check\", service: \"plumbing\", type: \"seasonal\", description: \"Prevent basement flooding\" },\n    { title: \"Outdoor Electrical Safety\", service: \"electrical\", type: \"safety\", description: \"Prep outdoor outlets for spring\" }\n  ],\n  4: [\n    { title: \"AC Tune-Up Season Launch\", service: \"hvac\", type: \"seasonal\", description: \"Beat the summer rush\" },\n    { title: \"Mother's Day - Comfort Gift\", service: \"general\", type: \"promotional\", description: \"Gift mom a maintenance plan\" },\n    { title: \"Memorial Day Safety\", service: \"electrical\", type: \"safety\", description: \"Outdoor cooking electrical safety\" }\n  ],\n  5: [\n    { title: \"Beat the Heat - AC Tips\", service: \"hvac\", type: \"educational\", description: \"Summer cooling efficiency guide\" },\n    { title: \"Father's Day - Dad's Comfort\", service: \"general\", type: \"promotional\", description: \"Upgrade dad's man cave comfort\" },\n    { title: \"Summer Solstice Energy Savings\", service: \"hvac\", type: \"educational\", description: \"Longest day, biggest savings tips\" },\n    { title: \"Vacation Home Prep\", service: \"general\", type: \"seasonal\", description: \"Pre-vacation checklist\" }\n  ],\n  6: [\n    { title: \"4th of July Safety\", service: \"electrical\", type: \"safety\", description: \"Firework and grill electrical safety\" },\n    { title: \"Peak Summer AC Emergency\", service: \"hvac\", type: \"emergency\", description: \"24/7 emergency service reminder\" },\n    { title: \"Water Conservation Tips\", service: \"plumbing\", type: \"educational\", description: \"Summer water-saving strategies\" }\n  ],\n  7: [\n    { title: \"Back to School HVAC Check\", service: \"hvac\", type: \"seasonal\", description: \"Prep home for fall schedules\" },\n    { title: \"End of Summer Plumbing\", service: \"plumbing\", type: \"seasonal\", description: \"Outdoor faucet maintenance\" },\n    { title: \"Storm Season Prep\", service: \"electrical\", type: \"emergency\", description: \"Generator and surge protection\" }\n  ],\n  8: [\n    { title: \"Labor Day Maintenance Sale\", service: \"general\", type: \"promotional\", description: \"End of summer service deals\" },\n    { title: \"Fall HVAC Transition\", service: \"hvac\", type: \"seasonal\", description: \"Switch from cooling to heating\" },\n    { title: \"Back to Routine - Home Safety\", service: \"electrical\", type: \"safety\", description: \"Family home safety audit\" }\n  ],\n  9: [\n    { title: \"Heating System Tune-Up\", service: \"hvac\", type: \"seasonal\", description: \"Pre-winter furnace check\" },\n    { title: \"Halloween Electrical Safety\", service: \"electrical\", type: \"safety\", description: \"Decoration safety tips\" },\n    { title: \"Fall Plumbing Winterization\", service: \"plumbing\", type: \"seasonal\", description: \"Prep pipes for cold\" }\n  ],\n  10: [\n    { title: \"Thanksgiving Home Prep\", service: \"general\", type: \"seasonal\", description: \"Get ready for guests\" },\n    { title: \"Black Friday Service Deals\", service: \"general\", type: \"promotional\", description: \"Annual maintenance specials\" },\n    { title: \"Holiday Lighting Safety\", service: \"electrical\", type: \"safety\", description: \"Decoration electrical tips\" }\n  ],\n  11: [\n    { title: \"Holiday Emergency Services\", service: \"general\", type: \"emergency\", description: \"24/7 holiday availability\" },\n    { title: \"Year-End HVAC Review\", service: \"hvac\", type: \"educational\", description: \"Annual system assessment\" },\n    { title: \"New Year Maintenance Plans\", service: \"general\", type: \"promotional\", description: \"Sign up for next year\" },\n    { title: \"Winter Storm Response\", service: \"general\", type: \"emergency\", description: \"Emergency contact reminder\" }\n  ]\n};\n\nconst currentMonth = seasonalCalendar[month] || [];\nconst nextMonth = seasonalCalendar[(month + 1) % 12] || [];\nconst nextMonthYear = month === 11 ? year + 1 : year;\nconst nextMonthIndex = (month + 1) % 12;\n\nconst opportunities = currentMonth.map((opp, i) => ({\n  ...opp,\n  suggested_date: new Date(year, month, Math.min(10 + (i * 5), 28)).toISOString().split('T')[0],\n  source: 'calendar'\n})).concat(nextMonth.map((opp, i) => ({\n  ...opp,\n  suggested_date: new Date(nextMonthYear, nextMonthIndex, Math.min(5 + (i * 5), 28)).toISOString().split('T')[0],\n  source: 'calendar'\n})));\n\nreturn opportunities.map(opp => ({ json: opp }));"
+        },
+        "id": "bd63fe5e-b294-4773-a15c-a5664bf589be",
+        "name": "Generate Calendar Events",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          80,
+          -32
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const trendingTopics = [\n  {\n    title: \"Smart Thermostat Installation\",\n    service: \"hvac\",\n    type: \"trending\",\n    description: \"Growing interest in smart home HVAC control\",\n    keywords: [\"smart home\", \"nest\", \"ecobee\", \"energy savings\"],\n    source: \"trends\"\n  },\n  {\n    title: \"Tankless Water Heater Benefits\",\n    service: \"plumbing\",\n    type: \"trending\",\n    description: \"Consumers researching tankless options\",\n    keywords: [\"tankless\", \"on-demand\", \"energy efficient\", \"endless hot water\"],\n    source: \"trends\"\n  },\n  {\n    title: \"EV Charger Home Installation\",\n    service: \"electrical\",\n    type: \"trending\",\n    description: \"Electric vehicle charging station demand rising\",\n    keywords: [\"ev charger\", \"level 2\", \"tesla\", \"home charging\"],\n    source: \"trends\"\n  },\n  {\n    title: \"Indoor Air Quality Concerns\",\n    service: \"hvac\",\n    type: \"trending\",\n    description: \"Post-pandemic focus on air filtration\",\n    keywords: [\"air quality\", \"hepa\", \"filtration\", \"allergies\", \"purifier\"],\n    source: \"trends\"\n  },\n  {\n    title: \"Whole House Generator Interest\",\n    service: \"electrical\",\n    type: \"trending\",\n    description: \"Power outage concerns driving generator sales\",\n    keywords: [\"generator\", \"backup power\", \"standby\", \"power outage\"],\n    source: \"trends\"\n  },\n  {\n    title: \"Water Softener Systems\",\n    service: \"plumbing\",\n    type: \"trending\",\n    description: \"Hard water solutions trending in search\",\n    keywords: [\"water softener\", \"hard water\", \"scale buildup\", \"water quality\"],\n    source: \"trends\"\n  }\n];\n\nconst now = new Date();\nreturn trendingTopics.map((topic, i) => ({\n  json: {\n    ...topic,\n    suggested_date: new Date(now.getTime() + (i * 3 + 2) * 24 * 60 * 60 * 1000).toISOString().split('T')[0]\n  }\n}));"
+        },
+        "id": "d5c3547e-3184-415d-95ef-b6d903c0cba7",
+        "name": "Fetch Trending Topics",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          80,
+          176
+        ]
+      },
+      {
+        "parameters": {},
+        "id": "9b72745d-13cb-465d-bedf-2a06750e6c98",
+        "name": "Merge Sources",
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 2,
+        "position": [
+          304,
+          80
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "getAll",
+          "tableId": "content_opportunities",
+          "limit": 20
+        },
+        "id": "1201c7d5-a554-4eec-bad6-1cac85ce853f",
+        "name": "Get Recent Unused",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          80,
+          368
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "H2otb0ZjBMDnmMPT",
+            "name": "LocalPulse Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const manualTopic = $input.first().json.body.manual_topic;\n\nif (!manualTopic || manualTopic.trim() === '') {\n  throw new Error('manual_topic is required when mode is \"manual\"');\n}\n\nconst now = new Date();\nreturn [{\n  json: {\n    title: manualTopic,\n    service: 'general',\n    type: 'manual',\n    description: `User-requested topic: ${manualTopic}`,\n    suggested_date: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],\n    source: 'manual'\n  }\n}];"
+        },
+        "id": "d8b576b5-cb2a-4fe2-9185-939a465b166e",
+        "name": "Create Manual Topic",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          80,
+          576
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "getAll",
+          "tableId": "content_opportunities",
+          "returnAll": true
+        },
+        "id": "fcc60d95-1b28-49e4-a807-054f9dc45431",
+        "name": "Get Existing Opportunities",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          528,
+          272
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "H2otb0ZjBMDnmMPT",
+            "name": "LocalPulse Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.anthropic.com/v1/messages",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "anthropicApi",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "anthropic-version",
+                "value": "2023-06-01"
+              }
+            ]
+          },
+          "sendBody": true,
+          "contentType": "json",
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({\n  model: 'claude-sonnet-4-20250514',\n  max_tokens: 4096,\n  messages: [\n    {\n      role: 'user',\n      content: 'You are a marketing strategist for a home services company.\\n\\nAnalyze these content opportunities and return ONLY a JSON array with enhanced opportunities. Each should have: title, description, opportunity_type, relevance_score (40-100), suggested_date, suggested_formats array, related_service, keywords array, target_audience, source.\\n\\nRaw opportunities: ' + JSON.stringify($input.all().map(i => i.json))\n    }\n  ]\n}) }}"
+        },
+        "id": "ee4df9c2-ad97-4b9d-b5bf-a6631a0ba310",
+        "name": "AI Enhancement",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [
+          752,
+          272
+        ],
+        "credentials": {
+          "anthropicApi": {
+            "id": "QIUyAAWFmOxaIZc6",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const response = $input.first().json;\nconst content = response.content[0].text;\n\nlet opportunities;\ntry {\n  const cleanedContent = content.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n  opportunities = JSON.parse(cleanedContent);\n} catch (error) {\n  throw new Error(`Failed to parse AI response: ${error.message}`);\n}\n\nif (!Array.isArray(opportunities)) {\n  throw new Error('AI response is not an array');\n}\n\nconst validOpportunities = opportunities.filter(opp => {\n  return opp.relevance_score >= 40 && opp.title && opp.description && opp.suggested_date && opp.related_service;\n});\n\nreturn validOpportunities.map(opp => ({ json: opp }));"
+        },
+        "id": "03669f6b-bfbc-4a7f-8c09-f578cc4d8245",
+        "name": "Parse AI Response",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          960,
+          272
+        ]
+      },
+      {
+        "parameters": {
+          "tableId": "content_opportunities",
+          "fieldsUi": {
+            "fieldValues": [
+              {
+                "fieldId": "title",
+                "fieldValue": "={{ $json.title }} "
+              },
+              {
+                "fieldId": "description",
+                "fieldValue": "={{ $json.description }} "
+              },
+              {
+                "fieldId": "opportunity_type",
+                "fieldValue": "={{ $json.opportunity_type }} "
+              },
+              {
+                "fieldId": "relevance_score",
+                "fieldValue": "={{ $json.relevance_score }} "
+              },
+              {
+                "fieldId": "suggested_date",
+                "fieldValue": "={{ $json.suggested_date }} "
+              },
+              {
+                "fieldId": "suggested_formats",
+                "fieldValue": "={{ JSON.stringify($json.suggested_formats) }}"
+              },
+              {
+                "fieldId": "related_service",
+                "fieldValue": "={{ $json.related_service }}"
+              },
+              {
+                "fieldId": "keywords",
+                "fieldValue": "={{ JSON.stringify($json.keywords) }}"
+              },
+              {
+                "fieldId": "source",
+                "fieldValue": "ai_generated "
+              },
+              {
+                "fieldId": "status",
+                "fieldValue": "new"
+              },
+              {
+                "fieldId": "expires_at",
+                "fieldValue": "={{ new Date(new Date($json.suggested_date).getTime() + 14 * 24 * 60 * 60 * 1000).toISOString() }}"
+              }
+            ]
+          }
+        },
+        "id": "2ac9abb0-8aaa-43b4-95d5-f452e6d47330",
+        "name": "Save Opportunities",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          1184,
+          272
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "H2otb0ZjBMDnmMPT",
+            "name": "LocalPulse Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "tableId": "activity_log",
+          "fieldsUi": {
+            "fieldValues": [
+              {
+                "fieldId": "activity_type",
+                "fieldValue": "ideation_generated"
+              },
+              {
+                "fieldId": "entity_type",
+                "fieldValue": "content_opportunities"
+              },
+              {
+                "fieldId": "description",
+                "fieldValue": "={{ 'Generated ' + $('Save Opportunities').all().length + ' new content opportunities' }}"
+              },
+              {
+                "fieldId": "metadata",
+                "fieldValue": "={{ JSON.stringify({ mode: $('Webhook Trigger').item.json.body.mode, opportunities_created: $('Save Opportunities').all().length }) }}"
+              }
+            ]
+          }
+        },
+        "id": "29a08943-d975-4aa7-84d7-2e926df3a5d7",
+        "name": "Log Activity",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          1408,
+          272
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "H2otb0ZjBMDnmMPT",
+            "name": "LocalPulse Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ JSON.stringify({ success: true, data: { opportunities_created: $('Save Opportunities').all().length } }) }}",
+          "options": {}
+        },
+        "id": "9fb5bae8-f996-4488-920d-211837bb9601",
+        "name": "Respond to Webhook",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1,
+        "position": [
+          1632,
+          272
+        ]
+      }
+    ],
+    "connections": {
+      "Webhook Trigger": {
+        "main": [
+          [
+            {
+              "node": "Get Business Profile",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Business Profile": {
+        "main": [
+          [
+            {
+              "node": "Switch by Mode",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Switch by Mode": {
+        "main": [
+          [
+            {
+              "node": "Generate Calendar Events",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Fetch Trending Topics",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Get Recent Unused",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Create Manual Topic",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generate Calendar Events": {
+        "main": [
+          [
+            {
+              "node": "Merge Sources",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch Trending Topics": {
+        "main": [
+          [
+            {
+              "node": "Merge Sources",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Merge Sources": {
+        "main": [
+          [
+            {
+              "node": "Get Existing Opportunities",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Recent Unused": {
+        "main": [
+          [
+            {
+              "node": "Get Existing Opportunities",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create Manual Topic": {
+        "main": [
+          [
+            {
+              "node": "Get Existing Opportunities",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Existing Opportunities": {
+        "main": [
+          [
+            {
+              "node": "AI Enhancement",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "AI Enhancement": {
+        "main": [
+          [
+            {
+              "node": "Parse AI Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse AI Response": {
+        "main": [
+          [
+            {
+              "node": "Save Opportunities",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Save Opportunities": {
+        "main": [
+          [
+            {
+              "node": "Log Activity",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Log Activity": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "James Brown",
+    "name": null,
+    "description": null,
+    "autosaved": false
+  },
+  "activeVersionId": "6c1beeb7-73f4-4cef-9865-ff255532bd10",
+  "connections": {
+    "Get Business Profile": {
+      "main": [
+        [
+          {
+            "node": "Switch by Mode",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch by Mode": {
+      "main": [
+        [
+          {
+            "node": "Generate Calendar Events",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Trending Topics",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Recent Unused",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Manual Topic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Calendar Events": {
+      "main": [
+        [
+          {
+            "node": "Merge Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Trending Topics": {
+      "main": [
+        [
+          {
+            "node": "Merge Sources",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Sources": {
+      "main": [
+        [
+          {
+            "node": "Get Existing Opportunities",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Recent Unused": {
+      "main": [
+        [
+          {
+            "node": "Get Existing Opportunities",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Manual Topic": {
+      "main": [
+        [
+          {
+            "node": "Get Existing Opportunities",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Existing Opportunities": {
+      "main": [
+        [
+          {
+            "node": "AI Enhancement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Enhancement": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Response": {
+      "main": [
+        [
+          {
+            "node": "Save Opportunities",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Opportunities": {
+      "main": [
+        [
+          {
+            "node": "Log Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Activity": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Triggers": {
+      "main": [
+        [
+          {
+            "node": "Get Business Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-05T00:03:07.366Z",
+  "id": "KygAKzQulAVGM4v7",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Ideation Engine",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "business_profile",
+        "limit": 1
+      },
+      "id": "65ccec29-b234-422f-9875-f13e46c93b38",
+      "name": "Get Business Profile",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -352,
+        224
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $('Webhook Triggers').item.json.body.mode }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "full"
+            },
+            {
+              "value2": "refresh",
+              "output": 1
+            },
+            {
+              "value2": "manual",
+              "output": 2
+            }
+          ]
+        }
+      },
+      "id": "2a5fb400-9ab5-4140-86b8-654d35c3fd83",
+      "name": "Switch by Mode",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const now = new Date();\nconst month = now.getMonth();\nconst year = now.getFullYear();\n\nconst seasonalCalendar = {\n  0: [\n    { title: \"New Year HVAC Resolution\", service: \"hvac\", type: \"seasonal\", description: \"Start the year with a furnace tune-up\" },\n    { title: \"Frozen Pipe Prevention\", service: \"plumbing\", type: \"educational\", description: \"Tips to prevent winter pipe disasters\" },\n    { title: \"Post-Holiday Electrical Check\", service: \"electrical\", type: \"safety\", description: \"Check outlets after holiday decorations\" }\n  ],\n  1: [\n    { title: \"Valentine's Day - Love Your Home\", service: \"general\", type: \"promotional\", description: \"Show your home some love with maintenance\" },\n    { title: \"Pre-Spring AC Inspection\", service: \"hvac\", type: \"seasonal\", description: \"Get ahead of the rush\" },\n    { title: \"Winter Storm Prep\", service: \"general\", type: \"emergency\", description: \"Emergency preparedness tips\" }\n  ],\n  2: [\n    { title: \"Spring Cleaning - HVAC Edition\", service: \"hvac\", type: \"seasonal\", description: \"Air filter replacement campaign\" },\n    { title: \"Daylight Saving - Check Detectors\", service: \"electrical\", type: \"safety\", description: \"Smoke detector battery reminder\" },\n    { title: \"Spring Plumbing Inspection\", service: \"plumbing\", type: \"seasonal\", description: \"Check for winter damage\" }\n  ],\n  3: [\n    { title: \"Earth Day Energy Efficiency\", service: \"hvac\", type: \"promotional\", description: \"Green HVAC tips and upgrades\" },\n    { title: \"Spring Rain - Sump Pump Check\", service: \"plumbing\", type: \"seasonal\", description: \"Prevent basement flooding\" },\n    { title: \"Outdoor Electrical Safety\", service: \"electrical\", type: \"safety\", description: \"Prep outdoor outlets for spring\" }\n  ],\n  4: [\n    { title: \"AC Tune-Up Season Launch\", service: \"hvac\", type: \"seasonal\", description: \"Beat the summer rush\" },\n    { title: \"Mother's Day - Comfort Gift\", service: \"general\", type: \"promotional\", description: \"Gift mom a maintenance plan\" },\n    { title: \"Memorial Day Safety\", service: \"electrical\", type: \"safety\", description: \"Outdoor cooking electrical safety\" }\n  ],\n  5: [\n    { title: \"Beat the Heat - AC Tips\", service: \"hvac\", type: \"educational\", description: \"Summer cooling efficiency guide\" },\n    { title: \"Father's Day - Dad's Comfort\", service: \"general\", type: \"promotional\", description: \"Upgrade dad's man cave comfort\" },\n    { title: \"Summer Solstice Energy Savings\", service: \"hvac\", type: \"educational\", description: \"Longest day, biggest savings tips\" },\n    { title: \"Vacation Home Prep\", service: \"general\", type: \"seasonal\", description: \"Pre-vacation checklist\" }\n  ],\n  6: [\n    { title: \"4th of July Safety\", service: \"electrical\", type: \"safety\", description: \"Firework and grill electrical safety\" },\n    { title: \"Peak Summer AC Emergency\", service: \"hvac\", type: \"emergency\", description: \"24/7 emergency service reminder\" },\n    { title: \"Water Conservation Tips\", service: \"plumbing\", type: \"educational\", description: \"Summer water-saving strategies\" }\n  ],\n  7: [\n    { title: \"Back to School HVAC Check\", service: \"hvac\", type: \"seasonal\", description: \"Prep home for fall schedules\" },\n    { title: \"End of Summer Plumbing\", service: \"plumbing\", type: \"seasonal\", description: \"Outdoor faucet maintenance\" },\n    { title: \"Storm Season Prep\", service: \"electrical\", type: \"emergency\", description: \"Generator and surge protection\" }\n  ],\n  8: [\n    { title: \"Labor Day Maintenance Sale\", service: \"general\", type: \"promotional\", description: \"End of summer service deals\" },\n    { title: \"Fall HVAC Transition\", service: \"hvac\", type: \"seasonal\", description: \"Switch from cooling to heating\" },\n    { title: \"Back to Routine - Home Safety\", service: \"electrical\", type: \"safety\", description: \"Family home safety audit\" }\n  ],\n  9: [\n    { title: \"Heating System Tune-Up\", service: \"hvac\", type: \"seasonal\", description: \"Pre-winter furnace check\" },\n    { title: \"Halloween Electrical Safety\", service: \"electrical\", type: \"safety\", description: \"Decoration safety tips\" },\n    { title: \"Fall Plumbing Winterization\", service: \"plumbing\", type: \"seasonal\", description: \"Prep pipes for cold\" }\n  ],\n  10: [\n    { title: \"Thanksgiving Home Prep\", service: \"general\", type: \"seasonal\", description: \"Get ready for guests\" },\n    { title: \"Black Friday Service Deals\", service: \"general\", type: \"promotional\", description: \"Annual maintenance specials\" },\n    { title: \"Holiday Lighting Safety\", service: \"electrical\", type: \"safety\", description: \"Decoration electrical tips\" }\n  ],\n  11: [\n    { title: \"Holiday Emergency Services\", service: \"general\", type: \"emergency\", description: \"24/7 holiday availability\" },\n    { title: \"Year-End HVAC Review\", service: \"hvac\", type: \"educational\", description: \"Annual system assessment\" },\n    { title: \"New Year Maintenance Plans\", service: \"general\", type: \"promotional\", description: \"Sign up for next year\" },\n    { title: \"Winter Storm Response\", service: \"general\", type: \"emergency\", description: \"Emergency contact reminder\" }\n  ]\n};\n\nconst currentMonth = seasonalCalendar[month] || [];\nconst nextMonth = seasonalCalendar[(month + 1) % 12] || [];\nconst nextMonthYear = month === 11 ? year + 1 : year;\nconst nextMonthIndex = (month + 1) % 12;\n\nconst opportunities = currentMonth.map((opp, i) => ({\n  ...opp,\n  suggested_date: new Date(year, month, Math.min(10 + (i * 5), 28)).toISOString().split('T')[0],\n  source: 'calendar'\n})).concat(nextMonth.map((opp, i) => ({\n  ...opp,\n  suggested_date: new Date(nextMonthYear, nextMonthIndex, Math.min(5 + (i * 5), 28)).toISOString().split('T')[0],\n  source: 'calendar'\n})));\n\nreturn opportunities.map(opp => ({ json: opp }));"
+      },
+      "id": "bd63fe5e-b294-4773-a15c-a5664bf589be",
+      "name": "Generate Calendar Events",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        96,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const trendingTopics = [\n  {\n    title: \"Smart Thermostat Installation\",\n    service: \"hvac\",\n    type: \"trending\",\n    description: \"Growing interest in smart home HVAC control\",\n    keywords: [\"smart home\", \"nest\", \"ecobee\", \"energy savings\"],\n    source: \"trends\"\n  },\n  {\n    title: \"Tankless Water Heater Benefits\",\n    service: \"plumbing\",\n    type: \"trending\",\n    description: \"Consumers researching tankless options\",\n    keywords: [\"tankless\", \"on-demand\", \"energy efficient\", \"endless hot water\"],\n    source: \"trends\"\n  },\n  {\n    title: \"EV Charger Home Installation\",\n    service: \"electrical\",\n    type: \"trending\",\n    description: \"Electric vehicle charging station demand rising\",\n    keywords: [\"ev charger\", \"level 2\", \"tesla\", \"home charging\"],\n    source: \"trends\"\n  },\n  {\n    title: \"Indoor Air Quality Concerns\",\n    service: \"hvac\",\n    type: \"trending\",\n    description: \"Post-pandemic focus on air filtration\",\n    keywords: [\"air quality\", \"hepa\", \"filtration\", \"allergies\", \"purifier\"],\n    source: \"trends\"\n  },\n  {\n    title: \"Whole House Generator Interest\",\n    service: \"electrical\",\n    type: \"trending\",\n    description: \"Power outage concerns driving generator sales\",\n    keywords: [\"generator\", \"backup power\", \"standby\", \"power outage\"],\n    source: \"trends\"\n  },\n  {\n    title: \"Water Softener Systems\",\n    service: \"plumbing\",\n    type: \"trending\",\n    description: \"Hard water solutions trending in search\",\n    keywords: [\"water softener\", \"hard water\", \"scale buildup\", \"water quality\"],\n    source: \"trends\"\n  }\n];\n\nconst now = new Date();\nreturn trendingTopics.map((topic, i) => ({\n  json: {\n    ...topic,\n    suggested_date: new Date(now.getTime() + (i * 3 + 2) * 24 * 60 * 60 * 1000).toISOString().split('T')[0]\n  }\n}));"
+      },
+      "id": "d5c3547e-3184-415d-95ef-b6d903c0cba7",
+      "name": "Fetch Trending Topics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        176
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "9b72745d-13cb-465d-bedf-2a06750e6c98",
+      "name": "Merge Sources",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [
+        304,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "content_opportunities",
+        "limit": 20
+      },
+      "id": "1201c7d5-a554-4eec-bad6-1cac85ce853f",
+      "name": "Get Recent Unused",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        80,
+        368
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const manualTopic = $input.first().json.body.manual_topic;\n\nif (!manualTopic || manualTopic.trim() === '') {\n  throw new Error('manual_topic is required when mode is \"manual\"');\n}\n\nconst now = new Date();\nreturn [{\n  json: {\n    title: manualTopic,\n    service: 'general',\n    type: 'manual',\n    description: `User-requested topic: ${manualTopic}`,\n    suggested_date: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],\n    source: 'manual'\n  }\n}];"
+      },
+      "id": "d8b576b5-cb2a-4fe2-9185-939a465b166e",
+      "name": "Create Manual Topic",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "content_opportunities",
+        "returnAll": true
+      },
+      "id": "fcc60d95-1b28-49e4-a807-054f9dc45431",
+      "name": "Get Existing Opportunities",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        528,
+        272
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: 'claude-sonnet-4-20250514',\n  max_tokens: 4096,\n  messages: [\n    {\n      role: 'user',\n      content: 'You are a marketing strategist for a home services company.\\n\\nAnalyze these content opportunities and return ONLY a JSON array with enhanced opportunities. Each should have: title, description, opportunity_type, relevance_score (40-100), suggested_date, suggested_formats array, related_service, keywords array, target_audience, source.\\n\\nRaw opportunities: ' + JSON.stringify($input.all().map(i => i.json))\n    }\n  ]\n}) }}",
+        "options": {}
+      },
+      "id": "ee4df9c2-ad97-4b9d-b5bf-a6631a0ba310",
+      "name": "AI Enhancement",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        752,
+        272
+      ],
+      "credentials": {
+        "anthropicApi": {
+          "id": "QIUyAAWFmOxaIZc6",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst content = response.content[0].text;\n\nlet opportunities;\ntry {\n  const cleanedContent = content.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n  opportunities = JSON.parse(cleanedContent);\n} catch (error) {\n  throw new Error(`Failed to parse AI response: ${error.message}`);\n}\n\nif (!Array.isArray(opportunities)) {\n  throw new Error('AI response is not an array');\n}\n\nconst validOpportunities = opportunities.filter(opp => {\n  return opp.relevance_score >= 40 && opp.title && opp.description && opp.suggested_date && opp.related_service;\n});\n\nreturn validOpportunities.map(opp => ({ json: opp }));"
+      },
+      "id": "03669f6b-bfbc-4a7f-8c09-f578cc4d8245",
+      "name": "Parse AI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "tableId": "content_opportunities",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "title",
+              "fieldValue": "={{ $json.title }} "
+            },
+            {
+              "fieldId": "description",
+              "fieldValue": "={{ $json.description }} "
+            },
+            {
+              "fieldId": "opportunity_type",
+              "fieldValue": "={{ $json.opportunity_type }} "
+            },
+            {
+              "fieldId": "relevance_score",
+              "fieldValue": "={{ $json.relevance_score }} "
+            },
+            {
+              "fieldId": "suggested_date",
+              "fieldValue": "={{ $json.suggested_date }} "
+            },
+            {
+              "fieldId": "suggested_formats",
+              "fieldValue": "={{ JSON.stringify($json.suggested_formats) }}"
+            },
+            {
+              "fieldId": "related_service",
+              "fieldValue": "={{ $json.related_service }}"
+            },
+            {
+              "fieldId": "keywords",
+              "fieldValue": "={{ JSON.stringify($json.keywords) }}"
+            },
+            {
+              "fieldId": "source",
+              "fieldValue": "ai_generated "
+            },
+            {
+              "fieldId": "status",
+              "fieldValue": "new"
+            },
+            {
+              "fieldId": "expires_at",
+              "fieldValue": "={{ new Date(new Date($json.suggested_date).getTime() + 14 * 24 * 60 * 60 * 1000).toISOString() }}"
+            }
+          ]
+        }
+      },
+      "id": "2ac9abb0-8aaa-43b4-95d5-f452e6d47330",
+      "name": "Save Opportunities",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1184,
+        272
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "activity_log",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "activity_type",
+              "fieldValue": "ideation_generated"
+            },
+            {
+              "fieldId": "entity_type",
+              "fieldValue": "content_opportunities"
+            },
+            {
+              "fieldId": "description",
+              "fieldValue": "={{ 'Generated ' + $('Save Opportunities').all().length + ' new content opportunities' }}"
+            },
+            {
+              "fieldId": "metadata",
+              "fieldValue": "={{ JSON.stringify({ mode: $('Webhook Triggers').item.json.body.mode, opportunities_created: $('Save Opportunities').all().length }) }}"
+            }
+          ]
+        }
+      },
+      "id": "29a08943-d975-4aa7-84d7-2e926df3a5d7",
+      "name": "Log Activity",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1408,
+        272
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, data: { opportunities_created: $('Save Opportunities').all().length } }) }}",
+        "options": {}
+      },
+      "id": "9fb5bae8-f996-4488-920d-211837bb9601",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1632,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ideation/generate",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "73174bfd-2aa1-4d7e-a482-6530df51a3b6",
+      "name": "Webhook Triggers",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -592,
+        224
+      ],
+      "webhookId": "0358e3cb-444f-4930-959e-99d3c03e6dda"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-05T00:03:07.369Z",
+      "createdAt": "2026-01-05T00:03:07.369Z",
+      "role": "workflow:owner",
+      "workflowId": "KygAKzQulAVGM4v7",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-01-11T02:11:34.904Z",
+  "versionId": "117cae27-aef0-4032-8952-ff857acd7069"
+}
