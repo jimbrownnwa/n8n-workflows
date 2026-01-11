@@ -1,0 +1,1468 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-01-11T02:05:27.000Z",
+    "createdAt": "2026-01-11T02:05:24.718Z",
+    "versionId": "054cedb5-17ab-45a6-90ba-b064cb3e0d76",
+    "workflowId": "F1efti0P0Ey8YFY9",
+    "nodes": [
+      {
+        "parameters": {
+          "path": "class-action-case-form",
+          "formTitle": "Submit Class Action Case",
+          "formDescription": "Upload the PDF document for the class action lawsuit. Our system will automatically generate a blog post draft.",
+          "formFields": {
+            "values": [
+              {
+                "fieldLabel": "Custom Instructions",
+                "fieldType": "textarea",
+                "placeholder": "Enter Your Instructions Here"
+              },
+              {
+                "fieldLabel": "Case PDF Document",
+                "fieldType": "file",
+                "requiredField": true
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.formTrigger",
+        "typeVersion": 2.1,
+        "position": [
+          4048,
+          1792
+        ],
+        "id": "80d66de7-8c8c-4a78-91cd-3ba13bd674c8",
+        "name": "Case Upload Form",
+        "webhookId": "class-action-case-form"
+      },
+      {
+        "parameters": {
+          "operation": "pdf",
+          "binaryPropertyName": "Case_PDF_Document",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.extractFromFile",
+        "typeVersion": 1.1,
+        "position": [
+          4272,
+          1792
+        ],
+        "id": "ad3d4f10-b33c-4edf-9c04-2e10896db0b4",
+        "name": "Extract from File"
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "claude-sonnet-4-5-20250929",
+            "mode": "list",
+            "cachedResultName": "claude-sonnet-4-5-20250929"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=Act as a professional blog writer for a Class Action law firm. Using the provided text, please write an interesting, but factual blog post based on provided data. The objective is to generate leads for the firm.\n\nPlease write a 500-800 word WordPress Blog article based on  {{ $json.text }}\n\nInstructions:\n- In the introduction, introduce the topic that will be covered in more detail in the rest of the text\n- The introduction should be about 60 words\n- The conclusion should be about 60 words\n- Use the conclusion to summarize everything said in the article and offer a conclusion to the reader\n- Write a maximum of 2-3 chapters.\n- Chapters should follow a logical flow and not repeat the same ideas.\n- Chapters should be related to each other and not isolated blocks of text. The text should flow and follow a linear logic.\n- Do not start chapters with \"Chapter 1\", \"Chapter 2\", \"Chapter 3\" ... write only the chapter title\n- For the text, use HTML for formatting, but limit yourself to bold, italics, paragraphs and lists.\n- Do not put the output between ```html but only the text\n- Do not use markdown for formatting.\n- Go deeper into the topic you are talking about, don't just throw superficial information out there\n- {{ $('Case Upload Form').item.json['Custom Instructions'] }}\n- I only want HTML format in output"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.anthropic",
+        "typeVersion": 1,
+        "position": [
+          4544,
+          1792
+        ],
+        "id": "6dab25d8-a637-4713-bb53-9228e1f6dcad",
+        "name": "Generate Article",
+        "credentials": {
+          "anthropicApi": {
+            "id": "QIUyAAWFmOxaIZc6",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "value": "Wl6wot7dMpmKZBu0",
+            "mode": "list",
+            "cachedResultName": "New Class Action",
+            "cachedResultUrl": "/projects/sSYd8awhzL2oziun/datatables/Wl6wot7dMpmKZBu0"
+          }
+        },
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          4848,
+          1792
+        ],
+        "id": "ceebb595-14e4-4b2b-989e-f7b1dfabb9c5",
+        "name": "Get Previous Articles"
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "claude-sonnet-4-5-20250929",
+            "mode": "list",
+            "cachedResultName": "claude-sonnet-4-5-20250929"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=You are an expert SEO specialist for a Class Action law firm blog.\n\nNEW ARTICLE CONTENT:\n{{ $('Generate Article').item.json.content[0].text }}\n\nPREVIOUS ARTICLES DATABASE:\n{{ JSON.stringify($('Get Previous Articles').all(), null, 2) }}\n\nTASK:\nAnalyze the new article content and the database of previous articles. Identify 2-3 previous articles that are most relevant for internal linking based on topic similarity and contextual relevance.\n\nFor each relevant article, you must:\n1. Identify the exact sentence or phrase in the NEW article where a link would add value\n2. Suggest natural anchor text (3-7 words) from that sentence\n3. Provide the URL from the database\n\nRETURN ONLY valid JSON with this exact structure (no markdown, no code blocks):\n{\n  \"links\": [\n    {\n      \"anchor_text\": \"specific phrase from new article\",\n      \"url\": \"full URL from database\",\n      \"context_sentence\": \"the full sentence where this link should be inserted\"\n    }\n  ]\n}\n\nRULES:\n- Maximum 3 links\n- Anchor text must exist exactly in the new article\n- Links should be naturally distributed throughout the article\n- Don't link to the same article twice\n- If no relevant matches exist, return {\"links\": []}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.anthropic",
+        "typeVersion": 1,
+        "position": [
+          5008,
+          1792
+        ],
+        "id": "75d28b6f-e5aa-4974-870d-65f7cc09395e",
+        "name": "Find Linking Opportunities",
+        "credentials": {
+          "anthropicApi": {
+            "id": "QIUyAAWFmOxaIZc6",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "claude-sonnet-4-5-20250929",
+            "mode": "list",
+            "cachedResultName": "claude-sonnet-4-5-20250929"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=You are an expert HTML editor. Your task is to intelligently insert internal links into an HTML article.\n\nORIGINAL ARTICLE HTML:\n{{ $('Generate Article').item.json.content[0].text }}\n\nLINKS TO INSERT:\n{{ $json.content[0].text }}\n\nINSTRUCTIONS:\n- Parse the links JSON from the previous step\n- For each link, find the exact anchor_text in the original HTML\n- Replace the anchor_text with: <a href=\"URL\">anchor_text</a>\n- Preserve ALL existing HTML formatting\n- Only insert links where the exact anchor text appears\n- If anchor text appears multiple times, only link the first occurrence\n\nCRITICAL OUTPUT REQUIREMENTS:\n- Your response must contain ONLY the modified HTML\n- Do not include ANY explanations, preamble, or commentary\n- Do not wrap the output in ```html or ``` code blocks\n- Do not say \"Here is the modified HTML\" or any similar phrase\n- Your entire response should be pure HTML that starts with <p> or <h1> and ends with </p> or similar closing tag\n- If the links JSON is empty or contains no valid links, return the original HTML unchanged"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.anthropic",
+        "typeVersion": 1,
+        "position": [
+          5296,
+          1792
+        ],
+        "id": "6aec6272-3c3e-4a90-a029-5e69df15c2c7",
+        "name": "Insert Internal Links",
+        "credentials": {
+          "anthropicApi": {
+            "id": "QIUyAAWFmOxaIZc6",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Simple cleanup to remove markdown blocks and explanatory text\nlet cleanHtml = $input.item.json.content[0].text;\n\n// Remove markdown code blocks (```html and ```)\ncleanHtml = cleanHtml.replace(/```html\\s*/gi, '').replace(/```\\s*/g, '');\n\n// Remove common preamble phrases that Claude might add\nconst preambles = [\n  /^Here is the modified HTML:?\\s*/i,\n  /^Here's the modified HTML:?\\s*/i,\n  /^Modified HTML:?\\s*/i,\n  /^The modified HTML is:?\\s*/i,\n  /^Here is the HTML with internal links:?\\s*/i\n];\n\npreambles.forEach(pattern => {\n  cleanHtml = cleanHtml.replace(pattern, '');\n});\n\n// If there's duplicate content (article appears twice), split and take first instance\n// Check if content length is abnormally long (> 15000 chars suggests duplication)\nif (cleanHtml.length > 15000) {\n  // Find the first </p> after the halfway point - likely end of first article\n  const midpoint = Math.floor(cleanHtml.length / 2);\n  const endOfFirstArticle = cleanHtml.indexOf('</p>', midpoint);\n  if (endOfFirstArticle > 0) {\n    cleanHtml = cleanHtml.substring(0, endOfFirstArticle + 4); // +4 for '</p>'\n  }\n}\n\n// Trim whitespace\ncleanHtml = cleanHtml.trim();\n\n// Return cleaned HTML\nreturn { \n  json: { \n    content: [{ \n      text: cleanHtml \n    }] \n  } \n};"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          5568,
+          1792
+        ],
+        "id": "18ff9dc8-16c2-4b30-a090-7afe9895bd91",
+        "name": "Cleanup HTML Output"
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "claude-haiku-4-5-20251001",
+            "mode": "list",
+            "cachedResultName": "claude-haiku-4-5-20251001"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=You are an SEO Copywriter and you need to find a title of maximum 60 characters for the following article:\n\n{{ $json.content[0].text }}\nInstructions:\n- Use keywords contained in the article\n- Do not use any HTML characters\n- Output only the string containing the title.\n- Do not use quotes. The only characters allowed are: and ,"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.anthropic",
+        "typeVersion": 1,
+        "position": [
+          5712,
+          1792
+        ],
+        "id": "00f554d8-6a31-4de7-8a97-ad9045d1374b",
+        "name": "Generate Title",
+        "credentials": {
+          "anthropicApi": {
+            "id": "QIUyAAWFmOxaIZc6",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "image",
+          "prompt": "=Generate a real photo image used as a blog post cover:\n\nImage prompt:\nCreate image that is closely related to the content of this post title {{ $('Generate Title').item.json.content[0].text }}, photography, realistic, sigma 85mm f/1.4",
+          "options": {
+            "size": "1024x1024",
+            "style": "natural"
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.openAi",
+        "typeVersion": 2.1,
+        "position": [
+          6256,
+          1792
+        ],
+        "id": "7a7bdda8-c1f9-4d78-bcb0-87a84256cc50",
+        "name": "Generate an image",
+        "credentials": {
+          "openAiApi": {
+            "id": "6sKwLZ4CBgrhQ8HO",
+            "name": "Hostinger n8n"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "title": "={{ $('Generate Title').item.json.content[0].text }}",
+          "additionalFields": {
+            "content": "={{ $('Cleanup HTML Output').item.json.content[0].text }}"
+          }
+        },
+        "type": "n8n-nodes-base.wordpress",
+        "typeVersion": 1,
+        "position": [
+          6064,
+          1792
+        ],
+        "id": "8d7e5a2c-0515-4e99-b18a-d3555310f666",
+        "name": "Add draft to WP",
+        "credentials": {
+          "wordpressApi": {
+            "id": "V2NZs6duULdYq87m",
+            "name": "Class Action News"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://classactionnews.com//wp-json/wp/v2/media",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "wordpressApi",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Disposition",
+                "value": "=attachment; filename=\"classaction-{{ $('Add draft to WP').item.json.id }}.jpg\""
+              }
+            ]
+          },
+          "sendBody": true,
+          "contentType": "binaryData",
+          "inputDataFieldName": "data",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          6432,
+          1792
+        ],
+        "id": "3d55cb2f-3f77-4e82-801b-8c7863db810d",
+        "name": "Upload image",
+        "credentials": {
+          "wordpressApi": {
+            "id": "V2NZs6duULdYq87m",
+            "name": "Class Action News"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Extract meta title and description from SEO Expert output\nconst seoData = $input.item.json;\nlet metaTitle = '';\nlet metaDescription = '';\n\n// The OpenAI node with json_object format returns: { output: { metaTitle, metaDescription } }\nif (seoData.output) {\n  metaTitle = seoData.output.metaTitle || '';\n  metaDescription = seoData.output.metaDescription || '';\n} \n// Fallback: check if it's in response\nelse if (seoData.response) {\n  metaTitle = seoData.response.metaTitle || '';\n  metaDescription = seoData.response.metaDescription || '';\n} \n// Fallback: check if it's in content as JSON string\nelse if (seoData.content && seoData.content[0] && seoData.content[0].text) {\n  try {\n    const parsed = JSON.parse(seoData.content[0].text);\n    metaTitle = parsed.metaTitle || parsed.metatitle || '';\n    metaDescription = parsed.metaDescription || parsed.metadescription || '';\n  } catch (e) {\n    console.error('Failed to parse SEO data:', e);\n  }\n}\n\nconsole.log('Extracted metaTitle:', metaTitle);\nconsole.log('Extracted metaDescription:', metaDescription);\n\n// Return formatted data\nreturn {\n  json: {\n    metaTitle: metaTitle,\n    metaDescription: metaDescription,\n    postId: $('Add draft to WP').item.json.id\n  }\n};"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          6336,
+          2144
+        ],
+        "id": "9ce94d23-bf07-407c-826b-975e2cf7ea0e",
+        "name": "Extract SEO Meta"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://classactionnews.com/wp-json/wp/v2/posts/{{$json.postId}}",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "wordpressApi",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"meta\": {\n    \"_yoast_wpseo_title\": \"{{ $('SEO Expert').item.json.output[0].content[0].text.metatitle }}\",\n    \"_yoast_wpseo_metadesc\": \"{{ $('SEO Expert').item.json.output[0].content[0].text.metadescription }}\"\n  }\n}\n",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          6496,
+          2144
+        ],
+        "id": "86a74b68-a6c1-4340-bc8d-0775ba38a997",
+        "name": "Set Metatag",
+        "credentials": {
+          "wordpressApi": {
+            "id": "V2NZs6duULdYq87m",
+            "name": "Class Action News"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "content": "## Case Data Ingestion\n\nThis section needs to be updated to reflct how we will actually\nretrieve the case data",
+          "height": 384,
+          "width": 496,
+          "color": 3
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          3984,
+          1632
+        ],
+        "typeVersion": 1,
+        "id": "97bec5c7-adb1-451a-970e-e0f3c8f3e6d8",
+        "name": "Sticky Note"
+      },
+      {
+        "parameters": {
+          "content": "## Article Generation & Internal Linking\n**New functionality added:**\n1. Get Previous Articles from database\n2. AI identifies relevant linking opportunities\n3. AI inserts internal links into article HTML",
+          "height": 384,
+          "width": 1472,
+          "color": 4
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          4480,
+          1632
+        ],
+        "typeVersion": 1,
+        "id": "6f0f2b82-177d-4c42-8489-3f32374445ba",
+        "name": "Sticky Note1"
+      },
+      {
+        "parameters": {
+          "content": "## Publish to WordPress \n*Image generation included",
+          "height": 384,
+          "width": 880
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          5952,
+          1632
+        ],
+        "typeVersion": 1,
+        "id": "4f6daad2-8ec2-40e7-b167-870d980dda1d",
+        "name": "Sticky Note2"
+      },
+      {
+        "parameters": {
+          "content": "## SEO & Database Update\n",
+          "height": 304,
+          "width": 880,
+          "color": 6
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          5952,
+          2016
+        ],
+        "typeVersion": 1,
+        "id": "a8f29b20-cad2-40a0-975e-559a5c27f910",
+        "name": "Sticky Note3"
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "chatgpt-4o-latest",
+            "mode": "list",
+            "cachedResultName": "CHATGPT-4O-LATEST"
+          },
+          "responses": {
+            "values": [
+              {
+                "content": "=Create metatitle and metadescription in the language of the following product:\n- Title: {{ $('Add draft to WP').item.json.title.rendered }}\n- Content: {{ $('Add draft to WP').item.json.content.rendered }}\n- Excerpt: {{ $('Add draft to WP').item.json.excerpt.rendered }}\n\nOutput in tructured JSON as follows:\n\n{ metatitle }\n{metadescription}"
+              },
+              {
+                "role": "system",
+                "content": "You are an expert SEO content optimizer specialized in creating meta tags for both web pages and blog articles. Your task is to analyze the provided content and generate optimized meta tags based on the content type.\n\nMETA TAG REQUIREMENTS:\n\n1. Meta Title (max 60 characters):\n   - Include primary keyword near the beginning\n   - State the main value proposition\n   - Include brand name when relevant\n   - Use action-oriented language for commercial pages\n   - Format: Primary Keyword | Main Benefit | Brand (if applicable)\n\n2. Meta Description (max 160 characters):\n   - Lead with unique selling proposition\n   - Include primary and secondary keywords naturally\n   - Add clear call-to-action\n   - Highlight key benefits or features\n   - Address user pain points\n   - Tease the main insights or findings\n   - Mention key topics covered\n   - Use engaging question or statement\n   - Include expertise indicators\n   - Promise value or solution\n\nANALYSIS PROCESS:\n1. Content Assessment:\n   - Identify content type and purpose\n   - Extract main topic and keywords\n   - Determine search intent\n   - Identify target audience\n   - Note key differentiators\n\n2. Optimization Strategy:\n   - Align with search intent\n   - Consider competition level\n   - Factor in brand guidelines\n   - Account for content freshness\n   - Optimize for click-through rate\n\nOUTPUT FORMAT:\nPlease provide meta tags in the required format\n\nVALIDATION CHECKLIST:\n- Title length ≤ 60 characters\n- Description length ≤ 160 characters\n- Primary keyword included in both\n- Matches identified search intent\n- Appropriate for content type\n- Clear value proposition\n- Compelling call-to-action\n- Natural keyword placement\n- Proper grammar and spelling\n- Mobile display optimized\n- Don't use placeholder\n\nBEST PRACTICES:\n- Avoid clickbait or misleading content\n- Use power words appropriately\n- Maintain brand voice and tone\n- Ensure mobile snippet optimization\n- Consider local SEO when relevant\n- Keep seasonal content timely\n- Use numbers and data when available\n- Include price/offers if applicable\n- Add emotional triggers when appropriate\n- Consider SERP feature optimization\n\nTECHNICAL GUIDELINES:\n- No double quotes in meta description\n- Avoid unnecessary special characters\n- Use UTF-8 encoding\n- Capitalize properly\n- Avoid keyword cannibalization\n- Respect brand guidelines\n- Consider local market variations\n- Update meta tags for seasonal content\n- Monitor CTR performance\n- A/B test when possible\n\nRemember: The goal is to create meta tags that serve both search engines and users effectively while maintaining specificity for the content type and maximizing organic click-through rates."
+              }
+            ]
+          },
+          "builtInTools": {},
+          "options": {
+            "textFormat": {
+              "textOptions": {
+                "type": "json_object"
+              }
+            }
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.openAi",
+        "typeVersion": 2.1,
+        "position": [
+          6016,
+          2144
+        ],
+        "id": "5e341506-57f3-439e-ae03-c28d427f9dbd",
+        "name": "SEO Expert",
+        "credentials": {
+          "openAiApi": {
+            "id": "6sKwLZ4CBgrhQ8HO",
+            "name": "Hostinger n8n"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "dataTableId": {
+            "__rl": true,
+            "value": "Wl6wot7dMpmKZBu0",
+            "mode": "list",
+            "cachedResultName": "New Class Action",
+            "cachedResultUrl": "/projects/sSYd8awhzL2oziun/datatables/Wl6wot7dMpmKZBu0"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "postID": 0
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "postID",
+                "displayName": "postID",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "postTitle",
+                "displayName": "postTitle",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "postURL",
+                "displayName": "postURL",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "metaTitle",
+                "displayName": "metaTitle",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "metaDescription",
+                "displayName": "metaDescription",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          6672,
+          2144
+        ],
+        "id": "825a86eb-4234-402c-9c28-9083be828072",
+        "name": "Add New Post to DB"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://classactionnews.com/wp-json/wp/v2/posts/{{ $('Add draft to WP').item.json.id }}",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "wordpressApi",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "featured_media",
+                "value": "={{ $json.id }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          6624,
+          1792
+        ],
+        "id": "c55a373c-3cbf-4ae2-8aaf-dc1ab3d5528e",
+        "name": "Set featured Image",
+        "credentials": {
+          "wordpressApi": {
+            "id": "V2NZs6duULdYq87m",
+            "name": "Class Action News"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Case Upload Form": {
+        "main": [
+          [
+            {
+              "node": "Extract from File",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extract from File": {
+        "main": [
+          [
+            {
+              "node": "Generate Article",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generate Article": {
+        "main": [
+          [
+            {
+              "node": "Get Previous Articles",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Previous Articles": {
+        "main": [
+          [
+            {
+              "node": "Find Linking Opportunities",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Find Linking Opportunities": {
+        "main": [
+          [
+            {
+              "node": "Insert Internal Links",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Insert Internal Links": {
+        "main": [
+          [
+            {
+              "node": "Cleanup HTML Output",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Cleanup HTML Output": {
+        "main": [
+          [
+            {
+              "node": "Generate Title",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generate Title": {
+        "main": [
+          [
+            {
+              "node": "Add draft to WP",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generate an image": {
+        "main": [
+          [
+            {
+              "node": "Upload image",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Add draft to WP": {
+        "main": [
+          [
+            {
+              "node": "Generate an image",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Upload image": {
+        "main": [
+          [
+            {
+              "node": "Set featured Image",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Set Metatag": {
+        "main": [
+          [
+            {
+              "node": "Add New Post to DB",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "SEO Expert": {
+        "main": [
+          [
+            {
+              "node": "Extract SEO Meta",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extract SEO Meta": {
+        "main": [
+          [
+            {
+              "node": "Set Metatag",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Set featured Image": {
+        "main": [
+          [
+            {
+              "node": "SEO Expert",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "James Brown",
+    "name": "Version 054cedb5",
+    "description": "",
+    "autosaved": false
+  },
+  "activeVersionId": "054cedb5-17ab-45a6-90ba-b064cb3e0d76",
+  "connections": {
+    "Case Upload Form": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Generate Article",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Article": {
+      "main": [
+        [
+          {
+            "node": "Get Previous Articles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Previous Articles": {
+      "main": [
+        [
+          {
+            "node": "Find Linking Opportunities",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Linking Opportunities": {
+      "main": [
+        [
+          {
+            "node": "Insert Internal Links",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Internal Links": {
+      "main": [
+        [
+          {
+            "node": "Cleanup HTML Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cleanup HTML Output": {
+      "main": [
+        [
+          {
+            "node": "Generate Title",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Title": {
+      "main": [
+        [
+          {
+            "node": "Add draft to WP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate an image": {
+      "main": [
+        [
+          {
+            "node": "Upload image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add draft to WP": {
+      "main": [
+        [
+          {
+            "node": "Generate an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload image": {
+      "main": [
+        [
+          {
+            "node": "Set featured Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Metatag": {
+      "main": [
+        [
+          {
+            "node": "Add New Post to DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SEO Expert": {
+      "main": [
+        [
+          {
+            "node": "Extract SEO Meta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract SEO Meta": {
+      "main": [
+        [
+          {
+            "node": "Set Metatag",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set featured Image": {
+      "main": [
+        [
+          {
+            "node": "SEO Expert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-04T22:54:14.525Z",
+  "id": "F1efti0P0Ey8YFY9",
+  "isArchived": false,
+  "meta": null,
+  "name": "Class Action Blog Automation: Form Input",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "class-action-case-form",
+        "formTitle": "Submit Class Action Case",
+        "formDescription": "Upload the PDF document for the class action lawsuit. Our system will automatically generate a blog post draft.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Custom Instructions",
+              "fieldType": "textarea",
+              "placeholder": "Enter Your Instructions Here"
+            },
+            {
+              "fieldLabel": "Case PDF Document",
+              "fieldType": "file",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.1,
+      "position": [
+        4048,
+        1792
+      ],
+      "id": "80d66de7-8c8c-4a78-91cd-3ba13bd674c8",
+      "name": "Case Upload Form",
+      "webhookId": "class-action-case-form"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "Case_PDF_Document",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        4272,
+        1792
+      ],
+      "id": "ad3d4f10-b33c-4edf-9c04-2e10896db0b4",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-sonnet-4-5-20250929",
+          "mode": "list",
+          "cachedResultName": "claude-sonnet-4-5-20250929"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Act as a professional blog writer for a Class Action law firm. Using the provided text, please write an interesting, but factual blog post based on provided data. The objective is to generate leads for the firm.\n\nPlease write a 500-800 word WordPress Blog article based on  {{ $json.text }}\n\nInstructions:\n- In the introduction, introduce the topic that will be covered in more detail in the rest of the text\n- The introduction should be about 60 words\n- The conclusion should be about 60 words\n- Use the conclusion to summarize everything said in the article and offer a conclusion to the reader\n- Write a maximum of 2-3 chapters.\n- Chapters should follow a logical flow and not repeat the same ideas.\n- Chapters should be related to each other and not isolated blocks of text. The text should flow and follow a linear logic.\n- Do not start chapters with \"Chapter 1\", \"Chapter 2\", \"Chapter 3\" ... write only the chapter title\n- For the text, use HTML for formatting, but limit yourself to bold, italics, paragraphs and lists.\n- Do not put the output between ```html but only the text\n- Do not use markdown for formatting.\n- Go deeper into the topic you are talking about, don't just throw superficial information out there\n- {{ $('Case Upload Form').item.json['Custom Instructions'] }}\n- I only want HTML format in output"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        4544,
+        1792
+      ],
+      "id": "6dab25d8-a637-4713-bb53-9228e1f6dcad",
+      "name": "Generate Article",
+      "credentials": {
+        "anthropicApi": {
+          "id": "QIUyAAWFmOxaIZc6",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "Wl6wot7dMpmKZBu0",
+          "mode": "list",
+          "cachedResultName": "New Class Action",
+          "cachedResultUrl": "/projects/sSYd8awhzL2oziun/datatables/Wl6wot7dMpmKZBu0"
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        4848,
+        1792
+      ],
+      "id": "ceebb595-14e4-4b2b-989e-f7b1dfabb9c5",
+      "name": "Get Previous Articles"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-sonnet-4-5-20250929",
+          "mode": "list",
+          "cachedResultName": "claude-sonnet-4-5-20250929"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are an expert SEO specialist for a Class Action law firm blog.\n\nNEW ARTICLE CONTENT:\n{{ $('Generate Article').item.json.content[0].text }}\n\nPREVIOUS ARTICLES DATABASE:\n{{ JSON.stringify($('Get Previous Articles').all(), null, 2) }}\n\nTASK:\nAnalyze the new article content and the database of previous articles. Identify 2-3 previous articles that are most relevant for internal linking based on topic similarity and contextual relevance.\n\nFor each relevant article, you must:\n1. Identify the exact sentence or phrase in the NEW article where a link would add value\n2. Suggest natural anchor text (3-7 words) from that sentence\n3. Provide the URL from the database\n\nRETURN ONLY valid JSON with this exact structure (no markdown, no code blocks):\n{\n  \"links\": [\n    {\n      \"anchor_text\": \"specific phrase from new article\",\n      \"url\": \"full URL from database\",\n      \"context_sentence\": \"the full sentence where this link should be inserted\"\n    }\n  ]\n}\n\nRULES:\n- Maximum 3 links\n- Anchor text must exist exactly in the new article\n- Links should be naturally distributed throughout the article\n- Don't link to the same article twice\n- If no relevant matches exist, return {\"links\": []}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        5008,
+        1792
+      ],
+      "id": "75d28b6f-e5aa-4974-870d-65f7cc09395e",
+      "name": "Find Linking Opportunities",
+      "credentials": {
+        "anthropicApi": {
+          "id": "QIUyAAWFmOxaIZc6",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-sonnet-4-5-20250929",
+          "mode": "list",
+          "cachedResultName": "claude-sonnet-4-5-20250929"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are an expert HTML editor. Your task is to intelligently insert internal links into an HTML article.\n\nORIGINAL ARTICLE HTML:\n{{ $('Generate Article').item.json.content[0].text }}\n\nLINKS TO INSERT:\n{{ $json.content[0].text }}\n\nINSTRUCTIONS:\n- Parse the links JSON from the previous step\n- For each link, find the exact anchor_text in the original HTML\n- Replace the anchor_text with: <a href=\"URL\">anchor_text</a>\n- Preserve ALL existing HTML formatting\n- Only insert links where the exact anchor text appears\n- If anchor text appears multiple times, only link the first occurrence\n\nCRITICAL OUTPUT REQUIREMENTS:\n- Your response must contain ONLY the modified HTML\n- Do not include ANY explanations, preamble, or commentary\n- Do not wrap the output in ```html or ``` code blocks\n- Do not say \"Here is the modified HTML\" or any similar phrase\n- Your entire response should be pure HTML that starts with <p> or <h1> and ends with </p> or similar closing tag\n- If the links JSON is empty or contains no valid links, return the original HTML unchanged"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        5296,
+        1792
+      ],
+      "id": "6aec6272-3c3e-4a90-a029-5e69df15c2c7",
+      "name": "Insert Internal Links",
+      "credentials": {
+        "anthropicApi": {
+          "id": "QIUyAAWFmOxaIZc6",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Simple cleanup to remove markdown blocks and explanatory text\nlet cleanHtml = $input.item.json.content[0].text;\n\n// Remove markdown code blocks (```html and ```)\ncleanHtml = cleanHtml.replace(/```html\\s*/gi, '').replace(/```\\s*/g, '');\n\n// Remove common preamble phrases that Claude might add\nconst preambles = [\n  /^Here is the modified HTML:?\\s*/i,\n  /^Here's the modified HTML:?\\s*/i,\n  /^Modified HTML:?\\s*/i,\n  /^The modified HTML is:?\\s*/i,\n  /^Here is the HTML with internal links:?\\s*/i\n];\n\npreambles.forEach(pattern => {\n  cleanHtml = cleanHtml.replace(pattern, '');\n});\n\n// If there's duplicate content (article appears twice), split and take first instance\n// Check if content length is abnormally long (> 15000 chars suggests duplication)\nif (cleanHtml.length > 15000) {\n  // Find the first </p> after the halfway point - likely end of first article\n  const midpoint = Math.floor(cleanHtml.length / 2);\n  const endOfFirstArticle = cleanHtml.indexOf('</p>', midpoint);\n  if (endOfFirstArticle > 0) {\n    cleanHtml = cleanHtml.substring(0, endOfFirstArticle + 4); // +4 for '</p>'\n  }\n}\n\n// Trim whitespace\ncleanHtml = cleanHtml.trim();\n\n// Return cleaned HTML\nreturn { \n  json: { \n    content: [{ \n      text: cleanHtml \n    }] \n  } \n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5568,
+        1792
+      ],
+      "id": "18ff9dc8-16c2-4b30-a090-7afe9895bd91",
+      "name": "Cleanup HTML Output"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-haiku-4-5-20251001",
+          "mode": "list",
+          "cachedResultName": "claude-haiku-4-5-20251001"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are an SEO Copywriter and you need to find a title of maximum 60 characters for the following article:\n\n{{ $json.content[0].text }}\nInstructions:\n- Use keywords contained in the article\n- Do not use any HTML characters\n- Output only the string containing the title.\n- Do not use quotes. The only characters allowed are: and ,"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        5712,
+        1792
+      ],
+      "id": "00f554d8-6a31-4de7-8a97-ad9045d1374b",
+      "name": "Generate Title",
+      "credentials": {
+        "anthropicApi": {
+          "id": "QIUyAAWFmOxaIZc6",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "prompt": "=Generate a real photo image used as a blog post cover:\n\nImage prompt:\nCreate image that is closely related to the content of this post title {{ $('Generate Title').item.json.content[0].text }}, photography, realistic, sigma 85mm f/1.4",
+        "options": {
+          "size": "1024x1024",
+          "style": "natural"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        6256,
+        1792
+      ],
+      "id": "7a7bdda8-c1f9-4d78-bcb0-87a84256cc50",
+      "name": "Generate an image",
+      "credentials": {
+        "openAiApi": {
+          "id": "6sKwLZ4CBgrhQ8HO",
+          "name": "Hostinger n8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "title": "={{ $('Generate Title').item.json.content[0].text }}",
+        "additionalFields": {
+          "content": "={{ $('Cleanup HTML Output').item.json.content[0].text }}"
+        }
+      },
+      "type": "n8n-nodes-base.wordpress",
+      "typeVersion": 1,
+      "position": [
+        6064,
+        1792
+      ],
+      "id": "8d7e5a2c-0515-4e99-b18a-d3555310f666",
+      "name": "Add draft to WP",
+      "credentials": {
+        "wordpressApi": {
+          "id": "V2NZs6duULdYq87m",
+          "name": "Class Action News"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://classactionnews.com//wp-json/wp/v2/media",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wordpressApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Disposition",
+              "value": "=attachment; filename=\"classaction-{{ $('Add draft to WP').item.json.id }}.jpg\""
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        6432,
+        1792
+      ],
+      "id": "3d55cb2f-3f77-4e82-801b-8c7863db810d",
+      "name": "Upload image",
+      "credentials": {
+        "wordpressApi": {
+          "id": "V2NZs6duULdYq87m",
+          "name": "Class Action News"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract meta title and description from SEO Expert output\nconst seoData = $input.item.json;\nlet metaTitle = '';\nlet metaDescription = '';\n\n// The OpenAI node with json_object format returns: { output: { metaTitle, metaDescription } }\nif (seoData.output) {\n  metaTitle = seoData.output.metaTitle || '';\n  metaDescription = seoData.output.metaDescription || '';\n} \n// Fallback: check if it's in response\nelse if (seoData.response) {\n  metaTitle = seoData.response.metaTitle || '';\n  metaDescription = seoData.response.metaDescription || '';\n} \n// Fallback: check if it's in content as JSON string\nelse if (seoData.content && seoData.content[0] && seoData.content[0].text) {\n  try {\n    const parsed = JSON.parse(seoData.content[0].text);\n    metaTitle = parsed.metaTitle || parsed.metatitle || '';\n    metaDescription = parsed.metaDescription || parsed.metadescription || '';\n  } catch (e) {\n    console.error('Failed to parse SEO data:', e);\n  }\n}\n\nconsole.log('Extracted metaTitle:', metaTitle);\nconsole.log('Extracted metaDescription:', metaDescription);\n\n// Return formatted data\nreturn {\n  json: {\n    metaTitle: metaTitle,\n    metaDescription: metaDescription,\n    postId: $('Add draft to WP').item.json.id\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6336,
+        2144
+      ],
+      "id": "9ce94d23-bf07-407c-826b-975e2cf7ea0e",
+      "name": "Extract SEO Meta"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://classactionnews.com/wp-json/wp/v2/posts/{{$json.postId}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wordpressApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"meta\": {\n    \"_yoast_wpseo_title\": \"{{ $('SEO Expert').item.json.output[0].content[0].text.metatitle }}\",\n    \"_yoast_wpseo_metadesc\": \"{{ $('SEO Expert').item.json.output[0].content[0].text.metadescription }}\"\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        6496,
+        2144
+      ],
+      "id": "86a74b68-a6c1-4340-bc8d-0775ba38a997",
+      "name": "Set Metatag",
+      "credentials": {
+        "wordpressApi": {
+          "id": "V2NZs6duULdYq87m",
+          "name": "Class Action News"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Case Data Ingestion\n\nThis section needs to be updated to reflct how we will actually\nretrieve the case data",
+        "height": 384,
+        "width": 496,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3984,
+        1632
+      ],
+      "typeVersion": 1,
+      "id": "97bec5c7-adb1-451a-970e-e0f3c8f3e6d8",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Article Generation & Internal Linking\n**New functionality added:**\n1. Get Previous Articles from database\n2. AI identifies relevant linking opportunities\n3. AI inserts internal links into article HTML",
+        "height": 384,
+        "width": 1472,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        4480,
+        1632
+      ],
+      "typeVersion": 1,
+      "id": "6f0f2b82-177d-4c42-8489-3f32374445ba",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Publish to WordPress \n*Image generation included",
+        "height": 384,
+        "width": 880
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        5952,
+        1632
+      ],
+      "typeVersion": 1,
+      "id": "4f6daad2-8ec2-40e7-b167-870d980dda1d",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## SEO & Database Update\n",
+        "height": 304,
+        "width": 880,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        5952,
+        2016
+      ],
+      "typeVersion": 1,
+      "id": "a8f29b20-cad2-40a0-975e-559a5c27f910",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "chatgpt-4o-latest",
+          "mode": "list",
+          "cachedResultName": "CHATGPT-4O-LATEST"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Create metatitle and metadescription in the language of the following product:\n- Title: {{ $('Add draft to WP').item.json.title.rendered }}\n- Content: {{ $('Add draft to WP').item.json.content.rendered }}\n- Excerpt: {{ $('Add draft to WP').item.json.excerpt.rendered }}\n\nOutput in tructured JSON as follows:\n\n{ metatitle }\n{metadescription}"
+            },
+            {
+              "role": "system",
+              "content": "You are an expert SEO content optimizer specialized in creating meta tags for both web pages and blog articles. Your task is to analyze the provided content and generate optimized meta tags based on the content type.\n\nMETA TAG REQUIREMENTS:\n\n1. Meta Title (max 60 characters):\n   - Include primary keyword near the beginning\n   - State the main value proposition\n   - Include brand name when relevant\n   - Use action-oriented language for commercial pages\n   - Format: Primary Keyword | Main Benefit | Brand (if applicable)\n\n2. Meta Description (max 160 characters):\n   - Lead with unique selling proposition\n   - Include primary and secondary keywords naturally\n   - Add clear call-to-action\n   - Highlight key benefits or features\n   - Address user pain points\n   - Tease the main insights or findings\n   - Mention key topics covered\n   - Use engaging question or statement\n   - Include expertise indicators\n   - Promise value or solution\n\nANALYSIS PROCESS:\n1. Content Assessment:\n   - Identify content type and purpose\n   - Extract main topic and keywords\n   - Determine search intent\n   - Identify target audience\n   - Note key differentiators\n\n2. Optimization Strategy:\n   - Align with search intent\n   - Consider competition level\n   - Factor in brand guidelines\n   - Account for content freshness\n   - Optimize for click-through rate\n\nOUTPUT FORMAT:\nPlease provide meta tags in the required format\n\nVALIDATION CHECKLIST:\n- Title length ≤ 60 characters\n- Description length ≤ 160 characters\n- Primary keyword included in both\n- Matches identified search intent\n- Appropriate for content type\n- Clear value proposition\n- Compelling call-to-action\n- Natural keyword placement\n- Proper grammar and spelling\n- Mobile display optimized\n- Don't use placeholder\n\nBEST PRACTICES:\n- Avoid clickbait or misleading content\n- Use power words appropriately\n- Maintain brand voice and tone\n- Ensure mobile snippet optimization\n- Consider local SEO when relevant\n- Keep seasonal content timely\n- Use numbers and data when available\n- Include price/offers if applicable\n- Add emotional triggers when appropriate\n- Consider SERP feature optimization\n\nTECHNICAL GUIDELINES:\n- No double quotes in meta description\n- Avoid unnecessary special characters\n- Use UTF-8 encoding\n- Capitalize properly\n- Avoid keyword cannibalization\n- Respect brand guidelines\n- Consider local market variations\n- Update meta tags for seasonal content\n- Monitor CTR performance\n- A/B test when possible\n\nRemember: The goal is to create meta tags that serve both search engines and users effectively while maintaining specificity for the content type and maximizing organic click-through rates."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "textFormat": {
+            "textOptions": {
+              "type": "json_object"
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        6016,
+        2144
+      ],
+      "id": "5e341506-57f3-439e-ae03-c28d427f9dbd",
+      "name": "SEO Expert",
+      "credentials": {
+        "openAiApi": {
+          "id": "6sKwLZ4CBgrhQ8HO",
+          "name": "Hostinger n8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "Wl6wot7dMpmKZBu0",
+          "mode": "list",
+          "cachedResultName": "New Class Action",
+          "cachedResultUrl": "/projects/sSYd8awhzL2oziun/datatables/Wl6wot7dMpmKZBu0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "postID": 0
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "postID",
+              "displayName": "postID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "postTitle",
+              "displayName": "postTitle",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "postURL",
+              "displayName": "postURL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "metaTitle",
+              "displayName": "metaTitle",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "metaDescription",
+              "displayName": "metaDescription",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        6672,
+        2144
+      ],
+      "id": "825a86eb-4234-402c-9c28-9083be828072",
+      "name": "Add New Post to DB"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://classactionnews.com/wp-json/wp/v2/posts/{{ $('Add draft to WP').item.json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wordpressApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "featured_media",
+              "value": "={{ $json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        6624,
+        1792
+      ],
+      "id": "c55a373c-3cbf-4ae2-8aaf-dc1ab3d5528e",
+      "name": "Set featured Image",
+      "credentials": {
+        "wordpressApi": {
+          "id": "V2NZs6duULdYq87m",
+          "name": "Class Action News"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-04T22:54:14.527Z",
+      "createdAt": "2026-01-04T22:54:14.527Z",
+      "role": "workflow:owner",
+      "workflowId": "F1efti0P0Ey8YFY9",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-01-11T02:05:24.717Z",
+  "versionId": "054cedb5-17ab-45a6-90ba-b064cb3e0d76"
+}
