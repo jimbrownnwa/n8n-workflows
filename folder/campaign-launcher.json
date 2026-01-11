@@ -1,0 +1,473 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Validate Input": {
+      "main": [
+        [
+          {
+            "node": "Get Selected Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Selected Content": {
+      "main": [
+        [
+          {
+            "node": "Validate Content Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Content Status": {
+      "main": [
+        [
+          {
+            "node": "Create Campaign Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Campaign Record": {
+      "main": [
+        [
+          {
+            "node": "Calculate Posting Schedule",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Posting Schedule": {
+      "main": [
+        [
+          {
+            "node": "Prepare Mock Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Mock Response": {
+      "main": [
+        [
+          {
+            "node": "Prepare Campaign Content Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Campaign Content Records": {
+      "main": [
+        [
+          {
+            "node": "Save Campaign Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Campaign Content": {
+      "main": [
+        [
+          {
+            "node": "Prepare Content Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Content Update": {
+      "main": [
+        [
+          {
+            "node": "Prepare Campaign Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Campaign Update": {
+      "main": [
+        [
+          {
+            "node": "Prepare Activity Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Activity Log": {
+      "main": [
+        [
+          {
+            "node": "Log Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Activity": {
+      "main": [
+        [
+          {
+            "node": "Build Final Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Final Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Triggers": {
+      "main": [
+        [
+          {
+            "node": "Validate Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-05T02:37:19.331Z",
+  "id": "haWra5UduHkjFvWi",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "campaign-launcher",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body;\nif (!body.campaign_name || body.campaign_name.trim() === '') {\n  throw new Error('campaign_name is required');\n}\nif (!body.content_ids || !Array.isArray(body.content_ids) || body.content_ids.length === 0) {\n  throw new Error('content_ids must be a non-empty array');\n}\nif (!body.channels || !Array.isArray(body.channels) || body.channels.length === 0) {\n  throw new Error('channels must be a non-empty array');\n}\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;\nfor (const id of body.content_ids) {\n  if (!uuidRegex.test(id)) {\n    throw new Error(`Invalid content_id format: ${id}`);\n  }\n}\nconst validTypes = ['organic', 'paid', 'mixed'];\nconst campaignType = body.campaign_type || 'organic';\nif (!validTypes.includes(campaignType)) {\n  throw new Error(`Invalid campaign_type. Must be one of: ${validTypes.join(', ')}`);\n}\nconst validObjectives = ['awareness', 'engagement', 'leads', 'conversions'];\nconst objective = body.objective || 'awareness';\nif (!validObjectives.includes(objective)) {\n  throw new Error(`Invalid objective. Must be one of: ${validObjectives.join(', ')}`);\n}\nconst validChannels = ['facebook', 'instagram', 'google_business'];\nconst channels = body.channels.filter(c => validChannels.includes(c));\nif (channels.length === 0) {\n  throw new Error(`No valid channels provided. Must include: ${validChannels.join(', ')}`);\n}\nif ((campaignType === 'paid' || campaignType === 'mixed') && !body.budget) {\n  throw new Error('budget is required for paid and mixed campaigns');\n}\nif (body.budget) {\n  if (!body.budget.total || body.budget.total <= 0) {\n    throw new Error('budget.total must be a positive number');\n  }\n  if (!body.budget.daily || body.budget.daily <= 0) {\n    throw new Error('budget.daily must be a positive number');\n  }\n  if (body.budget.daily > body.budget.total) {\n    throw new Error('budget.daily cannot exceed budget.total');\n  }\n}\nconst now = new Date();\nconst schedule = body.schedule || {};\nconst startDate = schedule.start_date ? new Date(schedule.start_date) : new Date(now.getTime() + 24 * 60 * 60 * 1000);\nconst endDate = schedule.end_date ? new Date(schedule.end_date) : new Date(startDate.getTime() + 14 * 24 * 60 * 60 * 1000);\nif (startDate < now) {\n  throw new Error('schedule.start_date cannot be in the past');\n}\nif (endDate <= startDate) {\n  throw new Error('schedule.end_date must be after start_date');\n}\nconst postingTimes = schedule.posting_times || ['09:00', '13:00', '18:00'];\nconst timezone = schedule.timezone || 'America/Chicago';\nconst frequency = schedule.frequency || 'daily';\nconst validFrequencies = ['daily', 'every_other_day', 'weekly'];\nif (!validFrequencies.includes(frequency)) {\n  throw new Error(`Invalid frequency. Must be one of: ${validFrequencies.join(', ')}`);\n}\nreturn {\n  campaign_name: body.campaign_name.trim(),\n  campaign_type: campaignType,\n  objective: objective,\n  content_ids: body.content_ids,\n  channels: channels,\n  schedule: {\n    start_date: startDate.toISOString().split('T')[0],\n    end_date: endDate.toISOString().split('T')[0],\n    posting_times: postingTimes,\n    timezone: timezone,\n    frequency: frequency\n  },\n  budget: body.budget || null,\n  audience: body.audience || null,\n  settings: {\n    auto_optimize: body.settings?.auto_optimize !== false,\n    pause_on_budget_limit: body.settings?.pause_on_budget_limit !== false,\n    notify_on_completion: body.settings?.notify_on_completion !== false\n  }\n};"
+      },
+      "id": "code-1",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "content_library",
+        "returnAll": true,
+        "filterType": "string",
+        "filterString": "=id=in.({{ $node['Validate Input'].json.content_ids.join(',') }})"
+      },
+      "id": "supabase-1",
+      "name": "Get Selected Content",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        688,
+        304
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $('Validate Input').first().json;\nconst content = $input.all().map(item => item.json);\nif (content.length !== input.content_ids.length) {\n  const foundIds = content.map(c => c.id);\n  const missingIds = input.content_ids.filter(id => !foundIds.includes(id));\n  throw new Error(`Content not found for IDs: ${missingIds.join(', ')}`);\n}\nconst invalidContent = content.filter(c => c.status !== 'approved' && c.status !== 'draft');\nif (invalidContent.length > 0) {\n  console.log(`Warning: ${invalidContent.length} content pieces are not approved`);\n}\nconst contentPlatforms = [...new Set(content.map(c => c.platform))];\nconst missingPlatforms = input.channels.filter(ch => {\n  const platformMap = {'facebook': 'facebook', 'instagram': 'instagram', 'google_business': 'google_business'};\n  return !contentPlatforms.includes(platformMap[ch]);\n});\nif (missingPlatforms.length > 0) {\n  console.log(`Note: No content available for platforms: ${missingPlatforms.join(', ')}`);\n}\nreturn [{\n  content: content,\n  campaign_params: input,\n  content_by_platform: content.reduce((acc, c) => {\n    if (!acc[c.platform]) acc[c.platform] = [];\n    acc[c.platform].push(c);\n    return acc;\n  }, {})\n}];"
+      },
+      "id": "code-2",
+      "name": "Validate Content Status",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        912,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "tableId": "campaigns",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "name",
+              "fieldValue": "={{ $('Validate Input').first().json.campaign_name }}"
+            },
+            {
+              "fieldId": "campaign_type",
+              "fieldValue": "={{ $('Validate Input').first().json.campaign_type }}"
+            },
+            {
+              "fieldId": "objective",
+              "fieldValue": "={{ $('Validate Input').first().json.objective }}"
+            },
+            {
+              "fieldId": "status",
+              "fieldValue": "scheduled"
+            },
+            {
+              "fieldId": "channels",
+              "fieldValue": "={{ $('Validate Input').first().json.channels }}"
+            },
+            {
+              "fieldId": "budget_total",
+              "fieldValue": "={{ $('Validate Input').first().json.budget ? $('Validate Input').first().json.budget.total : null }}"
+            },
+            {
+              "fieldId": "budget_daily",
+              "fieldValue": "={{ $('Validate Input').first().json.budget ? $('Validate Input').first().json.budget.daily : null }}"
+            },
+            {
+              "fieldId": "budget_spent",
+              "fieldValue": "0"
+            },
+            {
+              "fieldId": "start_date",
+              "fieldValue": "={{ $('Validate Input').first().json.schedule.start_date }}"
+            },
+            {
+              "fieldId": "end_date",
+              "fieldValue": "={{ $('Validate Input').first().json.schedule.end_date }}"
+            },
+            {
+              "fieldId": "target_audience",
+              "fieldValue": "={{ $('Validate Input').first().json.audience }}"
+            }
+          ]
+        }
+      },
+      "id": "supabase-2",
+      "name": "Create Campaign Record",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        304
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $('Validate Input').first().json;\nconst content = $('Validate Content Status').first().json.content;\nconst campaign = $('Create Campaign Record').first().json;\nconst schedule = input.schedule;\nconst startDate = new Date(schedule.start_date);\nconst endDate = new Date(schedule.end_date);\nconst postingTimes = schedule.posting_times;\nconst frequency = schedule.frequency;\nconst frequencyDays = {daily: 1, every_other_day: 2, weekly: 7};\nconst daysBetween = frequencyDays[frequency];\nconst contentByPlatform = {};\nfor (const item of content) {\n  if (!contentByPlatform[item.platform]) contentByPlatform[item.platform] = [];\n  contentByPlatform[item.platform].push(item);\n}\nconst optimalTimes = {facebook: ['09:00', '13:00', '16:00'], instagram: ['11:00', '14:00', '19:00'], google_business: ['10:00', '14:00', '17:00']};\nconst scheduledPosts = [];\nlet timeIndex = 0;\nconst totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));\nfor (const platform of input.channels) {\n  const platformContent = contentByPlatform[platform] || [];\n  if (platformContent.length === 0) { console.log('No content for platform: ' + platform); continue; }\n  let contentIndex = 0;\n  let dayOffset = 0;\n  while (contentIndex < platformContent.length && dayOffset <= totalDays) {\n    const postDate = new Date(startDate);\n    postDate.setDate(postDate.getDate() + dayOffset);\n    if (postDate > endDate) break;\n    const times = input.settings.auto_optimize ? (optimalTimes[platform] || postingTimes) : postingTimes;\n    const postTime = times[timeIndex % times.length];\n    const parts = postTime.split(':');\n    const hours = parts[0];\n    const minutes = parts[1];\n    postDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);\n    scheduledPosts.push({campaign_id: campaign.id, content_id: platformContent[contentIndex].id, content: platformContent[contentIndex], platform: platform, scheduled_time: postDate.toISOString(), status: 'pending'});\n    contentIndex++;\n    timeIndex++;\n    if (timeIndex >= times.length) { dayOffset += daysBetween; timeIndex = 0; }\n  }\n}\nscheduledPosts.sort((a, b) => new Date(a.scheduled_time) - new Date(b.scheduled_time));\nconst postsPerPlatform = {};\nfor (const ch of input.channels) {\n  postsPerPlatform[ch] = scheduledPosts.filter(p => p.platform === ch).length;\n}\nreturn [{campaign_id: campaign.id, campaign_name: input.campaign_name, scheduled_posts: scheduledPosts, total_posts: scheduledPosts.length, schedule_summary: {start: schedule.start_date, end: schedule.end_date, frequency: frequency, platforms: input.channels, posts_per_platform: postsPerPlatform}}];"
+      },
+      "id": "code-3",
+      "name": "Calculate Posting Schedule",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const scheduleData = $input.first().json;\nconst mockPosts = scheduleData.scheduled_posts.map(post => ({\n  platform: post.platform,\n  success: true,\n  external_post_id: `mock_${post.platform}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,\n  scheduled_time: post.scheduled_time,\n  content_id: post.content_id,\n  campaign_id: post.campaign_id,\n  status: 'scheduled'\n}));\nreturn [{\n  success: true,\n  data: {\n    campaign: {\n      id: scheduleData.campaign_id,\n      name: scheduleData.campaign_name,\n      status: 'active'\n    },\n    schedule: scheduleData.schedule_summary,\n    scheduled_posts: mockPosts\n  },\n  meta: {\n    posts_scheduled: mockPosts.length,\n    posts_failed: 0,\n    processing_time_ms: Date.now()\n  }\n}];"
+      },
+      "id": "code-4",
+      "name": "Prepare Mock Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1568,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const mockData = $input.first().json;\nreturn mockData.data.scheduled_posts;"
+      },
+      "id": "code-5",
+      "name": "Prepare Campaign Content Records",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1792,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "tableId": "campaign_content",
+        "dataToSend": "autoMapInputData"
+      },
+      "id": "supabase-3",
+      "name": "Save Campaign Content",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2000,
+        304
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const mockData = $('Prepare Mock Response').first().json;\nconst contentIds = [...new Set(mockData.data.scheduled_posts.map(p => p.content_id))];\nreturn [{content_ids: contentIds, status: 'published'}];"
+      },
+      "id": "code-6",
+      "name": "Prepare Content Update",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2224,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const mockData = $('Prepare Mock Response').first().json;\nreturn [{campaign_id: mockData.data.campaign.id, status: 'active', launched_at: new Date().toISOString()}];"
+      },
+      "id": "code-7",
+      "name": "Prepare Campaign Update",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2448,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const mockData = $('Prepare Mock Response').first().json;\nconst input = $('Validate Input').first().json;\nreturn [{\n  activity_type: 'campaign_launched',\n  entity_type: 'campaigns',\n  entity_id: mockData.data.campaign.id,\n  description: `Launched campaign '${mockData.data.campaign.name}' with ${mockData.meta.posts_scheduled} scheduled posts`,\n  metadata: {\n    campaign_id: mockData.data.campaign.id,\n    campaign_name: mockData.data.campaign.name,\n    campaign_type: input.campaign_type,\n    channels: input.channels,\n    total_posts_scheduled: mockData.meta.posts_scheduled,\n    posts_by_platform: mockData.data.schedule.posts_per_platform,\n    schedule: mockData.data.schedule,\n    budget: input.budget\n  }\n}];"
+      },
+      "id": "code-8",
+      "name": "Prepare Activity Log",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2672,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "tableId": "activity_log",
+        "dataToSend": "autoMapInputData"
+      },
+      "id": "supabase-4",
+      "name": "Log Activity",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2880,
+        304
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "H2otb0ZjBMDnmMPT",
+          "name": "LocalPulse Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const mockData = $('Prepare Mock Response').first().json;\nreturn [mockData];"
+      },
+      "id": "code-9",
+      "name": "Build Final Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3104,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "respond-1",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        3328,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "campaign/launch",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "",
+          "rawBody": false
+        }
+      },
+      "id": "webhook-1",
+      "name": "Webhook Triggers",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        240,
+        304
+      ],
+      "webhookId": "7cdd5b7c-f700-4691-aefb-622644293919",
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-05T02:37:19.333Z",
+      "createdAt": "2026-01-05T02:37:19.333Z",
+      "role": "workflow:owner",
+      "workflowId": "haWra5UduHkjFvWi",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-11T02:10:21.983Z",
+  "versionId": "4ac2267b-5c13-4667-b20d-94e7266ccde7"
+}
