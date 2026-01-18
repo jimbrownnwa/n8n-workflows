@@ -1,0 +1,1899 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-01-17T20:15:09.000Z",
+    "createdAt": "2026-01-17T20:07:36.259Z",
+    "versionId": "570adc57-cfee-48b7-92fc-7bd1c3cc1187",
+    "workflowId": "BWzLADDoeEBQR_TggvBdg",
+    "nodes": [
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict"
+            },
+            "conditions": [
+              {
+                "id": "needs-linking",
+                "leftValue": "={{ $json.articleType }}",
+                "rightValue": "settlement",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals",
+                  "singleValue": true
+                }
+              },
+              {
+                "id": "needs-linking-2",
+                "leftValue": "={{ $json.articleType }}",
+                "rightValue": "complaint",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "or"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          -1760,
+          -64
+        ],
+        "id": "5c5f4fb1-aa58-4723-be6d-f474970380d4",
+        "name": "Needs Internal Linking?"
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "value": "Wl6wot7dMpmKZBu0",
+            "mode": "list",
+            "cachedResultName": "New Class Action",
+            "cachedResultUrl": "/projects/sSYd8awhzL2oziun/datatables/Wl6wot7dMpmKZBu0"
+          }
+        },
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          -1504,
+          -144
+        ],
+        "id": "9b34f432-180a-47cd-aeea-e4f302febf5c",
+        "name": "Get Previous Articles"
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "claude-sonnet-4-5-20250929",
+            "mode": "list",
+            "cachedResultName": "claude-sonnet-4-5-20250929"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=You are an expert SEO specialist for a Class Action law firm blog.\n\nNEW ARTICLE CONTENT:\n{{ $('When Executed by Another Workflow').item.json.articleHtml }}\n\nPREVIOUS ARTICLES DATABASE:\n{{ JSON.stringify($json, null, 2) }}\n\nTASK:\nAnalyze the new article content and the database of previous articles. Identify 2-3 previous articles that are most relevant for internal linking based on topic similarity and contextual relevance.\n\nFor each relevant article, you must:\n1. Identify the exact sentence or phrase in the NEW article where a link would add value\n2. Suggest natural anchor text (3-7 words) from that sentence\n3. Provide the URL from the database\n\nRETURN ONLY valid JSON with this exact structure (no markdown, no code blocks):\n{\n  \"links\": [\n    {\n      \"anchor_text\": \"specific phrase from new article\",\n      \"url\": \"full URL from database\",\n      \"context_sentence\": \"the full sentence where this link should be inserted\"\n    }\n  ]\n}\n\nRULES:\n- Maximum 3 links\n- Anchor text must exist exactly in the new article\n- Links should be naturally distributed throughout the article\n- Don't link to the same article twice\n- If no relevant matches exist, return {\"links\": []}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.anthropic",
+        "typeVersion": 1,
+        "position": [
+          -1264,
+          -144
+        ],
+        "id": "47b68342-e3ea-4253-9b2a-b9aa233ae52c",
+        "name": "Find Linking Opportunities",
+        "credentials": {
+          "anthropicApi": {
+            "id": "QIUyAAWFmOxaIZc6",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "claude-sonnet-4-5-20250929",
+            "mode": "list",
+            "cachedResultName": "claude-sonnet-4-5-20250929"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=You are an expert HTML editor. Your task is to intelligently insert internal links into an HTML article.\n\nORIGINAL ARTICLE HTML:\n{{ $('When Executed by Another Workflow').item.json.articleHtml }}\n\nLINKS TO INSERT:\n{{ $json.content[0].text }}\n\nINSTRUCTIONS:\n- Parse the links JSON from the previous step\n- For each link, find the exact anchor_text in the original HTML\n- Replace the anchor_text with: <a href=\"URL\">anchor_text</a>\n- Preserve ALL existing HTML formatting\n- Only insert links where the exact anchor text appears\n- If anchor text appears multiple times, only link the first occurrence\n\nCRITICAL OUTPUT REQUIREMENTS:\n- Your response must contain ONLY the modified HTML\n- Do not include ANY explanations, preamble, or commentary\n- Do not wrap the output in ```html or ``` code blocks\n- Do not say \"Here is the modified HTML\" or any similar phrase\n- Your entire response should be pure HTML that starts with <h1> or <p> and ends with </p> or similar closing tag\n- If the links JSON is empty or contains no valid links, return the original HTML unchanged"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.anthropic",
+        "typeVersion": 1,
+        "position": [
+          -928,
+          -144
+        ],
+        "id": "da80048c-80ee-4a3a-b4dc-8062c09bdfc6",
+        "name": "Insert Internal Links",
+        "credentials": {
+          "anthropicApi": {
+            "id": "QIUyAAWFmOxaIZc6",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Cleanup HTML output - remove markdown blocks and explanatory text\nlet cleanHtml = $input.item.json.content[0].text;\n\n// Remove markdown code blocks (```html and ```)\ncleanHtml = cleanHtml.replace(/```html\\s*/gi, '').replace(/```\\s*/g, '');\n\n// Remove common preamble phrases that Claude might add\nconst preambles = [\n  /^Here is the modified HTML:?\\s*/i,\n  /^Here's the modified HTML:?\\s*/i,\n  /^Modified HTML:?\\s*/i,\n  /^The modified HTML is:?\\s*/i,\n  /^Here is the HTML with internal links:?\\s*/i\n];\n\npreambles.forEach(pattern => {\n  cleanHtml = cleanHtml.replace(pattern, '');\n});\n\n// If there's duplicate content (article appears twice), split and take first instance\nif (cleanHtml.length > 15000) {\n  const midpoint = Math.floor(cleanHtml.length / 2);\n  const endOfFirstArticle = cleanHtml.indexOf('</p>', midpoint);\n  if (endOfFirstArticle > 0) {\n    cleanHtml = cleanHtml.substring(0, endOfFirstArticle + 4);\n  }\n}\n\ncleanHtml = cleanHtml.trim();\n\n// Get original trigger data and preserve infographic\nconst triggerData = $('When Executed by Another Workflow').item.json;\n\nreturn { \n  json: { \n    articleHtml: cleanHtml,\n    articleType: triggerData.articleType,\n    defendant: triggerData.defendant,\n    caseNumber: triggerData.caseNumber,\n    ctaType: triggerData.ctaType,\n    metaData: triggerData.metaData,\n    infographic: triggerData.infographic || null\n  } \n};"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -512,
+          -144
+        ],
+        "id": "ad9bf40a-e6da-4354-9283-818d0531683f",
+        "name": "Cleanup HTML (Linking Path)"
+      },
+      {
+        "parameters": {
+          "jsCode": "// Pass through original HTML for articles that don't need linking\nconst triggerData = $input.item.json;\n\nreturn {\n  json: {\n    articleHtml: triggerData.articleHtml,\n    articleType: triggerData.articleType,\n    defendant: triggerData.defendant,\n    caseNumber: triggerData.caseNumber,\n    ctaType: triggerData.ctaType,\n    metaData: triggerData.metaData,\n    infographic: triggerData.infographic || null\n  }\n};"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -512,
+          64
+        ],
+        "id": "3ae6cfab-7637-482d-9dd1-66dc9438dc5e",
+        "name": "Pass Through (No Linking)"
+      },
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3,
+        "position": [
+          -240,
+          -48
+        ],
+        "id": "e8734e5c-4a09-48dc-8096-73b1f71edd15",
+        "name": "Merge Paths"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "article-html",
+                "name": "articleHtml",
+                "value": "={{ $json.articleHtml }}",
+                "type": "string"
+              },
+              {
+                "id": "article-type",
+                "name": "articleType",
+                "value": "={{ $json.articleType }}",
+                "type": "string"
+              },
+              {
+                "id": "has-infographic",
+                "name": "hasInfographic",
+                "value": "={{ $json.infographic !== undefined && $json.infographic !== null }}",
+                "type": "boolean"
+              },
+              {
+                "id": "infographic-data",
+                "name": "infographicData",
+                "value": "={{ $json.infographic || null }}",
+                "type": "object"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -32,
+          -48
+        ],
+        "id": "777389b5-b428-4aaf-80e4-c39d65b6ed51",
+        "name": "Preserve Infographic Data"
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "claude-haiku-4-5-20251001",
+            "mode": "list",
+            "cachedResultName": "claude-haiku-4-5-20251001"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=You are an SEO Copywriter and you need to find a title of maximum 60 characters for the following article:\n\n{{ $json.articleHtml }}\n\nInstructions:\n- Use keywords contained in the article\n- Do not use any HTML characters\n- Output only the string containing the title\n- Do not use quotes. The only characters allowed are: and ,"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.anthropic",
+        "typeVersion": 1,
+        "position": [
+          208,
+          -48
+        ],
+        "id": "0f1a0789-eb23-4dce-ba0c-fca1e4dead53",
+        "name": "Generate Title",
+        "credentials": {
+          "anthropicApi": {
+            "id": "QIUyAAWFmOxaIZc6",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "title": "={{ $json.content[0].text }}",
+          "additionalFields": {
+            "content": "={{ $('Preserve Infographic Data').item.json.articleHtml }}"
+          }
+        },
+        "type": "n8n-nodes-base.wordpress",
+        "typeVersion": 1,
+        "position": [
+          560,
+          -48
+        ],
+        "id": "e6717322-41b1-4108-a390-cbf0b77b20f6",
+        "name": "Create WordPress Draft",
+        "credentials": {
+          "wordpressApi": {
+            "id": "V2NZs6duULdYq87m",
+            "name": "Class Action News"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "image",
+          "prompt": "=Generate a real photo image used as a blog post cover:\n\nImage prompt:\nCreate image that is closely related to the content of this post title {{ $('Generate Title').item.json.content[0].text }}, photography, realistic, sigma 85mm f/1.4",
+          "options": {
+            "size": "1024x1024",
+            "style": "natural"
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.openAi",
+        "typeVersion": 2.1,
+        "position": [
+          768,
+          -48
+        ],
+        "id": "c7de9f50-64cb-4c88-90b2-3866b99d257d",
+        "name": "Generate Featured Image",
+        "credentials": {
+          "openAiApi": {
+            "id": "6sKwLZ4CBgrhQ8HO",
+            "name": "Hostinger n8n"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://classactionnews.com//wp-json/wp/v2/media",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "wordpressApi",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Disposition",
+                "value": "=attachment; filename=\"classaction-{{ $('Create WordPress Draft').item.json.id }}.jpg\""
+              }
+            ]
+          },
+          "sendBody": true,
+          "contentType": "binaryData",
+          "inputDataFieldName": "data",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          992,
+          -48
+        ],
+        "id": "1a1ddf77-6c0f-4ff6-85f9-77d478fdabda",
+        "name": "Upload Image to WordPress",
+        "credentials": {
+          "wordpressApi": {
+            "id": "V2NZs6duULdYq87m",
+            "name": "Class Action News"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://classactionnews.com/wp-json/wp/v2/posts/{{ $('Create WordPress Draft').item.json.id }}",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "wordpressApi",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "featured_media",
+                "value": "={{ $json.id }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          1184,
+          -48
+        ],
+        "id": "7a6485ff-588d-4852-891b-4d839b8e6d1f",
+        "name": "Set Featured Image",
+        "credentials": {
+          "wordpressApi": {
+            "id": "V2NZs6duULdYq87m",
+            "name": "Class Action News"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "has-infographic",
+                "leftValue": "={{ $('Preserve Infographic Data').item.json.hasInfographic }}",
+                "rightValue": true,
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          1376,
+          -48
+        ],
+        "id": "fb73c67b-4266-4ffb-979a-8463048b69d9",
+        "name": "Has Infographic?"
+      },
+      {
+        "parameters": {
+          "resource": "image",
+          "prompt": "={{ $('Preserve Infographic Data').item.json.infographicData.description }}\n\nCreate a professional infographic with this title: {{ $('Preserve Infographic Data').item.json.infographicData.title }}\n\nStyle: Clean, modern infographic design with clear typography and data visualization. Use a professional color scheme (blues, grays, whites). Make it suitable for embedding in a legal news article. Ensure all text is legible and the layout is well-organized.",
+          "options": {
+            "size": "1024x1024",
+            "style": "natural"
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.openAi",
+        "typeVersion": 2.1,
+        "position": [
+          1584,
+          -160
+        ],
+        "id": "f8162cdb-fcf9-4840-a737-9ed252863a75",
+        "name": "Generate Infographic",
+        "credentials": {
+          "openAiApi": {
+            "id": "6sKwLZ4CBgrhQ8HO",
+            "name": "Hostinger n8n"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://classactionnews.com/wp-json/wp/v2/media",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "wordpressApi",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Disposition",
+                "value": "=attachment; filename=\"infographic-{{ $('Create WordPress Draft').item.json.id }}.jpg\""
+              }
+            ]
+          },
+          "sendBody": true,
+          "contentType": "binaryData",
+          "inputDataFieldName": "data",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          1808,
+          -160
+        ],
+        "id": "4f675ef7-12dc-4946-85ad-8d9ccd537b3e",
+        "name": "Upload Infographic to WordPress",
+        "credentials": {
+          "wordpressApi": {
+            "id": "V2NZs6duULdYq87m",
+            "name": "Class Action News"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Get the uploaded infographic details\nconst infographicUrl = $input.item.json.source_url;\nconst postId = $('Create WordPress Draft').item.json.id;\nconst currentContent = $('Create WordPress Draft').item.json.content.rendered;\nconst infographicData = $('Preserve Infographic Data').item.json.infographicData;\n\n// Create infographic HTML with proper styling\nconst infographicHtml = `\n<div class=\"article-infographic\" style=\"margin: 30px 0; text-align: center; background: #f8f9fa; padding: 20px; border-radius: 8px;\">\n  <h3 style=\"margin-bottom: 15px; color: #2c3e50;\">${infographicData.title}</h3>\n  <img src=\"${infographicUrl}\" alt=\"${infographicData.title}\" style=\"max-width: 100%; height: auto; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);\" />\n</div>\n`;\n\n// Find a good insertion point - after the first or second H2 section\n// For Settlement articles, insert after \"What Is This Settlement About?\" section\nlet updatedContent = currentContent;\n\n// Try to insert after the first closing H2 + next paragraph\nconst h2Pattern = /<\\/h2>([\\s\\S]*?)<\\/p>/;\nconst match = updatedContent.match(h2Pattern);\n\nif (match) {\n  // Insert after the first paragraph following the first H2\n  const insertionPoint = match.index + match[0].length;\n  updatedContent = \n    updatedContent.slice(0, insertionPoint) + \n    '\\n' + infographicHtml + '\\n' + \n    updatedContent.slice(insertionPoint);\n} else {\n  // Fallback: insert at the beginning if pattern not found\n  updatedContent = infographicHtml + '\\n' + currentContent;\n}\n\nreturn {\n  json: {\n    postId: postId,\n    content: updatedContent,\n    infographicUrl: infographicUrl\n  }\n};"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2032,
+          -160
+        ],
+        "id": "1abd66c1-bec7-4a47-9b3d-c0c10442263c",
+        "name": "Insert Infographic into Content"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://classactionnews.com/wp-json/wp/v2/posts/{{ $json.postId }}",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "wordpressApi",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }}\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          2256,
+          -160
+        ],
+        "id": "117385c4-824c-48ae-b260-fc2ae3214a3e",
+        "name": "Update Post with Infographic",
+        "credentials": {
+          "wordpressApi": {
+            "id": "V2NZs6duULdYq87m",
+            "name": "Class Action News"
+          }
+        }
+      },
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3,
+        "position": [
+          2464,
+          -48
+        ],
+        "id": "828fd1ae-1614-4c99-abd2-bcf07e43761b",
+        "name": "Merge Infographic Paths"
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "chatgpt-4o-latest",
+            "mode": "list",
+            "cachedResultName": "CHATGPT-4O-LATEST"
+          },
+          "responses": {
+            "values": [
+              {
+                "content": "=Create metatitle and metadescription in the language of the following product:\n- Title: {{ $('Create WordPress Draft').item.json.title.rendered }}\n- Content: {{ $('Create WordPress Draft').item.json.content.rendered }}\n- Excerpt: {{ $('Create WordPress Draft').item.json.excerpt.rendered }}\n\nOutput in structured JSON as follows:\n\n{ metatitle }\n{metadescription}"
+              },
+              {
+                "role": "system",
+                "content": "You are an expert SEO content optimizer specialized in creating meta tags for both web pages and blog articles. Your task is to analyze the provided content and generate optimized meta tags based on the content type.\n\nMETA TAG REQUIREMENTS:\n\n1. Meta Title (max 60 characters):\n   - Include primary keyword near the beginning\n   - State the main value proposition\n   - Include brand name when relevant\n   - Use action-oriented language for commercial pages\n   - Format: Primary Keyword | Main Benefit | Brand (if applicable)\n\n2. Meta Description (max 160 characters):\n   - Lead with unique selling proposition\n   - Include primary and secondary keywords naturally\n   - Add clear call-to-action\n   - Highlight key benefits or features\n   - Address user pain points\n   - Tease the main insights or findings\n   - Mention key topics covered\n   - Use engaging question or statement\n   - Include expertise indicators\n   - Promise value or solution\n\nOUTPUT FORMAT:\nPlease provide meta tags in the required format\n\nVALIDATION CHECKLIST:\n- Title length ≤ 60 characters\n- Description length ≤ 160 characters\n- Primary keyword included in both\n- Matches identified search intent\n- Appropriate for content type\n- Clear value proposition\n- Compelling call-to-action\n- Natural keyword placement\n- Proper grammar and spelling\n- Mobile display optimized\n- Don't use placeholder\n\nRemember: The goal is to create meta tags that serve both search engines and users effectively while maintaining specificity for the content type and maximizing organic click-through rates."
+              }
+            ]
+          },
+          "builtInTools": {},
+          "options": {
+            "textFormat": {
+              "textOptions": {
+                "type": "json_object"
+              }
+            }
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.openAi",
+        "typeVersion": 2.1,
+        "position": [
+          2672,
+          -48
+        ],
+        "id": "a536d8a6-f388-4975-9584-550964d3fb7c",
+        "name": "Generate SEO Metadata",
+        "credentials": {
+          "openAiApi": {
+            "id": "6sKwLZ4CBgrhQ8HO",
+            "name": "Hostinger n8n"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://classactionnews.com/wp-json/wp/v2/posts/{{ $('Create WordPress Draft').item.json.id }}",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "wordpressApi",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"meta\": {\n    \"_yoast_wpseo_title\": \"{{ $json.output[0].content[0].text.metatitle }}\",\n    \"_yoast_wpseo_metadesc\": \"{{ $json.output[0].content[0].text.metadescription }}\"\n  }\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          2768,
+          368
+        ],
+        "id": "86c57547-a415-42fd-95d3-d826f6f62e8b",
+        "name": "Set SEO Meta Tags",
+        "credentials": {
+          "wordpressApi": {
+            "id": "V2NZs6duULdYq87m",
+            "name": "Class Action News"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "dataTableId": {
+            "__rl": true,
+            "value": "Wl6wot7dMpmKZBu0",
+            "mode": "list",
+            "cachedResultName": "New Class Action",
+            "cachedResultUrl": "/projects/sSYd8awhzL2oziun/datatables/Wl6wot7dMpmKZBu0"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "postID": "={{ $('Create WordPress Draft').item.json.id }}",
+              "postTitle": "={{ $('Create WordPress Draft').item.json.title.rendered }}",
+              "postURL": "={{ $('Create WordPress Draft').item.json.link }}",
+              "metaTitle": "={{ $('Generate SEO Metadata').item.json.output[0].content[0].text.metatitle }}",
+              "metaDescription": "={{ $('Generate SEO Metadata').item.json.output[0].content[0].text.metadescription }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "postID",
+                "displayName": "postID",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "postTitle",
+                "displayName": "postTitle",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "postURL",
+                "displayName": "postURL",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "metaTitle",
+                "displayName": "metaTitle",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "metaDescription",
+                "displayName": "metaDescription",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          3088,
+          -48
+        ],
+        "id": "c32e123d-006e-4f8a-ae7f-8fb5052bef4d",
+        "name": "Update Articles Database"
+      },
+      {
+        "parameters": {
+          "inputSource": "passthrough"
+        },
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          -2016,
+          -64
+        ],
+        "id": "d5fa4886-7608-4413-aa87-a2f50cef767f",
+        "name": "When Executed by Another Workflow"
+      }
+    ],
+    "connections": {
+      "Needs Internal Linking?": {
+        "main": [
+          [
+            {
+              "node": "Get Previous Articles",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Pass Through (No Linking)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Previous Articles": {
+        "main": [
+          [
+            {
+              "node": "Find Linking Opportunities",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Find Linking Opportunities": {
+        "main": [
+          [
+            {
+              "node": "Insert Internal Links",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Insert Internal Links": {
+        "main": [
+          [
+            {
+              "node": "Cleanup HTML (Linking Path)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Cleanup HTML (Linking Path)": {
+        "main": [
+          [
+            {
+              "node": "Merge Paths",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Pass Through (No Linking)": {
+        "main": [
+          [
+            {
+              "node": "Merge Paths",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Merge Paths": {
+        "main": [
+          [
+            {
+              "node": "Preserve Infographic Data",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Preserve Infographic Data": {
+        "main": [
+          [
+            {
+              "node": "Generate Title",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generate Title": {
+        "main": [
+          [
+            {
+              "node": "Create WordPress Draft",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create WordPress Draft": {
+        "main": [
+          [
+            {
+              "node": "Generate Featured Image",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generate Featured Image": {
+        "main": [
+          [
+            {
+              "node": "Upload Image to WordPress",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Upload Image to WordPress": {
+        "main": [
+          [
+            {
+              "node": "Set Featured Image",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Set Featured Image": {
+        "main": [
+          [
+            {
+              "node": "Has Infographic?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Has Infographic?": {
+        "main": [
+          [
+            {
+              "node": "Generate Infographic",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Merge Infographic Paths",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Generate Infographic": {
+        "main": [
+          [
+            {
+              "node": "Upload Infographic to WordPress",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Upload Infographic to WordPress": {
+        "main": [
+          [
+            {
+              "node": "Insert Infographic into Content",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Insert Infographic into Content": {
+        "main": [
+          [
+            {
+              "node": "Update Post with Infographic",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Update Post with Infographic": {
+        "main": [
+          [
+            {
+              "node": "Merge Infographic Paths",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Merge Infographic Paths": {
+        "main": [
+          [
+            {
+              "node": "Generate SEO Metadata",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generate SEO Metadata": {
+        "main": [
+          [
+            {
+              "node": "Set SEO Meta Tags",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Set SEO Meta Tags": {
+        "main": [
+          [
+            {
+              "node": "Update Articles Database",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "When Executed by Another Workflow": {
+        "main": [
+          [
+            {
+              "node": "Needs Internal Linking?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "James Brown",
+    "name": "Version 570adc57",
+    "description": "",
+    "autosaved": false
+  },
+  "activeVersionId": "570adc57-cfee-48b7-92fc-7bd1c3cc1187",
+  "connections": {
+    "Needs Internal Linking?": {
+      "main": [
+        [
+          {
+            "node": "Get Previous Articles",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Pass Through (No Linking)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Previous Articles": {
+      "main": [
+        [
+          {
+            "node": "Find Linking Opportunities",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Linking Opportunities": {
+      "main": [
+        [
+          {
+            "node": "Insert Internal Links",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Internal Links": {
+      "main": [
+        [
+          {
+            "node": "Cleanup HTML (Linking Path)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cleanup HTML (Linking Path)": {
+      "main": [
+        [
+          {
+            "node": "Merge Paths",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pass Through (No Linking)": {
+      "main": [
+        [
+          {
+            "node": "Merge Paths",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Paths": {
+      "main": [
+        [
+          {
+            "node": "Preserve Infographic Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preserve Infographic Data": {
+      "main": [
+        [
+          {
+            "node": "Generate Title",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Title": {
+      "main": [
+        [
+          {
+            "node": "Create WordPress Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create WordPress Draft": {
+      "main": [
+        [
+          {
+            "node": "Generate Featured Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Featured Image": {
+      "main": [
+        [
+          {
+            "node": "Upload Image to WordPress",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload Image to WordPress": {
+      "main": [
+        [
+          {
+            "node": "Set Featured Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Featured Image": {
+      "main": [
+        [
+          {
+            "node": "Has Infographic?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Infographic?": {
+      "main": [
+        [
+          {
+            "node": "Generate Infographic",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge Infographic Paths",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Generate Infographic": {
+      "main": [
+        [
+          {
+            "node": "Upload Infographic to WordPress",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload Infographic to WordPress": {
+      "main": [
+        [
+          {
+            "node": "Insert Infographic into Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Infographic into Content": {
+      "main": [
+        [
+          {
+            "node": "Update Post with Infographic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Post with Infographic": {
+      "main": [
+        [
+          {
+            "node": "Merge Infographic Paths",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Infographic Paths": {
+      "main": [
+        [
+          {
+            "node": "Generate SEO Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate SEO Metadata": {
+      "main": [
+        [
+          {
+            "node": "Set SEO Meta Tags",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set SEO Meta Tags": {
+      "main": [
+        [
+          {
+            "node": "Update Articles Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Needs Internal Linking?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-17T20:07:36.252Z",
+  "id": "BWzLADDoeEBQR_TggvBdg",
+  "isArchived": false,
+  "meta": null,
+  "name": "sub:New_Publish and Distribute",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "needs-linking",
+              "leftValue": "={{ $json.articleType }}",
+              "rightValue": "settlement",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "needs-linking-2",
+              "leftValue": "={{ $json.articleType }}",
+              "rightValue": "complaint",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1760,
+        -64
+      ],
+      "id": "5c5f4fb1-aa58-4723-be6d-f474970380d4",
+      "name": "Needs Internal Linking?"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "Wl6wot7dMpmKZBu0",
+          "mode": "list",
+          "cachedResultName": "New Class Action",
+          "cachedResultUrl": "/projects/sSYd8awhzL2oziun/datatables/Wl6wot7dMpmKZBu0"
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -1504,
+        -144
+      ],
+      "id": "9b34f432-180a-47cd-aeea-e4f302febf5c",
+      "name": "Get Previous Articles"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-sonnet-4-5-20250929",
+          "mode": "list",
+          "cachedResultName": "claude-sonnet-4-5-20250929"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are an expert SEO specialist for a Class Action law firm blog.\n\nNEW ARTICLE CONTENT:\n{{ $('When Executed by Another Workflow').item.json.articleHtml }}\n\nPREVIOUS ARTICLES DATABASE:\n{{ JSON.stringify($json, null, 2) }}\n\nTASK:\nAnalyze the new article content and the database of previous articles. Identify 2-3 previous articles that are most relevant for internal linking based on topic similarity and contextual relevance.\n\nFor each relevant article, you must:\n1. Identify the exact sentence or phrase in the NEW article where a link would add value\n2. Suggest natural anchor text (3-7 words) from that sentence\n3. Provide the URL from the database\n\nRETURN ONLY valid JSON with this exact structure (no markdown, no code blocks):\n{\n  \"links\": [\n    {\n      \"anchor_text\": \"specific phrase from new article\",\n      \"url\": \"full URL from database\",\n      \"context_sentence\": \"the full sentence where this link should be inserted\"\n    }\n  ]\n}\n\nRULES:\n- Maximum 3 links\n- Anchor text must exist exactly in the new article\n- Links should be naturally distributed throughout the article\n- Don't link to the same article twice\n- If no relevant matches exist, return {\"links\": []}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        -1264,
+        -144
+      ],
+      "id": "47b68342-e3ea-4253-9b2a-b9aa233ae52c",
+      "name": "Find Linking Opportunities",
+      "credentials": {
+        "anthropicApi": {
+          "id": "QIUyAAWFmOxaIZc6",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-sonnet-4-5-20250929",
+          "mode": "list",
+          "cachedResultName": "claude-sonnet-4-5-20250929"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are an expert HTML editor. Your task is to intelligently insert internal links into an HTML article.\n\nORIGINAL ARTICLE HTML:\n{{ $('When Executed by Another Workflow').item.json.articleHtml }}\n\nLINKS TO INSERT:\n{{ $json.content[0].text }}\n\nINSTRUCTIONS:\n- Parse the links JSON from the previous step\n- For each link, find the exact anchor_text in the original HTML\n- Replace the anchor_text with: <a href=\"URL\">anchor_text</a>\n- Preserve ALL existing HTML formatting\n- Only insert links where the exact anchor text appears\n- If anchor text appears multiple times, only link the first occurrence\n\nCRITICAL OUTPUT REQUIREMENTS:\n- Your response must contain ONLY the modified HTML\n- Do not include ANY explanations, preamble, or commentary\n- Do not wrap the output in ```html or ``` code blocks\n- Do not say \"Here is the modified HTML\" or any similar phrase\n- Your entire response should be pure HTML that starts with <h1> or <p> and ends with </p> or similar closing tag\n- If the links JSON is empty or contains no valid links, return the original HTML unchanged"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        -928,
+        -144
+      ],
+      "id": "da80048c-80ee-4a3a-b4dc-8062c09bdfc6",
+      "name": "Insert Internal Links",
+      "credentials": {
+        "anthropicApi": {
+          "id": "QIUyAAWFmOxaIZc6",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Cleanup HTML output - remove markdown blocks and explanatory text\nlet cleanHtml = $input.item.json.content[0].text;\n\n// Remove markdown code blocks (```html and ```)\ncleanHtml = cleanHtml.replace(/```html\\s*/gi, '').replace(/```\\s*/g, '');\n\n// Remove common preamble phrases that Claude might add\nconst preambles = [\n  /^Here is the modified HTML:?\\s*/i,\n  /^Here's the modified HTML:?\\s*/i,\n  /^Modified HTML:?\\s*/i,\n  /^The modified HTML is:?\\s*/i,\n  /^Here is the HTML with internal links:?\\s*/i\n];\n\npreambles.forEach(pattern => {\n  cleanHtml = cleanHtml.replace(pattern, '');\n});\n\n// If there's duplicate content (article appears twice), split and take first instance\nif (cleanHtml.length > 15000) {\n  const midpoint = Math.floor(cleanHtml.length / 2);\n  const endOfFirstArticle = cleanHtml.indexOf('</p>', midpoint);\n  if (endOfFirstArticle > 0) {\n    cleanHtml = cleanHtml.substring(0, endOfFirstArticle + 4);\n  }\n}\n\ncleanHtml = cleanHtml.trim();\n\n// Get original trigger data and preserve infographic\nconst triggerData = $('When Executed by Another Workflow').item.json;\n\nreturn { \n  json: { \n    articleHtml: cleanHtml,\n    articleType: triggerData.articleType,\n    defendant: triggerData.defendant,\n    caseNumber: triggerData.caseNumber,\n    ctaType: triggerData.ctaType,\n    metaData: triggerData.metaData,\n    infographic: triggerData.infographic || null\n  } \n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -512,
+        -144
+      ],
+      "id": "ad9bf40a-e6da-4354-9283-818d0531683f",
+      "name": "Cleanup HTML (Linking Path)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pass through original HTML for articles that don't need linking\nconst triggerData = $input.item.json;\n\nreturn {\n  json: {\n    articleHtml: triggerData.articleHtml,\n    articleType: triggerData.articleType,\n    defendant: triggerData.defendant,\n    caseNumber: triggerData.caseNumber,\n    ctaType: triggerData.ctaType,\n    metaData: triggerData.metaData,\n    infographic: triggerData.infographic || null\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -512,
+        64
+      ],
+      "id": "3ae6cfab-7637-482d-9dd1-66dc9438dc5e",
+      "name": "Pass Through (No Linking)"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        -240,
+        -48
+      ],
+      "id": "e8734e5c-4a09-48dc-8096-73b1f71edd15",
+      "name": "Merge Paths"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "article-html",
+              "name": "articleHtml",
+              "value": "={{ $json.articleHtml }}",
+              "type": "string"
+            },
+            {
+              "id": "article-type",
+              "name": "articleType",
+              "value": "={{ $json.articleType }}",
+              "type": "string"
+            },
+            {
+              "id": "has-infographic",
+              "name": "hasInfographic",
+              "value": "={{ $json.infographic !== undefined && $json.infographic !== null }}",
+              "type": "boolean"
+            },
+            {
+              "id": "infographic-data",
+              "name": "infographicData",
+              "value": "={{ $json.infographic || null }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -32,
+        -48
+      ],
+      "id": "777389b5-b428-4aaf-80e4-c39d65b6ed51",
+      "name": "Preserve Infographic Data"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-haiku-4-5-20251001",
+          "mode": "list",
+          "cachedResultName": "claude-haiku-4-5-20251001"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are an SEO Copywriter and you need to find a title of maximum 60 characters for the following article:\n\n{{ $json.articleHtml }}\n\nInstructions:\n- Use keywords contained in the article\n- Do not use any HTML characters\n- Output only the string containing the title\n- Do not use quotes. The only characters allowed are: and ,"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        208,
+        -48
+      ],
+      "id": "0f1a0789-eb23-4dce-ba0c-fca1e4dead53",
+      "name": "Generate Title",
+      "credentials": {
+        "anthropicApi": {
+          "id": "QIUyAAWFmOxaIZc6",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "title": "={{ $json.content[0].text }}",
+        "additionalFields": {
+          "content": "={{ $('Preserve Infographic Data').item.json.articleHtml }}"
+        }
+      },
+      "type": "n8n-nodes-base.wordpress",
+      "typeVersion": 1,
+      "position": [
+        560,
+        -48
+      ],
+      "id": "e6717322-41b1-4108-a390-cbf0b77b20f6",
+      "name": "Create WordPress Draft",
+      "credentials": {
+        "wordpressApi": {
+          "id": "V2NZs6duULdYq87m",
+          "name": "Class Action News"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "prompt": "=Generate a real photo image used as a blog post cover:\n\nImage prompt:\nCreate image that is closely related to the content of this post title {{ $('Generate Title').item.json.content[0].text }}, photography, realistic, sigma 85mm f/1.4",
+        "options": {
+          "size": "1024x1024",
+          "style": "natural"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        768,
+        -48
+      ],
+      "id": "c7de9f50-64cb-4c88-90b2-3866b99d257d",
+      "name": "Generate Featured Image",
+      "credentials": {
+        "openAiApi": {
+          "id": "6sKwLZ4CBgrhQ8HO",
+          "name": "Hostinger n8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://classactionnews.com//wp-json/wp/v2/media",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wordpressApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Disposition",
+              "value": "=attachment; filename=\"classaction-{{ $('Create WordPress Draft').item.json.id }}.jpg\""
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        992,
+        -48
+      ],
+      "id": "1a1ddf77-6c0f-4ff6-85f9-77d478fdabda",
+      "name": "Upload Image to WordPress",
+      "credentials": {
+        "wordpressApi": {
+          "id": "V2NZs6duULdYq87m",
+          "name": "Class Action News"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://classactionnews.com/wp-json/wp/v2/posts/{{ $('Create WordPress Draft').item.json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wordpressApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "featured_media",
+              "value": "={{ $json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1184,
+        -48
+      ],
+      "id": "7a6485ff-588d-4852-891b-4d839b8e6d1f",
+      "name": "Set Featured Image",
+      "credentials": {
+        "wordpressApi": {
+          "id": "V2NZs6duULdYq87m",
+          "name": "Class Action News"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "has-infographic",
+              "leftValue": "={{ $('Preserve Infographic Data').item.json.hasInfographic }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1376,
+        -48
+      ],
+      "id": "fb73c67b-4266-4ffb-979a-8463048b69d9",
+      "name": "Has Infographic?"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "prompt": "={{ $('Preserve Infographic Data').item.json.infographicData.description }}\n\nCreate a professional infographic with this title: {{ $('Preserve Infographic Data').item.json.infographicData.title }}\n\nStyle: Clean, modern infographic design with clear typography and data visualization. Use a professional color scheme (blues, grays, whites). Make it suitable for embedding in a legal news article. Ensure all text is legible and the layout is well-organized.",
+        "options": {
+          "size": "1024x1024",
+          "style": "natural"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        1584,
+        -160
+      ],
+      "id": "f8162cdb-fcf9-4840-a737-9ed252863a75",
+      "name": "Generate Infographic",
+      "credentials": {
+        "openAiApi": {
+          "id": "6sKwLZ4CBgrhQ8HO",
+          "name": "Hostinger n8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://classactionnews.com/wp-json/wp/v2/media",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wordpressApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Disposition",
+              "value": "=attachment; filename=\"infographic-{{ $('Create WordPress Draft').item.json.id }}.jpg\""
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1808,
+        -160
+      ],
+      "id": "4f675ef7-12dc-4946-85ad-8d9ccd537b3e",
+      "name": "Upload Infographic to WordPress",
+      "credentials": {
+        "wordpressApi": {
+          "id": "V2NZs6duULdYq87m",
+          "name": "Class Action News"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the uploaded infographic details\nconst infographicUrl = $input.item.json.source_url;\nconst postId = $('Create WordPress Draft').item.json.id;\nconst currentContent = $('Create WordPress Draft').item.json.content.rendered;\nconst infographicData = $('Preserve Infographic Data').item.json.infographicData;\n\n// Create infographic HTML with proper styling\nconst infographicHtml = `\n<div class=\"article-infographic\" style=\"margin: 30px 0; text-align: center; background: #f8f9fa; padding: 20px; border-radius: 8px;\">\n  <h3 style=\"margin-bottom: 15px; color: #2c3e50;\">${infographicData.title}</h3>\n  <img src=\"${infographicUrl}\" alt=\"${infographicData.title}\" style=\"max-width: 100%; height: auto; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);\" />\n</div>\n`;\n\n// Find a good insertion point - after the first or second H2 section\n// For Settlement articles, insert after \"What Is This Settlement About?\" section\nlet updatedContent = currentContent;\n\n// Try to insert after the first closing H2 + next paragraph\nconst h2Pattern = /<\\/h2>([\\s\\S]*?)<\\/p>/;\nconst match = updatedContent.match(h2Pattern);\n\nif (match) {\n  // Insert after the first paragraph following the first H2\n  const insertionPoint = match.index + match[0].length;\n  updatedContent = \n    updatedContent.slice(0, insertionPoint) + \n    '\\n' + infographicHtml + '\\n' + \n    updatedContent.slice(insertionPoint);\n} else {\n  // Fallback: insert at the beginning if pattern not found\n  updatedContent = infographicHtml + '\\n' + currentContent;\n}\n\nreturn {\n  json: {\n    postId: postId,\n    content: updatedContent,\n    infographicUrl: infographicUrl\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2032,
+        -160
+      ],
+      "id": "1abd66c1-bec7-4a47-9b3d-c0c10442263c",
+      "name": "Insert Infographic into Content"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://classactionnews.com/wp-json/wp/v2/posts/{{ $json.postId }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wordpressApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2256,
+        -160
+      ],
+      "id": "117385c4-824c-48ae-b260-fc2ae3214a3e",
+      "name": "Update Post with Infographic",
+      "credentials": {
+        "wordpressApi": {
+          "id": "V2NZs6duULdYq87m",
+          "name": "Class Action News"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        2464,
+        -48
+      ],
+      "id": "828fd1ae-1614-4c99-abd2-bcf07e43761b",
+      "name": "Merge Infographic Paths"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "chatgpt-4o-latest",
+          "mode": "list",
+          "cachedResultName": "CHATGPT-4O-LATEST"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Create metatitle and metadescription in the language of the following product:\n- Title: {{ $('Create WordPress Draft').item.json.title.rendered }}\n- Content: {{ $('Create WordPress Draft').item.json.content.rendered }}\n- Excerpt: {{ $('Create WordPress Draft').item.json.excerpt.rendered }}\n\nOutput in structured JSON as follows:\n\n{ metatitle }\n{metadescription}"
+            },
+            {
+              "role": "system",
+              "content": "You are an expert SEO content optimizer specialized in creating meta tags for both web pages and blog articles. Your task is to analyze the provided content and generate optimized meta tags based on the content type.\n\nMETA TAG REQUIREMENTS:\n\n1. Meta Title (max 60 characters):\n   - Include primary keyword near the beginning\n   - State the main value proposition\n   - Include brand name when relevant\n   - Use action-oriented language for commercial pages\n   - Format: Primary Keyword | Main Benefit | Brand (if applicable)\n\n2. Meta Description (max 160 characters):\n   - Lead with unique selling proposition\n   - Include primary and secondary keywords naturally\n   - Add clear call-to-action\n   - Highlight key benefits or features\n   - Address user pain points\n   - Tease the main insights or findings\n   - Mention key topics covered\n   - Use engaging question or statement\n   - Include expertise indicators\n   - Promise value or solution\n\nOUTPUT FORMAT:\nPlease provide meta tags in the required format\n\nVALIDATION CHECKLIST:\n- Title length ≤ 60 characters\n- Description length ≤ 160 characters\n- Primary keyword included in both\n- Matches identified search intent\n- Appropriate for content type\n- Clear value proposition\n- Compelling call-to-action\n- Natural keyword placement\n- Proper grammar and spelling\n- Mobile display optimized\n- Don't use placeholder\n\nRemember: The goal is to create meta tags that serve both search engines and users effectively while maintaining specificity for the content type and maximizing organic click-through rates."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "textFormat": {
+            "textOptions": {
+              "type": "json_object"
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        2672,
+        -48
+      ],
+      "id": "a536d8a6-f388-4975-9584-550964d3fb7c",
+      "name": "Generate SEO Metadata",
+      "credentials": {
+        "openAiApi": {
+          "id": "6sKwLZ4CBgrhQ8HO",
+          "name": "Hostinger n8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://classactionnews.com/wp-json/wp/v2/posts/{{ $('Create WordPress Draft').item.json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wordpressApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"meta\": {\n    \"_yoast_wpseo_title\": \"{{ $json.output[0].content[0].text.metatitle }}\",\n    \"_yoast_wpseo_metadesc\": \"{{ $json.output[0].content[0].text.metadescription }}\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2768,
+        368
+      ],
+      "id": "86c57547-a415-42fd-95d3-d826f6f62e8b",
+      "name": "Set SEO Meta Tags",
+      "credentials": {
+        "wordpressApi": {
+          "id": "V2NZs6duULdYq87m",
+          "name": "Class Action News"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "Wl6wot7dMpmKZBu0",
+          "mode": "list",
+          "cachedResultName": "New Class Action",
+          "cachedResultUrl": "/projects/sSYd8awhzL2oziun/datatables/Wl6wot7dMpmKZBu0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "postID": "={{ $('Create WordPress Draft').item.json.id }}",
+            "postTitle": "={{ $('Create WordPress Draft').item.json.title.rendered }}",
+            "postURL": "={{ $('Create WordPress Draft').item.json.link }}",
+            "metaTitle": "={{ $('Generate SEO Metadata').item.json.output[0].content[0].text.metatitle }}",
+            "metaDescription": "={{ $('Generate SEO Metadata').item.json.output[0].content[0].text.metadescription }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "postID",
+              "displayName": "postID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "postTitle",
+              "displayName": "postTitle",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "postURL",
+              "displayName": "postURL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "metaTitle",
+              "displayName": "metaTitle",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "metaDescription",
+              "displayName": "metaDescription",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        3088,
+        -48
+      ],
+      "id": "c32e123d-006e-4f8a-ae7f-8fb5052bef4d",
+      "name": "Update Articles Database"
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -2016,
+        -64
+      ],
+      "id": "d5fa4886-7608-4413-aa87-a2f50cef767f",
+      "name": "When Executed by Another Workflow"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "articleHtml": "<h1>Emerald City Fence Companies Agree to $350,000 Class Action Settlement Over Meal and Rest Break Violations</h1>\n\n<div class=\"key-facts-box\">\n<h3>Settlement at a Glance</h3>\n<ul>\n<li><strong>Defendants:</strong> Emerald City Statewide, LLC, Emerald City Fence Rentals, LLC, and Statewide Rent-A-Fence, Inc.</li>\n<li><strong>Settlement Amount:</strong> $350,000</li>\n<li><strong>Class Fund for Workers:</strong> $248,500</li>\n<li><strong>Claim Filing Deadline:</strong> No claim form required - automatic payment</li>\n<li><strong>Proof Required:</strong> None - if you qualify, you will be paid automatically</li>\n<li><strong>Estimated Payout:</strong> Varies by worker based on hours worked and pay structure</li>\n<li><strong>Case Number:</strong> King County Superior Court Civil Case No. 18-2-25138-9 SEA</li>\n</ul>\n</div>\n\n<div class=\"table-of-contents\">\n<h3>Table of Contents</h3>\n<ul>\n<li><a href=\"#what-is-settlement\">What Is This Settlement About?</a></li>\n<li><a href=\"#who-qualifies\">Who Qualifies?</a></li>\n<li><a href=\"#payout-amounts\">How Much Can You Get?</a></li>\n<li><a href=\"#how-to-file\">How to Get Your Payment</a></li>\n<li><a href=\"#deadlines\">Important Deadlines</a></li>\n<li><a href=\"#excluding-yourself\">Excluding Yourself from the Settlement</a></li>\n<li><a href=\"#objecting\">How to Object</a></li>\n<li><a href=\"#faq\">Frequently Asked Questions</a></li>\n<li><a href=\"#settlement-document\">Settlement Document</a></li>\n</ul>\n</div>\n\n<h2 id=\"what-is-settlement\">What Is This Settlement About?</h2>\n\n<p>Former employee Daniel Barrett filed a class action lawsuit against Emerald City Statewide, LLC, Emerald City Fence Rentals, LLC, and Statewide Rent-A-Fence, Inc. (collectively referred to as \"Emerald City Fence\" or \"the defendants\") alleging violations of Washington State wage and hour laws. Specifically, Barrett claimed that the companies failed to provide employees with legally compliant meal periods and rest breaks as required under Washington law during the period from October 5, 2015, through December 31, 2018.</p>\n\n<p>The lawsuit alleged that workers were denied proper meal and rest breaks, or that the breaks provided did not meet the requirements established by Washington State regulations. These alleged violations could have resulted in unpaid wages, overtime, penalties, and interest for affected workers. Barrett brought the case on behalf of himself and other similarly situated employees who worked for the fence rental companies during the relevant time period.</p>\n\n<p>The defendants have strongly denied all allegations of wrongdoing and maintain that they complied with all applicable labor laws. However, to avoid the cost and uncertainty of continued litigation, both parties agreed to settle the case for $350,000. The settlement does not constitute an admission of liability or wrongdoing by the defendants. The settlement class representative and his attorneys believe this settlement is fair, adequate, and reasonable, and serves the best interests of the affected workers.</p>\n\n<h2 id=\"who-qualifies\">Who Qualifies?</h2>\n\n<div class=\"eligibility-container\">\n<div class=\"qualifies-yes\">\n<h3>You May Qualify If...</h3>\n<ul>\n<li>You were employed by Emerald City Statewide, LLC, Emerald City Fence Rentals, LLC, or Statewide Rent-A-Fence, Inc. at any time between October 5, 2015, and December 31, 2018</li>\n<li>You were paid on an hourly basis during your employment</li>\n<li>You were paid on a piece rate basis during your employment</li>\n<li>You worked in a position that was not solely office-based</li>\n<li>You performed manual labor or fiel",
+          "articleType": "settlement",
+          "ctaType": "email_signup",
+          "pdfUrl": null,
+          "customInstructions": "",
+          "infographic": {
+            "infographicType": "eligibility",
+            "title": "Am I Eligible for the Settlement?",
+            "description": "Create an interactive visual decision tree infographic that guides workers through qualification criteria for the Emerald City Fence settlement. The design should feature a top-to-bottom flow starting with a welcoming header stating 'Check Your Eligibility' with the $350,000 settlement amount prominently displayed. Below, implement 4-5 sequential decision nodes representing key criteria: (1) Employment period verification (October 5, 2015 - December 31, 2018) with a calendar icon, (2) Company name matching (Emerald City Statewide, LLC; Emerald City Fence Rentals, LLC; or Statewide Rent-A-Fence, Inc.) with company logos or checkmarks, (3) Pay type verification (hourly or piece rate) with dollar sign icons, and (4) Job type confirmation (non-office-based manual labor or field work) with worker silhouettes. Each criterion should branch into 'Yes' and 'No' paths using arrows or directional elements. The 'Yes' path continues to the next criterion, while 'No' paths lead to a compassionate message explaining they may not qualify. The final 'Yes' result should display an encouraging message with next steps and the claim filing information. Use a color palette of green for positive outcomes, neutral grays for questions, and include icons that represent each criterion. Incorporate subtle background elements related to fence work without overwhelming the content."
+          },
+          "metaData": {
+            "articleType": "settlement",
+            "hasInfographic": true,
+            "hasFAQ": true,
+            "hasPDF": false
+          }
+        }
+      }
+    ]
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-17T20:07:36.256Z",
+      "createdAt": "2026-01-17T20:07:36.256Z",
+      "role": "workflow:owner",
+      "workflowId": "BWzLADDoeEBQR_TggvBdg",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-17T20:08:24.857Z",
+  "versionId": "570adc57-cfee-48b7-92fc-7bd1c3cc1187"
+}
