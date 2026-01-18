@@ -1,0 +1,755 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-01-17T20:35:43.000Z",
+    "createdAt": "2026-01-17T20:35:37.675Z",
+    "versionId": "3c31ff72-0436-4f3a-a3f2-96fde7d92c8d",
+    "workflowId": "9IKsYkjNjep0na9fJgVu9",
+    "nodes": [
+      {
+        "parameters": {
+          "path": "bd80e9e7-9596-451d-bd76-36604e6758d1",
+          "formTitle": "Submit Class Action Article",
+          "formDescription": "Upload a class action document and select the article type to generate.",
+          "formFields": {
+            "values": [
+              {
+                "fieldLabel": "Article Type",
+                "fieldType": "dropdown",
+                "fieldOptions": {
+                  "values": [
+                    {
+                      "option": "Investigation"
+                    },
+                    {
+                      "option": "Settlement"
+                    },
+                    {
+                      "option": "Complaint"
+                    },
+                    {
+                      "option": "News"
+                    }
+                  ]
+                },
+                "requiredField": true
+              },
+              {
+                "fieldLabel": "Case PDF Document",
+                "fieldType": "file",
+                "requiredField": true
+              },
+              {
+                "fieldLabel": "Custom Instructions",
+                "fieldType": "textarea",
+                "placeholder": "Enter any custom instructions (optional)"
+              },
+              {
+                "fieldLabel": "Defendant Name",
+                "placeholder": "e.g., Acme Corporation",
+                "requiredField": true
+              },
+              {
+                "fieldLabel": "Case Number",
+                "placeholder": "e.g., 1:24-cv-12345",
+                "defaultValue": "2:20-CV-02086-TJS"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.formTrigger",
+        "typeVersion": 2.1,
+        "position": [
+          -2016,
+          -16
+        ],
+        "id": "e0368d27-dd2f-4ff4-a913-387b073a9e04",
+        "name": "Article Submission Form",
+        "webhookId": "bd80e9e7-9596-451d-bd76-36604e6758d1"
+      },
+      {
+        "parameters": {
+          "operation": "pdf",
+          "binaryPropertyName": "Case_PDF_Document",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.extractFromFile",
+        "typeVersion": 1.1,
+        "position": [
+          -1728,
+          -16
+        ],
+        "id": "b2700b5e-5e47-4deb-86b5-e036aa988352",
+        "name": "Extract PDF Text"
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "I7IFQy3CiG1mqFCWfZ2Kx",
+            "mode": "list",
+            "cachedResultUrl": "/workflow/I7IFQy3CiG1mqFCWfZ2Kx",
+            "cachedResultName": "Sub: Investigation Article"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {},
+            "matchingColumns": [],
+            "schema": [],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": true
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.2,
+        "position": [
+          -976,
+          -208
+        ],
+        "id": "8bc58430-0dee-488f-bfaa-805e1d36ef5c",
+        "name": "Execute Investigation Workflow"
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "NGjl5BYJckOVbjdi3KD0z",
+            "mode": "list",
+            "cachedResultUrl": "/workflow/NGjl5BYJckOVbjdi3KD0z",
+            "cachedResultName": "Sub: Settlement Article"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {},
+            "matchingColumns": [],
+            "schema": [],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": true
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.2,
+        "position": [
+          -992,
+          16
+        ],
+        "id": "ba3daa34-47d3-4aca-a0df-475cdd773a84",
+        "name": "Execute Settlement Workflow"
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "7_QHc-Dp1oQy8cmol2HKf",
+            "mode": "list",
+            "cachedResultUrl": "/workflow/7_QHc-Dp1oQy8cmol2HKf",
+            "cachedResultName": "Sub: Complaint Article"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {},
+            "matchingColumns": [],
+            "schema": [],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": true
+          },
+          "options": {
+            "waitForSubWorkflow": false
+          }
+        },
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.2,
+        "position": [
+          -992,
+          224
+        ],
+        "id": "69d6fbb0-b5c7-46fa-803b-d7ec190264f0",
+        "name": "Execute Complaint Workflow"
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "S1w_lecwJL1rZQCmjjzxE",
+            "mode": "list",
+            "cachedResultUrl": "/workflow/S1w_lecwJL1rZQCmjjzxE",
+            "cachedResultName": "Sub: News Article"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {},
+            "matchingColumns": [],
+            "schema": [],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": true
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.2,
+        "position": [
+          -992,
+          416
+        ],
+        "id": "7fc0964d-dfcf-4600-999b-7d1452cdbd85",
+        "name": "Execute News Workflow"
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $('Article Submission Form').item.json['Article Type'] }}",
+                      "rightValue": "Investigation",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "id": "dc7294a7-4b84-4dcb-bc03-009ef950d3a9"
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "da7287c4-16fa-45e1-b7fb-62b01eff452e",
+                      "leftValue": "={{ $('Article Submission Form').item.json['Article Type'] }}",
+                      "rightValue": "Settlement",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals",
+                        "name": "filter.operator.equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "b6bb147c-b5d2-4a00-9f0f-dd2020ca4422",
+                      "leftValue": "={{ $('Article Submission Form').item.json['Article Type'] }}",
+                      "rightValue": "Complaint",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals",
+                        "name": "filter.operator.equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "96738510-b555-4834-8d7b-dfba486f0db5",
+                      "leftValue": "={{ $('Article Submission Form').item.json['Article Type'] }}",
+                      "rightValue": "News",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals",
+                        "name": "filter.operator.equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.4,
+        "position": [
+          -1392,
+          -48
+        ],
+        "id": "f2256d68-631c-4ecb-9865-e4195db3e030",
+        "name": "Route Article"
+      }
+    ],
+    "connections": {
+      "Article Submission Form": {
+        "main": [
+          [
+            {
+              "node": "Extract PDF Text",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extract PDF Text": {
+        "main": [
+          [
+            {
+              "node": "Route Article",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Route Article": {
+        "main": [
+          [
+            {
+              "node": "Execute Investigation Workflow",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Execute Settlement Workflow",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Execute Complaint Workflow",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Execute News Workflow",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "James Brown",
+    "name": "Version 3c31ff72",
+    "description": "",
+    "autosaved": false
+  },
+  "activeVersionId": "3c31ff72-0436-4f3a-a3f2-96fde7d92c8d",
+  "connections": {
+    "Article Submission Form": {
+      "main": [
+        [
+          {
+            "node": "Extract PDF Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract PDF Text": {
+      "main": [
+        [
+          {
+            "node": "Route Article",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Article": {
+      "main": [
+        [
+          {
+            "node": "Execute Investigation Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute Settlement Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute Complaint Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute News Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-16T20:58:55.993Z",
+  "id": "9IKsYkjNjep0na9fJgVu9",
+  "isArchived": false,
+  "meta": null,
+  "name": "Article Router",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "bd80e9e7-9596-451d-bd76-36604e6758d1",
+        "formTitle": "Submit Class Action Article",
+        "formDescription": "Upload a class action document and select the article type to generate.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Article Type",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Investigation"
+                  },
+                  {
+                    "option": "Settlement"
+                  },
+                  {
+                    "option": "Complaint"
+                  },
+                  {
+                    "option": "News"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Case PDF Document",
+              "fieldType": "file",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Custom Instructions",
+              "fieldType": "textarea",
+              "placeholder": "Enter any custom instructions (optional)"
+            },
+            {
+              "fieldLabel": "Defendant Name",
+              "placeholder": "e.g., Acme Corporation",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Case Number",
+              "placeholder": "e.g., 1:24-cv-12345",
+              "defaultValue": "2:20-CV-02086-TJS"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.1,
+      "position": [
+        -2016,
+        -16
+      ],
+      "id": "e0368d27-dd2f-4ff4-a913-387b073a9e04",
+      "name": "Article Submission Form",
+      "webhookId": "bd80e9e7-9596-451d-bd76-36604e6758d1"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "Case_PDF_Document",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -1728,
+        -16
+      ],
+      "id": "b2700b5e-5e47-4deb-86b5-e036aa988352",
+      "name": "Extract PDF Text"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "I7IFQy3CiG1mqFCWfZ2Kx",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/I7IFQy3CiG1mqFCWfZ2Kx",
+          "cachedResultName": "Sub: Investigation Article"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -976,
+        -208
+      ],
+      "id": "8bc58430-0dee-488f-bfaa-805e1d36ef5c",
+      "name": "Execute Investigation Workflow"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "NGjl5BYJckOVbjdi3KD0z",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/NGjl5BYJckOVbjdi3KD0z",
+          "cachedResultName": "Sub: Settlement Article"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -992,
+        16
+      ],
+      "id": "ba3daa34-47d3-4aca-a0df-475cdd773a84",
+      "name": "Execute Settlement Workflow"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "7_QHc-Dp1oQy8cmol2HKf",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/7_QHc-Dp1oQy8cmol2HKf",
+          "cachedResultName": "Sub: Complaint Article"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -992,
+        224
+      ],
+      "id": "69d6fbb0-b5c7-46fa-803b-d7ec190264f0",
+      "name": "Execute Complaint Workflow"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "S1w_lecwJL1rZQCmjjzxE",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/S1w_lecwJL1rZQCmjjzxE",
+          "cachedResultName": "Sub: News Article"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -992,
+        416
+      ],
+      "id": "7fc0964d-dfcf-4600-999b-7d1452cdbd85",
+      "name": "Execute News Workflow"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Article Submission Form').item.json['Article Type'] }}",
+                    "rightValue": "Investigation",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "dc7294a7-4b84-4dcb-bc03-009ef950d3a9"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "da7287c4-16fa-45e1-b7fb-62b01eff452e",
+                    "leftValue": "={{ $('Article Submission Form').item.json['Article Type'] }}",
+                    "rightValue": "Settlement",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "b6bb147c-b5d2-4a00-9f0f-dd2020ca4422",
+                    "leftValue": "={{ $('Article Submission Form').item.json['Article Type'] }}",
+                    "rightValue": "Complaint",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "96738510-b555-4834-8d7b-dfba486f0db5",
+                    "leftValue": "={{ $('Article Submission Form').item.json['Article Type'] }}",
+                    "rightValue": "News",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -1392,
+        -48
+      ],
+      "id": "f2256d68-631c-4ecb-9865-e4195db3e030",
+      "name": "Route Article"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "America/Chicago",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-16T20:58:55.996Z",
+      "createdAt": "2026-01-16T20:58:55.996Z",
+      "role": "workflow:owner",
+      "workflowId": "9IKsYkjNjep0na9fJgVu9",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-01-17T20:35:37.674Z",
+  "versionId": "3c31ff72-0436-4f3a-a3f2-96fde7d92c8d"
+}
