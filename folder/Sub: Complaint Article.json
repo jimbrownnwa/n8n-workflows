@@ -1,0 +1,356 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-01-17T20:15:55.000Z",
+    "createdAt": "2026-01-17T20:15:51.797Z",
+    "versionId": "e7383f00-1d56-44aa-91ed-fd5577d1ba7c",
+    "workflowId": "7_QHc-Dp1oQy8cmol2HKf",
+    "nodes": [
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "claude-sonnet-4-5-20250929",
+            "mode": "list",
+            "cachedResultName": "claude-sonnet-4-5-20250929"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=Act as a legal news journalist for Class Action News. You are writing a NEWS-STYLE article about a newly filed class action complaint.\n\n**ARTICLE TYPE:** New Complaint (News Coverage)\n**TARGET WORD COUNT:** 400-800 words\n**TONE:** News-style, factual, forward-looking, objective\n**PURPOSE:** Provide timely news coverage, capture case tracking signups\n\n**SOURCE DOCUMENT (Complaint):**\n{{ $json.text }}\n\n**CASE INFORMATION:**\n- Defendant: {{ $json.Defendant_Name }}\n- Case Number: {{ $json.Case_Number }}\n\n**CUSTOM INSTRUCTIONS:**\n{{ $json.Custom_Instructions }}\n\n**REQUIRED STRUCTURE:**\n\n1. **Headline** (H1)\n   - News-style format\n   - Include defendant name + \"hit with class action\" or similar\n   - Examples:\n     * \"[Defendant] Hit with Class Action Over [Issue]\"\n     * \"Class Action Filed Against [Defendant] Alleging [Claims]\"\n     * \"[Defendant] Faces Class Action Lawsuit Over [Practice]\"\n   - Make it newsworthy but factual\n\n2. **Case Info Box** (structured div at top)\n   - Create div with class=\"case-info-box\"\n   - Include:\n     * Defendant: [Company name]\n     * Plaintiff Law Firm(s): [Extract from complaint]\n     * Court: [Full court name]\n     * Case Number: {{ $json.Case_Number }}\n     * Date Filed: [Extract from document]\n   - Format as structured list\n\n3. **What the Lawsuit Alleges** (H2, 2-3 paragraphs)\n   - Lead paragraph (inverted pyramid style):\n     * Who filed suit\n     * Against whom\n     * What they're claiming\n     * When it was filed\n   - Second paragraph:\n     * Key allegations in detail\n     * Specific claims or violations cited\n     * Factual basis from complaint\n   - Third paragraph (if needed):\n     * Additional context\n     * Background on the defendant's practices\n     * Any statements or responses (if available)\n   - Use \"alleges\" and \"claims\" language (not proven facts)\n   - Remain neutral and objective\n\n4. **Who May Be Affected** (H2)\n   - Explain the potential class definition\n   - Who might be included if class is certified\n   - Be clear this is POTENTIAL (class not yet certified)\n   - Include:\n     * Time period\n     * Geographic scope\n     * Products/services involved\n     * Types of consumers affected\n   - Use language like \"may include\" and \"potentially affected\"\n\n5. **What Happens Next** (H2)\n   - Explain the litigation process ahead:\n     * Defendant will respond to complaint\n     * Plaintiffs will seek class certification\n     * Discovery process\n     * Potential settlement negotiations\n     * Timeline is uncertain (months to years)\n   - Educational tone\n   - Set realistic expectations\n   - Mention that affected consumers can:\n     * Track case developments\n     * Sign up for updates\n     * Potentially join if class certified\n\n6. **Complaint Document Reference**\n   - Simple paragraph mentioning the embedded complaint\n   - \"Read the full complaint document below.\"\n   - Do NOT create embed code (theme handles this)\n\n**FORMATTING REQUIREMENTS:**\n- Use HTML formatting ONLY: <h1>, <h2>, <p>, <ul>, <li>, <div>, <strong>, <em>\n- Do NOT use markdown\n- Do NOT wrap output in ```html code blocks\n- Output ONLY the HTML content, no preamble\n- Use class=\"case-info-box\" for the case information div\n\n**EXCLUSIONS - DO NOT INCLUDE:**\n- FAQ section (case too new)\n- Eligibility determination (class not certified)\n- Claim filing instructions (no settlement yet)\n- Infographic\n- Payment information\n- Table of Contents\n\n**CTA PLACEMENT NOTES:**\n- WordPress theme will inject case tracker signup after \"What Happens Next\"\n- Do NOT write CTA HTML\n- Content should motivate tracking the case\n\n**TONE GUIDELINES:**\n- Objective journalism style\n- Factual, not promotional\n- Use \"alleges\" and \"claims\" (not proven)\n- Forward-looking (what comes next)\n- Educational about legal process\n- Neutral toward both parties\n- 8th grade reading level\n\n**LEGAL LANGUAGE:**\n- Always say \"alleges\" or \"claims\" when describing accusations\n- Never state allegations as proven facts\n- Use \"potential class members\" or \"may be affected\"\n- Clarify that class certification is pending\n\nI only want HTML format in output. No markdown, no code blocks, no explanations."
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.anthropic",
+        "typeVersion": 1,
+        "position": [
+          -608,
+          -160
+        ],
+        "id": "4881c11f-6843-42df-aee1-dbf57614cb61",
+        "name": "Generate Complaint Article",
+        "credentials": {
+          "anthropicApi": {
+            "id": "QIUyAAWFmOxaIZc6",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Prepare payload for Publish & Distribute workflow\nconst articleHtml = $input.item.json.content[0].text;\nconst formData = $('Test').item.json;\n\nreturn {\n  json: {\n    articleHtml: articleHtml,\n    articleType: 'complaint',\n    defendant: formData.Defendant_Name,\n    caseNumber: formData.Case_Number,\n    ctaType: 'case_tracker',\n    pdfUrl: formData.pdfUrl || null,  // Complaint PDF should be embedded\n    customInstructions: formData.Custom_Instructions || '',\n    metaData: {\n      defendant: formData.Defendant_Name,\n      caseNumber: formData.Case_Number,\n      articleType: 'complaint',\n      hasPDF: !!formData.pdfUrl\n    }\n  }\n};"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -208,
+          -160
+        ],
+        "id": "a2b35153-c433-4ef0-9fa7-119947fba66d",
+        "name": "Prepare Payload"
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "BWzLADDoeEBQR_TggvBdg",
+            "mode": "list",
+            "cachedResultUrl": "/workflow/BWzLADDoeEBQR_TggvBdg",
+            "cachedResultName": "sub:New_Publish and Distribute"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {},
+            "matchingColumns": [],
+            "schema": [],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": true
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.2,
+        "position": [
+          32,
+          -160
+        ],
+        "id": "ed6824ec-eecf-4e2d-9e51-bd62d1e1b986",
+        "name": "Execute Publish & Distribute"
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ $json }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.1,
+        "position": [
+          288,
+          -160
+        ],
+        "id": "8d413070-9886-4e14-919e-e1f5675b6456",
+        "name": "Respond to Webhook"
+      },
+      {
+        "parameters": {
+          "content": "## Complaint Article Sub-Workflow\n\n**Purpose:** Generate 400-800 word news-style articles for newly filed complaints\n\n**Key Features:**\n- News journalism style\n- Case Info box\n- Objective, factual reporting\n- Legal process education\n- Case tracker CTA\n- PDF embedding\n\n**Exclusions:**\n- No FAQ (too early)\n- No eligibility info (not certified)\n- No infographic\n- No claim filing (no settlement)\n\n**Tone:**\n- Use \"alleges\" and \"claims\"\n- Never state as proven fact\n- Neutral to both parties\n- Educational about process\n\n**Setup Required:**\nUpdate Execute Workflow node with Publish & Distribute workflow ID.\n\n**Word Count Target:** 400-800 words",
+          "height": 520,
+          "width": 340,
+          "color": 4
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          -896,
+          32
+        ],
+        "typeVersion": 1,
+        "id": "ae3071b5-f90a-4e2e-bd8c-b8dff0236355",
+        "name": "Sticky Note"
+      },
+      {
+        "parameters": {
+          "inputSource": "passthrough"
+        },
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          -848,
+          -160
+        ],
+        "id": "001d9c75-04da-4d4a-b7de-384a1cf4a97f",
+        "name": "Test"
+      }
+    ],
+    "connections": {
+      "Generate Complaint Article": {
+        "main": [
+          [
+            {
+              "node": "Prepare Payload",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prepare Payload": {
+        "main": [
+          [
+            {
+              "node": "Execute Publish & Distribute",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Execute Publish & Distribute": {
+        "main": [
+          []
+        ]
+      },
+      "Test": {
+        "main": [
+          [
+            {
+              "node": "Generate Complaint Article",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "James Brown",
+    "name": "Version e7383f00",
+    "description": "",
+    "autosaved": false
+  },
+  "activeVersionId": "e7383f00-1d56-44aa-91ed-fd5577d1ba7c",
+  "connections": {
+    "Generate Complaint Article": {
+      "main": [
+        [
+          {
+            "node": "Prepare Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Payload": {
+      "main": [
+        [
+          {
+            "node": "Execute Publish & Distribute",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Publish & Distribute": {
+      "main": [
+        []
+      ]
+    },
+    "Test": {
+      "main": [
+        [
+          {
+            "node": "Generate Complaint Article",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-16T20:45:19.749Z",
+  "id": "7_QHc-Dp1oQy8cmol2HKf",
+  "isArchived": false,
+  "meta": null,
+  "name": "Sub: Complaint Article",
+  "nodes": [
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-sonnet-4-5-20250929",
+          "mode": "list",
+          "cachedResultName": "claude-sonnet-4-5-20250929"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Act as a legal news journalist for Class Action News. You are writing a NEWS-STYLE article about a newly filed class action complaint.\n\n**ARTICLE TYPE:** New Complaint (News Coverage)\n**TARGET WORD COUNT:** 400-800 words\n**TONE:** News-style, factual, forward-looking, objective\n**PURPOSE:** Provide timely news coverage, capture case tracking signups\n\n**SOURCE DOCUMENT (Complaint):**\n{{ $json.text }}\n\n**CASE INFORMATION:**\n- Defendant: {{ $json.Defendant_Name }}\n- Case Number: {{ $json.Case_Number }}\n\n**CUSTOM INSTRUCTIONS:**\n{{ $json.Custom_Instructions }}\n\n**REQUIRED STRUCTURE:**\n\n1. **Headline** (H1)\n   - News-style format\n   - Include defendant name + \"hit with class action\" or similar\n   - Examples:\n     * \"[Defendant] Hit with Class Action Over [Issue]\"\n     * \"Class Action Filed Against [Defendant] Alleging [Claims]\"\n     * \"[Defendant] Faces Class Action Lawsuit Over [Practice]\"\n   - Make it newsworthy but factual\n\n2. **Case Info Box** (structured div at top)\n   - Create div with class=\"case-info-box\"\n   - Include:\n     * Defendant: [Company name]\n     * Plaintiff Law Firm(s): [Extract from complaint]\n     * Court: [Full court name]\n     * Case Number: {{ $json.Case_Number }}\n     * Date Filed: [Extract from document]\n   - Format as structured list\n\n3. **What the Lawsuit Alleges** (H2, 2-3 paragraphs)\n   - Lead paragraph (inverted pyramid style):\n     * Who filed suit\n     * Against whom\n     * What they're claiming\n     * When it was filed\n   - Second paragraph:\n     * Key allegations in detail\n     * Specific claims or violations cited\n     * Factual basis from complaint\n   - Third paragraph (if needed):\n     * Additional context\n     * Background on the defendant's practices\n     * Any statements or responses (if available)\n   - Use \"alleges\" and \"claims\" language (not proven facts)\n   - Remain neutral and objective\n\n4. **Who May Be Affected** (H2)\n   - Explain the potential class definition\n   - Who might be included if class is certified\n   - Be clear this is POTENTIAL (class not yet certified)\n   - Include:\n     * Time period\n     * Geographic scope\n     * Products/services involved\n     * Types of consumers affected\n   - Use language like \"may include\" and \"potentially affected\"\n\n5. **What Happens Next** (H2)\n   - Explain the litigation process ahead:\n     * Defendant will respond to complaint\n     * Plaintiffs will seek class certification\n     * Discovery process\n     * Potential settlement negotiations\n     * Timeline is uncertain (months to years)\n   - Educational tone\n   - Set realistic expectations\n   - Mention that affected consumers can:\n     * Track case developments\n     * Sign up for updates\n     * Potentially join if class certified\n\n6. **Complaint Document Reference**\n   - Simple paragraph mentioning the embedded complaint\n   - \"Read the full complaint document below.\"\n   - Do NOT create embed code (theme handles this)\n\n**FORMATTING REQUIREMENTS:**\n- Use HTML formatting ONLY: <h1>, <h2>, <p>, <ul>, <li>, <div>, <strong>, <em>\n- Do NOT use markdown\n- Do NOT wrap output in ```html code blocks\n- Output ONLY the HTML content, no preamble\n- Use class=\"case-info-box\" for the case information div\n\n**EXCLUSIONS - DO NOT INCLUDE:**\n- FAQ section (case too new)\n- Eligibility determination (class not certified)\n- Claim filing instructions (no settlement yet)\n- Infographic\n- Payment information\n- Table of Contents\n\n**CTA PLACEMENT NOTES:**\n- WordPress theme will inject case tracker signup after \"What Happens Next\"\n- Do NOT write CTA HTML\n- Content should motivate tracking the case\n\n**TONE GUIDELINES:**\n- Objective journalism style\n- Factual, not promotional\n- Use \"alleges\" and \"claims\" (not proven)\n- Forward-looking (what comes next)\n- Educational about legal process\n- Neutral toward both parties\n- 8th grade reading level\n\n**LEGAL LANGUAGE:**\n- Always say \"alleges\" or \"claims\" when describing accusations\n- Never state allegations as proven facts\n- Use \"potential class members\" or \"may be affected\"\n- Clarify that class certification is pending\n\nI only want HTML format in output. No markdown, no code blocks, no explanations."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        -608,
+        -160
+      ],
+      "id": "4881c11f-6843-42df-aee1-dbf57614cb61",
+      "name": "Generate Complaint Article",
+      "credentials": {
+        "anthropicApi": {
+          "id": "QIUyAAWFmOxaIZc6",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare payload for Publish & Distribute workflow\nconst articleHtml = $input.item.json.content[0].text;\nconst formData = $('Test').item.json;\n\nreturn {\n  json: {\n    articleHtml: articleHtml,\n    articleType: 'complaint',\n    defendant: formData.Defendant_Name,\n    caseNumber: formData.Case_Number,\n    ctaType: 'case_tracker',\n    pdfUrl: formData.pdfUrl || null,  // Complaint PDF should be embedded\n    customInstructions: formData.Custom_Instructions || '',\n    metaData: {\n      defendant: formData.Defendant_Name,\n      caseNumber: formData.Case_Number,\n      articleType: 'complaint',\n      hasPDF: !!formData.pdfUrl\n    }\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -208,
+        -160
+      ],
+      "id": "a2b35153-c433-4ef0-9fa7-119947fba66d",
+      "name": "Prepare Payload"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "BWzLADDoeEBQR_TggvBdg",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/BWzLADDoeEBQR_TggvBdg",
+          "cachedResultName": "sub:New_Publish and Distribute"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        32,
+        -160
+      ],
+      "id": "ed6824ec-eecf-4e2d-9e51-bd62d1e1b986",
+      "name": "Execute Publish & Distribute"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        288,
+        -160
+      ],
+      "id": "8d413070-9886-4e14-919e-e1f5675b6456",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "content": "## Complaint Article Sub-Workflow\n\n**Purpose:** Generate 400-800 word news-style articles for newly filed complaints\n\n**Key Features:**\n- News journalism style\n- Case Info box\n- Objective, factual reporting\n- Legal process education\n- Case tracker CTA\n- PDF embedding\n\n**Exclusions:**\n- No FAQ (too early)\n- No eligibility info (not certified)\n- No infographic\n- No claim filing (no settlement)\n\n**Tone:**\n- Use \"alleges\" and \"claims\"\n- Never state as proven fact\n- Neutral to both parties\n- Educational about process\n\n**Setup Required:**\nUpdate Execute Workflow node with Publish & Distribute workflow ID.\n\n**Word Count Target:** 400-800 words",
+        "height": 520,
+        "width": 340,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -896,
+        32
+      ],
+      "typeVersion": 1,
+      "id": "ae3071b5-f90a-4e2e-bd8c-b8dff0236355",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -848,
+        -160
+      ],
+      "id": "001d9c75-04da-4d4a-b7de-384a1cf4a97f",
+      "name": "Test"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-16T20:45:19.753Z",
+      "createdAt": "2026-01-16T20:45:19.753Z",
+      "role": "workflow:owner",
+      "workflowId": "7_QHc-Dp1oQy8cmol2HKf",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-17T20:15:51.796Z",
+  "versionId": "e7383f00-1d56-44aa-91ed-fd5577d1ba7c"
+}
