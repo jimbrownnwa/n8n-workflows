@@ -1,0 +1,418 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-01-17T20:16:50.000Z",
+    "createdAt": "2026-01-17T20:16:47.709Z",
+    "versionId": "65093497-0853-4be9-9437-268e309e884b",
+    "workflowId": "S1w_lecwJL1rZQCmjjzxE",
+    "nodes": [
+      {
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "value": "Wl6wot7dMpmKZBu0",
+            "mode": "list",
+            "cachedResultName": "New Class Action",
+            "cachedResultUrl": "/projects/sSYd8awhzL2oziun/datatables/Wl6wot7dMpmKZBu0"
+          }
+        },
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          -688,
+          -16
+        ],
+        "id": "18cb6ffa-9a84-4240-97b8-4daa35d928dd",
+        "name": "Get Articles Database"
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "claude-sonnet-4-5-20250929",
+            "mode": "list",
+            "cachedResultName": "claude-sonnet-4-5-20250929"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=Act as a legal news journalist for Class Action News. You are writing a brief NEWS UPDATE article.\n\n**ARTICLE TYPE:** News/Update (Site Freshness)\n**TARGET WORD COUNT:** 300-500 words\n**TONE:** Brief, factual news reporting, concise\n**PURPOSE:** Provide timely updates, maintain site freshness, build SEO authority\n\n**SOURCE INFORMATION:**\n{{ $('When Executed by Another Workflow').item.json.text }}\n\n**CASE INFORMATION:**\n- Defendant: {{ $('When Executed by Another Workflow').item.json.Defendant_Name }}\n- Case Number: {{ $('When Executed by Another Workflow').item.json.Case_Number }}\n\n**CUSTOM INSTRUCTIONS:**\n{{ $('When Executed by Another Workflow').item.json.Custom_Instructions }}\n\n**PREVIOUS ARTICLES DATABASE (for internal linking context):**\n{{ JSON.stringify($json, null, 2) }}\n\n**REQUIRED STRUCTURE:**\n\n1. **News-Style Headline** (H1)\n   - Clear, informative, concise\n   - Include key newsworthy element\n   - Examples:\n     * \"[Defendant] Settlement Receives Final Approval\"\n     * \"Judge Certifies Class in [Defendant] Lawsuit\"\n     * \"[Defendant] Moves to Dismiss Class Action Claims\"\n     * \"Class Action Against [Defendant] Moves Forward\"\n   - Max 80 characters\n\n2. **Lead Paragraph** (who, what, when, where, why)\n   - Classic inverted pyramid journalism\n   - First sentence contains the most newsworthy information\n   - Answer: Who did what, when, and why it matters\n   - 2-3 sentences maximum\n   - Example structure:\n     \"[Who] [did what] [when], [brief context]. The [development] [significance]. [One relevant detail].\"\n\n3. **Body Paragraphs** (2-3 paragraphs with context)\n   - Second paragraph: Expand on the key details\n     * What happened specifically\n     * Any important quotes or findings\n     * Immediate implications\n   - Third paragraph (if needed): Background context\n     * Brief history of the case\n     * Previous developments\n     * What this means for affected parties\n   - Keep it concise and factual\n   - Focus on the NEW information\n\n4. **Related Coverage Section** (H2: \"Related Coverage\")\n   - Based on the previous articles database, identify 2-3 relevant related articles\n   - Create a simple bulleted list with internal links\n   - Use article titles as link text\n   - Format:\n     <h2>Related Coverage</h2>\n     <ul class=\"related-articles\">\n       <li><a href=\"[URL]\">[Article Title]</a></li>\n       <li><a href=\"[URL]\">[Article Title]</a></li>\n     </ul>\n   - Only include truly relevant articles\n   - If no related articles found, omit this section\n\n**FORMATTING REQUIREMENTS:**\n- Use HTML formatting ONLY: <h1>, <h2>, <p>, <ul>, <li>, <a>, <strong>, <em>\n- Do NOT use markdown\n- Do NOT wrap output in ```html code blocks\n- Output ONLY the HTML content, no preamble\n- Keep it clean and simple\n\n**EXCLUSIONS - DO NOT INCLUDE:**\n- Key Facts box\n- Case Info box\n- Table of Contents\n- FAQ section\n- Infographic\n- Embedded documents\n- Lengthy explanations\n\n**CTA PLACEMENT NOTES:**\n- WordPress theme will inject newsletter signup at end\n- Do NOT write CTA HTML\n- Content should be newsworthy and timely\n\n**TONE GUIDELINES:**\n- Brief and to-the-point\n- News journalism style\n- Factual, objective reporting\n- No promotional language\n- Present tense for current events\n- Past tense for completed actions\n- 7th-8th grade reading level\n- Professional but accessible\n\n**BREVITY IS KEY:**\n- This is a NEWS BRIEF, not a comprehensive article\n- Stay within 300-500 words\n- Every sentence should add value\n- No fluff or filler content\n- Get to the point quickly\n\nI only want HTML format in output. No markdown, no code blocks, no explanations."
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.anthropic",
+        "typeVersion": 1,
+        "position": [
+          -464,
+          -16
+        ],
+        "id": "a2f24521-3482-4771-8534-8059460aef59",
+        "name": "Generate News Article",
+        "credentials": {
+          "anthropicApi": {
+            "id": "QIUyAAWFmOxaIZc6",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Prepare payload for Publish & Distribute workflow\nconst articleHtml = $input.item.json.content[0].text;\nconst formData = $('When Executed by Another Workflow').item.json;\n\nreturn {\n  json: {\n    articleHtml: articleHtml,\n    articleType: 'news',\n    defendant: formData.Defendant_Name || '',\n    caseNumber: formData.Case_Number || '',\n    ctaType: 'newsletter_signup',\n    pdfUrl: null,  // News articles don't embed PDFs\n    customInstructions: formData.Custom_Instructions || '',\n    metaData: {\n      defendant: formData.Defendant_Name || '',\n      articleType: 'news',\n      isUpdate: true\n    }\n  }\n};"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -112,
+          -16
+        ],
+        "id": "9a126323-afc4-4dc2-81e5-1cd477c82a83",
+        "name": "Prepare Payload"
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "BWzLADDoeEBQR_TggvBdg",
+            "mode": "list",
+            "cachedResultUrl": "/workflow/BWzLADDoeEBQR_TggvBdg",
+            "cachedResultName": "sub:New_Publish and Distribute"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {},
+            "matchingColumns": [],
+            "schema": [],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": true
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.2,
+        "position": [
+          112,
+          -16
+        ],
+        "id": "28139fa8-3715-44e0-8dce-acc56d550797",
+        "name": "Execute Publish & Distribute"
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ $json }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.1,
+        "position": [
+          144,
+          272
+        ],
+        "id": "4003cbcb-8914-45f6-bd9d-abc1c4ce0e32",
+        "name": "Respond to Webhook"
+      },
+      {
+        "parameters": {
+          "content": "## News Article Sub-Workflow\n\n**Purpose:** Generate brief 300-500 word news update articles\n\n**Key Features:**\n- News journalism style\n- Inverted pyramid structure\n- Related coverage links (internal linking)\n- Brief and factual\n- Newsletter CTA\n\n**Focus:**\n- Timely updates\n- Site freshness\n- SEO authority\n- Brief reporting\n\n**Exclusions:**\n- No Key Facts box\n- No Case Info box\n- No TOC\n- No FAQ\n- No infographic\n- No embedded docs\n\n**Tone:**\n- Brief, factual\n- News reporting style\n- Concise and to-the-point\n\n**Setup Required:**\nUpdate Execute Workflow node with Publish & Distribute workflow ID.\nUpdate Data Table node with correct table ID.\n\n**Word Count Target:** 300-500 words",
+          "height": 560,
+          "width": 340,
+          "color": 4
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          -1216,
+          112
+        ],
+        "typeVersion": 1,
+        "id": "69186459-8926-4d2a-ad64-10614378681d",
+        "name": "Sticky Note"
+      },
+      {
+        "parameters": {
+          "inputSource": "passthrough"
+        },
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          -928,
+          -16
+        ],
+        "id": "6bfef261-1a2c-49ec-902f-0a29d01c44f9",
+        "name": "When Executed by Another Workflow"
+      }
+    ],
+    "connections": {
+      "Get Articles Database": {
+        "main": [
+          [
+            {
+              "node": "Generate News Article",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generate News Article": {
+        "main": [
+          [
+            {
+              "node": "Prepare Payload",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prepare Payload": {
+        "main": [
+          [
+            {
+              "node": "Execute Publish & Distribute",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Execute Publish & Distribute": {
+        "main": [
+          []
+        ]
+      },
+      "When Executed by Another Workflow": {
+        "main": [
+          [
+            {
+              "node": "Get Articles Database",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "James Brown",
+    "name": "Version 65093497",
+    "description": "",
+    "autosaved": false
+  },
+  "activeVersionId": "65093497-0853-4be9-9437-268e309e884b",
+  "connections": {
+    "Get Articles Database": {
+      "main": [
+        [
+          {
+            "node": "Generate News Article",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate News Article": {
+      "main": [
+        [
+          {
+            "node": "Prepare Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Payload": {
+      "main": [
+        [
+          {
+            "node": "Execute Publish & Distribute",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Publish & Distribute": {
+      "main": [
+        []
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Get Articles Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-16T20:46:09.357Z",
+  "id": "S1w_lecwJL1rZQCmjjzxE",
+  "isArchived": false,
+  "meta": null,
+  "name": "Sub: News Article",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "Wl6wot7dMpmKZBu0",
+          "mode": "list",
+          "cachedResultName": "New Class Action",
+          "cachedResultUrl": "/projects/sSYd8awhzL2oziun/datatables/Wl6wot7dMpmKZBu0"
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -688,
+        -16
+      ],
+      "id": "18cb6ffa-9a84-4240-97b8-4daa35d928dd",
+      "name": "Get Articles Database"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-sonnet-4-5-20250929",
+          "mode": "list",
+          "cachedResultName": "claude-sonnet-4-5-20250929"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Act as a legal news journalist for Class Action News. You are writing a brief NEWS UPDATE article.\n\n**ARTICLE TYPE:** News/Update (Site Freshness)\n**TARGET WORD COUNT:** 300-500 words\n**TONE:** Brief, factual news reporting, concise\n**PURPOSE:** Provide timely updates, maintain site freshness, build SEO authority\n\n**SOURCE INFORMATION:**\n{{ $('When Executed by Another Workflow').item.json.text }}\n\n**CASE INFORMATION:**\n- Defendant: {{ $('When Executed by Another Workflow').item.json.Defendant_Name }}\n- Case Number: {{ $('When Executed by Another Workflow').item.json.Case_Number }}\n\n**CUSTOM INSTRUCTIONS:**\n{{ $('When Executed by Another Workflow').item.json.Custom_Instructions }}\n\n**PREVIOUS ARTICLES DATABASE (for internal linking context):**\n{{ JSON.stringify($json, null, 2) }}\n\n**REQUIRED STRUCTURE:**\n\n1. **News-Style Headline** (H1)\n   - Clear, informative, concise\n   - Include key newsworthy element\n   - Examples:\n     * \"[Defendant] Settlement Receives Final Approval\"\n     * \"Judge Certifies Class in [Defendant] Lawsuit\"\n     * \"[Defendant] Moves to Dismiss Class Action Claims\"\n     * \"Class Action Against [Defendant] Moves Forward\"\n   - Max 80 characters\n\n2. **Lead Paragraph** (who, what, when, where, why)\n   - Classic inverted pyramid journalism\n   - First sentence contains the most newsworthy information\n   - Answer: Who did what, when, and why it matters\n   - 2-3 sentences maximum\n   - Example structure:\n     \"[Who] [did what] [when], [brief context]. The [development] [significance]. [One relevant detail].\"\n\n3. **Body Paragraphs** (2-3 paragraphs with context)\n   - Second paragraph: Expand on the key details\n     * What happened specifically\n     * Any important quotes or findings\n     * Immediate implications\n   - Third paragraph (if needed): Background context\n     * Brief history of the case\n     * Previous developments\n     * What this means for affected parties\n   - Keep it concise and factual\n   - Focus on the NEW information\n\n4. **Related Coverage Section** (H2: \"Related Coverage\")\n   - Based on the previous articles database, identify 2-3 relevant related articles\n   - Create a simple bulleted list with internal links\n   - Use article titles as link text\n   - Format:\n     <h2>Related Coverage</h2>\n     <ul class=\"related-articles\">\n       <li><a href=\"[URL]\">[Article Title]</a></li>\n       <li><a href=\"[URL]\">[Article Title]</a></li>\n     </ul>\n   - Only include truly relevant articles\n   - If no related articles found, omit this section\n\n**FORMATTING REQUIREMENTS:**\n- Use HTML formatting ONLY: <h1>, <h2>, <p>, <ul>, <li>, <a>, <strong>, <em>\n- Do NOT use markdown\n- Do NOT wrap output in ```html code blocks\n- Output ONLY the HTML content, no preamble\n- Keep it clean and simple\n\n**EXCLUSIONS - DO NOT INCLUDE:**\n- Key Facts box\n- Case Info box\n- Table of Contents\n- FAQ section\n- Infographic\n- Embedded documents\n- Lengthy explanations\n\n**CTA PLACEMENT NOTES:**\n- WordPress theme will inject newsletter signup at end\n- Do NOT write CTA HTML\n- Content should be newsworthy and timely\n\n**TONE GUIDELINES:**\n- Brief and to-the-point\n- News journalism style\n- Factual, objective reporting\n- No promotional language\n- Present tense for current events\n- Past tense for completed actions\n- 7th-8th grade reading level\n- Professional but accessible\n\n**BREVITY IS KEY:**\n- This is a NEWS BRIEF, not a comprehensive article\n- Stay within 300-500 words\n- Every sentence should add value\n- No fluff or filler content\n- Get to the point quickly\n\nI only want HTML format in output. No markdown, no code blocks, no explanations."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        -464,
+        -16
+      ],
+      "id": "a2f24521-3482-4771-8534-8059460aef59",
+      "name": "Generate News Article",
+      "credentials": {
+        "anthropicApi": {
+          "id": "QIUyAAWFmOxaIZc6",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare payload for Publish & Distribute workflow\nconst articleHtml = $input.item.json.content[0].text;\nconst formData = $('When Executed by Another Workflow').item.json;\n\nreturn {\n  json: {\n    articleHtml: articleHtml,\n    articleType: 'news',\n    defendant: formData.Defendant_Name || '',\n    caseNumber: formData.Case_Number || '',\n    ctaType: 'newsletter_signup',\n    pdfUrl: null,  // News articles don't embed PDFs\n    customInstructions: formData.Custom_Instructions || '',\n    metaData: {\n      defendant: formData.Defendant_Name || '',\n      articleType: 'news',\n      isUpdate: true\n    }\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -112,
+        -16
+      ],
+      "id": "9a126323-afc4-4dc2-81e5-1cd477c82a83",
+      "name": "Prepare Payload"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "BWzLADDoeEBQR_TggvBdg",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/BWzLADDoeEBQR_TggvBdg",
+          "cachedResultName": "sub:New_Publish and Distribute"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        112,
+        -16
+      ],
+      "id": "28139fa8-3715-44e0-8dce-acc56d550797",
+      "name": "Execute Publish & Distribute"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        144,
+        272
+      ],
+      "id": "4003cbcb-8914-45f6-bd9d-abc1c4ce0e32",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "content": "## News Article Sub-Workflow\n\n**Purpose:** Generate brief 300-500 word news update articles\n\n**Key Features:**\n- News journalism style\n- Inverted pyramid structure\n- Related coverage links (internal linking)\n- Brief and factual\n- Newsletter CTA\n\n**Focus:**\n- Timely updates\n- Site freshness\n- SEO authority\n- Brief reporting\n\n**Exclusions:**\n- No Key Facts box\n- No Case Info box\n- No TOC\n- No FAQ\n- No infographic\n- No embedded docs\n\n**Tone:**\n- Brief, factual\n- News reporting style\n- Concise and to-the-point\n\n**Setup Required:**\nUpdate Execute Workflow node with Publish & Distribute workflow ID.\nUpdate Data Table node with correct table ID.\n\n**Word Count Target:** 300-500 words",
+        "height": 560,
+        "width": 340,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1216,
+        112
+      ],
+      "typeVersion": 1,
+      "id": "69186459-8926-4d2a-ad64-10614378681d",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -928,
+        -16
+      ],
+      "id": "6bfef261-1a2c-49ec-902f-0a29d01c44f9",
+      "name": "When Executed by Another Workflow"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-16T20:46:09.359Z",
+      "createdAt": "2026-01-16T20:46:09.359Z",
+      "role": "workflow:owner",
+      "workflowId": "S1w_lecwJL1rZQCmjjzxE",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-17T20:16:47.708Z",
+  "versionId": "65093497-0853-4be9-9437-268e309e884b"
+}
