@@ -1,0 +1,356 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-01-17T20:16:18.000Z",
+    "createdAt": "2026-01-17T20:16:16.073Z",
+    "versionId": "e6f93aab-2148-4ff6-9387-e4ad91a11e9c",
+    "workflowId": "I7IFQy3CiG1mqFCWfZ2Kx",
+    "nodes": [
+      {
+        "parameters": {
+          "jsCode": "// Prepare payload for Publish & Distribute workflow\nconst articleHtml = $input.item.json.content[0].text;\nconst formData = $('When Executed by Another Workflow').item.json;\n\nreturn {\n  json: {\n    articleHtml: articleHtml,\n    articleType: 'investigation',\n    defendant: formData.Defendant_Name,\n    caseNumber: formData.Case_Number || '',\n    ctaType: 'lead_capture',\n    pdfUrl: null,  // Investigations don't embed PDFs\n    customInstructions: formData.Custom_Instructions || '',\n    metaData: {\n      defendant: formData.Defendant_Name,\n      articleType: 'investigation'\n    }\n  }\n};"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -112,
+          -32
+        ],
+        "id": "a11bf64c-4779-4fc9-9033-8d23f2f58493",
+        "name": "Prepare Payload"
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "BWzLADDoeEBQR_TggvBdg",
+            "mode": "list",
+            "cachedResultUrl": "/workflow/BWzLADDoeEBQR_TggvBdg",
+            "cachedResultName": "sub:New_Publish and Distribute"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {},
+            "matchingColumns": [],
+            "schema": [],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": true
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.2,
+        "position": [
+          96,
+          -32
+        ],
+        "id": "9c6d2b0c-0d5b-4308-b3a7-c44496c70411",
+        "name": "Execute Publish & Distribute"
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ $json }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.1,
+        "position": [
+          352,
+          -32
+        ],
+        "id": "0caac01f-7f09-4cac-898d-a101406dbad0",
+        "name": "Respond to Webhook"
+      },
+      {
+        "parameters": {
+          "content": "## Investigation Article Sub-Workflow\n\n**Purpose:** Generate 300-600 word lead generation articles for active investigations\n\n**Key Features:**\n- Direct, urgent tone\n- Eligibility criteria bullets\n- No-obligation statement\n- Lead capture CTA (auto-injected by theme)\n\n**Exclusions:**\n- No TOC\n- No FAQ\n- No infographic\n- No embedded PDF\n\n**Setup Required:**\nUpdate the Execute Workflow node with the Publish & Distribute workflow ID after importing.\n\n**Word Count Target:** 300-600 words",
+          "height": 440,
+          "width": 320,
+          "color": 4
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          -1024,
+          -144
+        ],
+        "typeVersion": 1,
+        "id": "6ce25c4a-e2b2-4582-a9a3-e116fcd7dcf2",
+        "name": "Sticky Note"
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "claude-sonnet-4-5-20250929",
+            "mode": "list",
+            "cachedResultName": "claude-sonnet-4-5-20250929"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=Act as a professional legal content writer for Class Action News. You are writing an INVESTIGATION article to generate leads for an active investigation.\n\n**ARTICLE TYPE:** Investigation (Lead Generation)\n**TARGET WORD COUNT:** 300-600 words\n**TONE:** Direct, urgent, action-oriented\n**PURPOSE:** Generate qualified leads for active investigation\n\n**SOURCE DOCUMENT:**\n{{ $json.text }}\n\n**CASE INFORMATION:**\n- Defendant: {{ $json.Defendant_Name }}\n- Case Number: {{ $json.Case_Number }}\n\n**CUSTOM INSTRUCTIONS:**\n{{ $json.Custom_Instructions }}\n\n**REQUIRED STRUCTURE:**\n\n1. **Headline** (H1)\n   - Focus on what happened and who's affected\n   - Include defendant name\n   - Make it urgent and action-oriented\n   - Example: \"Were You Overcharged by [Defendant]? Investigation Underway\"\n\n2. **Lead Paragraph** (2-3 sentences)\n   - Immediately state the problem\n   - Identify who may be affected\n   - Create urgency without hype\n\n3. **Do You Qualify?** (H2)\n   - Bulleted list of eligibility criteria\n   - Be specific about:\n     * Time periods\n     * Products/services involved\n     * Types of harm/damages\n   - Each bullet should be clear and verifiable\n\n4. **What We're Investigating** (H2, 1-2 paragraphs)\n   - Explain the alleged wrongdoing\n   - Provide factual details from the source document\n   - Mention potential legal violations (if applicable)\n   - Keep it factual, not sensationalized\n\n5. **No-Obligation Statement** (final paragraph)\n   - Reassure readers there's no cost to submit information\n   - Mention confidentiality\n   - Include a soft call-to-action\n\n**FORMATTING REQUIREMENTS:**\n- Use HTML formatting ONLY: <h1>, <h2>, <p>, <ul>, <li>, <strong>, <em>\n- Do NOT use markdown\n- Do NOT wrap output in ```html code blocks\n- Output ONLY the HTML content, no preamble or explanation\n- Use <strong> for emphasis, not bold text\n- Structure lists as <ul><li>...</li></ul>\n\n**EXCLUSIONS - DO NOT INCLUDE:**\n- Table of Contents\n- FAQ section\n- Infographic descriptions\n- Embedded document references\n- Timeline graphics\n- Key Facts boxes\n\n**CTA PLACEMENT NOTES:**\n- The WordPress theme will automatically inject lead capture forms\n- Do NOT write CTA HTML\n- Just write compelling content that motivates action\n\n**TONE GUIDELINES:**\n- Direct and professional\n- Create urgency without being pushy\n- Factual but accessible (8th grade reading level)\n- Empathetic to affected consumers\n- Authoritative but not legalistic\n\nI only want HTML format in output. No markdown, no code blocks, no explanations."
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.anthropic",
+        "typeVersion": 1,
+        "position": [
+          -432,
+          -32
+        ],
+        "id": "ac7c76bb-66bf-4dbc-b81c-f665fd538094",
+        "name": "Generate Investigation Article",
+        "credentials": {
+          "anthropicApi": {
+            "id": "QIUyAAWFmOxaIZc6",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "inputSource": "passthrough"
+        },
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          -656,
+          -32
+        ],
+        "id": "462d79df-30c0-41eb-b427-3e2a3cc251b2",
+        "name": "When Executed by Another Workflow"
+      }
+    ],
+    "connections": {
+      "Prepare Payload": {
+        "main": [
+          [
+            {
+              "node": "Execute Publish & Distribute",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Execute Publish & Distribute": {
+        "main": [
+          []
+        ]
+      },
+      "Generate Investigation Article": {
+        "main": [
+          [
+            {
+              "node": "Prepare Payload",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "When Executed by Another Workflow": {
+        "main": [
+          [
+            {
+              "node": "Generate Investigation Article",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "James Brown",
+    "name": "Version e6f93aab",
+    "description": "",
+    "autosaved": false
+  },
+  "activeVersionId": "e6f93aab-2148-4ff6-9387-e4ad91a11e9c",
+  "connections": {
+    "Prepare Payload": {
+      "main": [
+        [
+          {
+            "node": "Execute Publish & Distribute",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Publish & Distribute": {
+      "main": [
+        []
+      ]
+    },
+    "Generate Investigation Article": {
+      "main": [
+        [
+          {
+            "node": "Prepare Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Generate Investigation Article",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-16T20:43:38.574Z",
+  "id": "I7IFQy3CiG1mqFCWfZ2Kx",
+  "isArchived": false,
+  "meta": null,
+  "name": "Sub: Investigation Article",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "// Prepare payload for Publish & Distribute workflow\nconst articleHtml = $input.item.json.content[0].text;\nconst formData = $('When Executed by Another Workflow').item.json;\n\nreturn {\n  json: {\n    articleHtml: articleHtml,\n    articleType: 'investigation',\n    defendant: formData.Defendant_Name,\n    caseNumber: formData.Case_Number || '',\n    ctaType: 'lead_capture',\n    pdfUrl: null,  // Investigations don't embed PDFs\n    customInstructions: formData.Custom_Instructions || '',\n    metaData: {\n      defendant: formData.Defendant_Name,\n      articleType: 'investigation'\n    }\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -112,
+        -32
+      ],
+      "id": "a11bf64c-4779-4fc9-9033-8d23f2f58493",
+      "name": "Prepare Payload"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "BWzLADDoeEBQR_TggvBdg",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/BWzLADDoeEBQR_TggvBdg",
+          "cachedResultName": "sub:New_Publish and Distribute"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        96,
+        -32
+      ],
+      "id": "9c6d2b0c-0d5b-4308-b3a7-c44496c70411",
+      "name": "Execute Publish & Distribute"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        352,
+        -32
+      ],
+      "id": "0caac01f-7f09-4cac-898d-a101406dbad0",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "content": "## Investigation Article Sub-Workflow\n\n**Purpose:** Generate 300-600 word lead generation articles for active investigations\n\n**Key Features:**\n- Direct, urgent tone\n- Eligibility criteria bullets\n- No-obligation statement\n- Lead capture CTA (auto-injected by theme)\n\n**Exclusions:**\n- No TOC\n- No FAQ\n- No infographic\n- No embedded PDF\n\n**Setup Required:**\nUpdate the Execute Workflow node with the Publish & Distribute workflow ID after importing.\n\n**Word Count Target:** 300-600 words",
+        "height": 440,
+        "width": 320,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1024,
+        -144
+      ],
+      "typeVersion": 1,
+      "id": "6ce25c4a-e2b2-4582-a9a3-e116fcd7dcf2",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-sonnet-4-5-20250929",
+          "mode": "list",
+          "cachedResultName": "claude-sonnet-4-5-20250929"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Act as a professional legal content writer for Class Action News. You are writing an INVESTIGATION article to generate leads for an active investigation.\n\n**ARTICLE TYPE:** Investigation (Lead Generation)\n**TARGET WORD COUNT:** 300-600 words\n**TONE:** Direct, urgent, action-oriented\n**PURPOSE:** Generate qualified leads for active investigation\n\n**SOURCE DOCUMENT:**\n{{ $json.text }}\n\n**CASE INFORMATION:**\n- Defendant: {{ $json.Defendant_Name }}\n- Case Number: {{ $json.Case_Number }}\n\n**CUSTOM INSTRUCTIONS:**\n{{ $json.Custom_Instructions }}\n\n**REQUIRED STRUCTURE:**\n\n1. **Headline** (H1)\n   - Focus on what happened and who's affected\n   - Include defendant name\n   - Make it urgent and action-oriented\n   - Example: \"Were You Overcharged by [Defendant]? Investigation Underway\"\n\n2. **Lead Paragraph** (2-3 sentences)\n   - Immediately state the problem\n   - Identify who may be affected\n   - Create urgency without hype\n\n3. **Do You Qualify?** (H2)\n   - Bulleted list of eligibility criteria\n   - Be specific about:\n     * Time periods\n     * Products/services involved\n     * Types of harm/damages\n   - Each bullet should be clear and verifiable\n\n4. **What We're Investigating** (H2, 1-2 paragraphs)\n   - Explain the alleged wrongdoing\n   - Provide factual details from the source document\n   - Mention potential legal violations (if applicable)\n   - Keep it factual, not sensationalized\n\n5. **No-Obligation Statement** (final paragraph)\n   - Reassure readers there's no cost to submit information\n   - Mention confidentiality\n   - Include a soft call-to-action\n\n**FORMATTING REQUIREMENTS:**\n- Use HTML formatting ONLY: <h1>, <h2>, <p>, <ul>, <li>, <strong>, <em>\n- Do NOT use markdown\n- Do NOT wrap output in ```html code blocks\n- Output ONLY the HTML content, no preamble or explanation\n- Use <strong> for emphasis, not bold text\n- Structure lists as <ul><li>...</li></ul>\n\n**EXCLUSIONS - DO NOT INCLUDE:**\n- Table of Contents\n- FAQ section\n- Infographic descriptions\n- Embedded document references\n- Timeline graphics\n- Key Facts boxes\n\n**CTA PLACEMENT NOTES:**\n- The WordPress theme will automatically inject lead capture forms\n- Do NOT write CTA HTML\n- Just write compelling content that motivates action\n\n**TONE GUIDELINES:**\n- Direct and professional\n- Create urgency without being pushy\n- Factual but accessible (8th grade reading level)\n- Empathetic to affected consumers\n- Authoritative but not legalistic\n\nI only want HTML format in output. No markdown, no code blocks, no explanations."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        -432,
+        -32
+      ],
+      "id": "ac7c76bb-66bf-4dbc-b81c-f665fd538094",
+      "name": "Generate Investigation Article",
+      "credentials": {
+        "anthropicApi": {
+          "id": "QIUyAAWFmOxaIZc6",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -656,
+        -32
+      ],
+      "id": "462d79df-30c0-41eb-b427-3e2a3cc251b2",
+      "name": "When Executed by Another Workflow"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-16T20:43:38.577Z",
+      "createdAt": "2026-01-16T20:43:38.577Z",
+      "role": "workflow:owner",
+      "workflowId": "I7IFQy3CiG1mqFCWfZ2Kx",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-17T20:16:16.072Z",
+  "versionId": "e6f93aab-2148-4ff6-9387-e4ad91a11e9c"
+}
