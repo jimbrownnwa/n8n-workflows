@@ -1,0 +1,442 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-01-17T20:17:19.000Z",
+    "createdAt": "2026-01-17T20:17:16.005Z",
+    "versionId": "777f77db-21f2-408e-aab9-d5c2b3120b1a",
+    "workflowId": "NGjl5BYJckOVbjdi3KD0z",
+    "nodes": [
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "claude-sonnet-4-5-20250929",
+            "mode": "list",
+            "cachedResultName": "claude-sonnet-4-5-20250929"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=Act as an expert legal content writer for Class Action News. You are writing a comprehensive SETTLEMENT article for SEO traffic and email capture.\n\n**ARTICLE TYPE:** Settlement (SEO/Email Capture)\n**TARGET WORD COUNT:** 1,200-1,800 words\n**TONE:** Informative, helpful, authoritative\n**PURPOSE:** Attract SEO traffic, capture emails, provide complete settlement information\n\n**SOURCE DOCUMENT:**\n{{ $json.text }}\n\n**CASE INFORMATION:**\n- Defendant: {{ $json.Defendant_Name }}\n- Case Number: {{ $json.Case_Number }}\n\n**CUSTOM INSTRUCTIONS:**\n{{ $json.Custom_Instructions }}\n\n**REQUIRED STRUCTURE:**\n\n1. **Headline** (H1)\n   - Must include: Defendant name + settlement amount + \"class action settlement\"\n   - Example: \"[Defendant] Agrees to $X Million Class Action Settlement\"\n   - Make it clear and informative, not sensational\n\n2. **Key Facts Box** (at top of article)\n   - Create an HTML div with class=\"key-facts-box\"\n   - Include:\n     * Defendant name\n     * Settlement amount\n     * Claim filing deadline\n     * Proof required\n     * Estimated payout per claimant\n   - Format as structured list\n\n3. **Table of Contents** (auto-generated anchor links)\n   - Create a div with class=\"table-of-contents\"\n   - List all H2 sections with anchor links\n   - Use format: <a href=\"#section-id\">Section Name</a>\n\n4. **What Is This Settlement About?** (H2, id=\"what-is-settlement\")\n   - 2-3 paragraphs explaining:\n     * The allegations/claims\n     * What the defendant allegedly did wrong\n     * How the settlement resolves the matter\n   - Keep it clear and factual\n\n5. **Who Qualifies?** (H2, id=\"who-qualifies\")\n   - Create two-column split view (use divs with classes)\n   - LEFT: \"You May Qualify If...\"\n     * Bulleted list of eligibility criteria\n     * Be specific about dates, products, services\n   - RIGHT: \"You Do NOT Qualify If...\"\n     * Exclusions and disqualifying factors\n\n6. **How Much Can You Get?** (H2, id=\"payout-amounts\")\n   - Explain payment structure\n   - If there are tiers, create a table or structured list\n   - Include:\n     * Estimated per-person amounts\n     * Factors affecting payout\n     * Maximum possible recovery\n   - Be realistic about expectations\n\n7. **How to File a Claim** (H2, id=\"how-to-file\")\n   - Step-by-step numbered list\n   - Include:\n     * Where to file (claim administrator website)\n     * What information you'll need\n     * What documentation to gather\n     * Deadline emphasis\n   - Make it actionable and clear\n\n8. **Important Deadlines** (H2, id=\"deadlines\")\n   - Create a timeline structure\n   - Highlight key dates:\n     * Claim filing deadline\n     * Final approval hearing\n     * Objection/exclusion deadline\n     * Expected payment date\n   - Use <strong> to emphasize deadlines\n\n9. **FAQ Section** (H2, id=\"faq\")\n   - 5-7 common questions\n   - Format each as:\n     * <div class=\"faq-item\">\n     * <h3 class=\"faq-question\">Question?</h3>\n     * <div class=\"faq-answer\">Answer</div>\n   - Questions should cover:\n     * Cost to file\n     * Proof requirements\n     * Payment timing\n     * Objection rights\n     * Attorney representation\n     * Tax implications (if significant)\n\n10. **Settlement Document Reference**\n    - Add a section mentioning the embedded settlement agreement\n    - Simple paragraph: \"Review the complete settlement agreement below.\"\n    - Do NOT create the embed code (WordPress theme handles this)\n\n**FORMATTING REQUIREMENTS:**\n- Use HTML formatting ONLY: <h1>, <h2>, <h3>, <p>, <ul>, <li>, <ol>, <table>, <div>, <strong>, <em>\n- Do NOT use markdown\n- Do NOT wrap output in ```html code blocks\n- Output ONLY the HTML content, no preamble or explanation\n- Use semantic class names for styled components\n- Ensure all H2 sections have id attributes for TOC links\n\n**CTA PLACEMENT NOTES:**\n- The WordPress theme will inject email signup CTAs\n- Placement: After \"What Is This Settlement About?\" and before FAQ\n- Do NOT write CTA HTML yourself\n\n**TONE GUIDELINES:**\n- Authoritative but accessible\n- Helpful and thorough\n- 8th-9th grade reading level\n- Professional, not promotional\n- Empathetic to class members\n- Factual and balanced\n\nI only want HTML format in output. No markdown, no code blocks, no explanations."
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.anthropic",
+        "typeVersion": 1,
+        "position": [
+          -480,
+          -96
+        ],
+        "id": "f1108a6d-9271-45bb-be65-a2068cde48d5",
+        "name": "Generate Settlement Article",
+        "credentials": {
+          "anthropicApi": {
+            "id": "QIUyAAWFmOxaIZc6",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "claude-haiku-4-5-20251001",
+            "mode": "list",
+            "cachedResultName": "claude-haiku-4-5-20251001"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=Based on the following settlement article content, select the MOST appropriate infographic type and provide a detailed description for a graphic designer.\n\n**ARTICLE CONTENT:**\n{{ $('Generate Settlement Article').item.json.content[0].text }}\n\n**INFOGRAPHIC TYPE OPTIONS:**\n1. **Statistics** - Key numbers, percentages, dollar amounts\n2. **Timeline** - Important dates from filing to payment\n3. **Process Flow** - Step-by-step claim filing process\n4. **Eligibility Checker** - Visual decision tree for qualification\n5. **Compensation Tiers** - Visual breakdown of payment structure\n\n**YOUR TASK:**\nAnalyze the article and respond with ONLY a JSON object (no markdown, no code blocks):\n\n{\n  \"infographicType\": \"[choose one: statistics|timeline|process|eligibility|compensation]\",\n  \"title\": \"[Compelling infographic title, max 60 chars]\",\n  \"description\": \"[Detailed description for designer, 200-300 words, specifying what data to visualize, suggested layout, key elements to emphasize]\"\n}\n\nOutput ONLY the JSON object."
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.anthropic",
+        "typeVersion": 1,
+        "position": [
+          -192,
+          -96
+        ],
+        "id": "36bb8081-83e0-4204-a9b4-b556c7332cdf",
+        "name": "Select Infographic Type",
+        "credentials": {
+          "anthropicApi": {
+            "id": "QIUyAAWFmOxaIZc6",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Parse infographic JSON and prepare payload for Publish & Distribute\nconst articleHtml = $('Generate Settlement Article').item.json.content[0].text;\nconst infographicRaw = $input.item.json.content[0].text;\nconst formData = $('When Executed by Another Workflow').item.json;\n\n// Parse infographic JSON (Claude might wrap it in markdown)\nlet infographic;\ntry {\n  // Remove markdown code blocks if present\n  const cleanJson = infographicRaw.replace(/```json\\s*/gi, '').replace(/```\\s*/g, '').trim();\n  infographic = JSON.parse(cleanJson);\n} catch (e) {\n  // Fallback if parsing fails\n  infographic = {\n    infographicType: 'timeline',\n    title: 'Settlement Timeline',\n    description: 'Key dates from filing to payment'\n  };\n}\n\nreturn {\n  json: {\n    articleHtml: articleHtml,\n    articleType: 'settlement',\n    defendant: formData.Defendant_Name,\n    caseNumber: formData.Case_Number,\n    ctaType: 'email_signup',\n    pdfUrl: formData.pdfUrl || null,  // Will be set if PDF uploaded\n    customInstructions: formData.Custom_Instructions || '',\n    infographic: infographic,\n    metaData: {\n      defendant: formData.Defendant_Name,\n      caseNumber: formData.Case_Number,\n      articleType: 'settlement',\n      hasInfographic: true,\n      hasFAQ: true,\n      hasPDF: !!formData.pdfUrl\n    }\n  }\n};"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          144,
+          -96
+        ],
+        "id": "d72900b7-b665-49fd-b481-61d5b1a6c45f",
+        "name": "Prepare Payload"
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "BWzLADDoeEBQR_TggvBdg",
+            "mode": "list",
+            "cachedResultUrl": "/workflow/BWzLADDoeEBQR_TggvBdg",
+            "cachedResultName": "sub:New_Publish and Distribute"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {},
+            "matchingColumns": [],
+            "schema": [],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": true
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.2,
+        "position": [
+          368,
+          -96
+        ],
+        "id": "5ebd4dcc-0717-4a0c-8c8b-a21503d0497b",
+        "name": "Execute Publish & Distribute"
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ $json }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.1,
+        "position": [
+          624,
+          -96
+        ],
+        "id": "578981fd-2a27-4564-9ced-e38e4d26b67d",
+        "name": "Respond to Webhook"
+      },
+      {
+        "parameters": {
+          "content": "## Settlement Article Sub-Workflow\n\n**Purpose:** Generate comprehensive 1,200-1,800 word settlement articles for SEO\n\n**Key Features:**\n- Key Facts box\n- Table of Contents\n- Eligibility split view\n- Payment tiers\n- FAQ with schema markup\n- Infographic selection (AI-driven)\n- PDF embedding\n- Email signup CTAs\n\n**Components:**\n1. Main article generation (Claude Sonnet)\n2. Infographic type selection (Claude Haiku)\n3. Payload preparation\n4. Publish & Distribute execution\n\n**Setup Required:**\nUpdate Execute Workflow node with Publish & Distribute workflow ID.\n\n**Word Count Target:** 1,200-1,800 words",
+          "height": 520,
+          "width": 340,
+          "color": 4
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          -736,
+          96
+        ],
+        "typeVersion": 1,
+        "id": "88f03a5c-8cf6-493f-9bda-5779fca6cd24",
+        "name": "Sticky Note"
+      },
+      {
+        "parameters": {
+          "inputSource": "passthrough"
+        },
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          -720,
+          -96
+        ],
+        "id": "0a05f4f0-d358-4708-83b9-c2bc4db25038",
+        "name": "When Executed by Another Workflow"
+      }
+    ],
+    "connections": {
+      "Generate Settlement Article": {
+        "main": [
+          [
+            {
+              "node": "Select Infographic Type",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Select Infographic Type": {
+        "main": [
+          [
+            {
+              "node": "Prepare Payload",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prepare Payload": {
+        "main": [
+          [
+            {
+              "node": "Execute Publish & Distribute",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Execute Publish & Distribute": {
+        "main": [
+          []
+        ]
+      },
+      "When Executed by Another Workflow": {
+        "main": [
+          [
+            {
+              "node": "Generate Settlement Article",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "James Brown",
+    "name": "Version 777f77db",
+    "description": "",
+    "autosaved": false
+  },
+  "activeVersionId": "777f77db-21f2-408e-aab9-d5c2b3120b1a",
+  "connections": {
+    "Generate Settlement Article": {
+      "main": [
+        [
+          {
+            "node": "Select Infographic Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Infographic Type": {
+      "main": [
+        [
+          {
+            "node": "Prepare Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Payload": {
+      "main": [
+        [
+          {
+            "node": "Execute Publish & Distribute",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Publish & Distribute": {
+      "main": [
+        []
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Generate Settlement Article",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-16T20:44:36.998Z",
+  "id": "NGjl5BYJckOVbjdi3KD0z",
+  "isArchived": false,
+  "meta": null,
+  "name": "Sub: Settlement Article",
+  "nodes": [
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-sonnet-4-5-20250929",
+          "mode": "list",
+          "cachedResultName": "claude-sonnet-4-5-20250929"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Act as an expert legal content writer for Class Action News. You are writing a comprehensive SETTLEMENT article for SEO traffic and email capture.\n\n**ARTICLE TYPE:** Settlement (SEO/Email Capture)\n**TARGET WORD COUNT:** 1,200-1,800 words\n**TONE:** Informative, helpful, authoritative\n**PURPOSE:** Attract SEO traffic, capture emails, provide complete settlement information\n\n**SOURCE DOCUMENT:**\n{{ $json.text }}\n\n**CASE INFORMATION:**\n- Defendant: {{ $json.Defendant_Name }}\n- Case Number: {{ $json.Case_Number }}\n\n**CUSTOM INSTRUCTIONS:**\n{{ $json.Custom_Instructions }}\n\n**REQUIRED STRUCTURE:**\n\n1. **Headline** (H1)\n   - Must include: Defendant name + settlement amount + \"class action settlement\"\n   - Example: \"[Defendant] Agrees to $X Million Class Action Settlement\"\n   - Make it clear and informative, not sensational\n\n2. **Key Facts Box** (at top of article)\n   - Create an HTML div with class=\"key-facts-box\"\n   - Include:\n     * Defendant name\n     * Settlement amount\n     * Claim filing deadline\n     * Proof required\n     * Estimated payout per claimant\n   - Format as structured list\n\n3. **Table of Contents** (auto-generated anchor links)\n   - Create a div with class=\"table-of-contents\"\n   - List all H2 sections with anchor links\n   - Use format: <a href=\"#section-id\">Section Name</a>\n\n4. **What Is This Settlement About?** (H2, id=\"what-is-settlement\")\n   - 2-3 paragraphs explaining:\n     * The allegations/claims\n     * What the defendant allegedly did wrong\n     * How the settlement resolves the matter\n   - Keep it clear and factual\n\n5. **Who Qualifies?** (H2, id=\"who-qualifies\")\n   - Create two-column split view (use divs with classes)\n   - LEFT: \"You May Qualify If...\"\n     * Bulleted list of eligibility criteria\n     * Be specific about dates, products, services\n   - RIGHT: \"You Do NOT Qualify If...\"\n     * Exclusions and disqualifying factors\n\n6. **How Much Can You Get?** (H2, id=\"payout-amounts\")\n   - Explain payment structure\n   - If there are tiers, create a table or structured list\n   - Include:\n     * Estimated per-person amounts\n     * Factors affecting payout\n     * Maximum possible recovery\n   - Be realistic about expectations\n\n7. **How to File a Claim** (H2, id=\"how-to-file\")\n   - Step-by-step numbered list\n   - Include:\n     * Where to file (claim administrator website)\n     * What information you'll need\n     * What documentation to gather\n     * Deadline emphasis\n   - Make it actionable and clear\n\n8. **Important Deadlines** (H2, id=\"deadlines\")\n   - Create a timeline structure\n   - Highlight key dates:\n     * Claim filing deadline\n     * Final approval hearing\n     * Objection/exclusion deadline\n     * Expected payment date\n   - Use <strong> to emphasize deadlines\n\n9. **FAQ Section** (H2, id=\"faq\")\n   - 5-7 common questions\n   - Format each as:\n     * <div class=\"faq-item\">\n     * <h3 class=\"faq-question\">Question?</h3>\n     * <div class=\"faq-answer\">Answer</div>\n   - Questions should cover:\n     * Cost to file\n     * Proof requirements\n     * Payment timing\n     * Objection rights\n     * Attorney representation\n     * Tax implications (if significant)\n\n10. **Settlement Document Reference**\n    - Add a section mentioning the embedded settlement agreement\n    - Simple paragraph: \"Review the complete settlement agreement below.\"\n    - Do NOT create the embed code (WordPress theme handles this)\n\n**FORMATTING REQUIREMENTS:**\n- Use HTML formatting ONLY: <h1>, <h2>, <h3>, <p>, <ul>, <li>, <ol>, <table>, <div>, <strong>, <em>\n- Do NOT use markdown\n- Do NOT wrap output in ```html code blocks\n- Output ONLY the HTML content, no preamble or explanation\n- Use semantic class names for styled components\n- Ensure all H2 sections have id attributes for TOC links\n\n**CTA PLACEMENT NOTES:**\n- The WordPress theme will inject email signup CTAs\n- Placement: After \"What Is This Settlement About?\" and before FAQ\n- Do NOT write CTA HTML yourself\n\n**TONE GUIDELINES:**\n- Authoritative but accessible\n- Helpful and thorough\n- 8th-9th grade reading level\n- Professional, not promotional\n- Empathetic to class members\n- Factual and balanced\n\nI only want HTML format in output. No markdown, no code blocks, no explanations."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        -96
+      ],
+      "id": "f1108a6d-9271-45bb-be65-a2068cde48d5",
+      "name": "Generate Settlement Article",
+      "credentials": {
+        "anthropicApi": {
+          "id": "QIUyAAWFmOxaIZc6",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-haiku-4-5-20251001",
+          "mode": "list",
+          "cachedResultName": "claude-haiku-4-5-20251001"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Based on the following settlement article content, select the MOST appropriate infographic type and provide a detailed description for a graphic designer.\n\n**ARTICLE CONTENT:**\n{{ $('Generate Settlement Article').item.json.content[0].text }}\n\n**INFOGRAPHIC TYPE OPTIONS:**\n1. **Statistics** - Key numbers, percentages, dollar amounts\n2. **Timeline** - Important dates from filing to payment\n3. **Process Flow** - Step-by-step claim filing process\n4. **Eligibility Checker** - Visual decision tree for qualification\n5. **Compensation Tiers** - Visual breakdown of payment structure\n\n**YOUR TASK:**\nAnalyze the article and respond with ONLY a JSON object (no markdown, no code blocks):\n\n{\n  \"infographicType\": \"[choose one: statistics|timeline|process|eligibility|compensation]\",\n  \"title\": \"[Compelling infographic title, max 60 chars]\",\n  \"description\": \"[Detailed description for designer, 200-300 words, specifying what data to visualize, suggested layout, key elements to emphasize]\"\n}\n\nOutput ONLY the JSON object."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        -96
+      ],
+      "id": "36bb8081-83e0-4204-a9b4-b556c7332cdf",
+      "name": "Select Infographic Type",
+      "credentials": {
+        "anthropicApi": {
+          "id": "QIUyAAWFmOxaIZc6",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse infographic JSON and prepare payload for Publish & Distribute\nconst articleHtml = $('Generate Settlement Article').item.json.content[0].text;\nconst infographicRaw = $input.item.json.content[0].text;\nconst formData = $('When Executed by Another Workflow').item.json;\n\n// Parse infographic JSON (Claude might wrap it in markdown)\nlet infographic;\ntry {\n  // Remove markdown code blocks if present\n  const cleanJson = infographicRaw.replace(/```json\\s*/gi, '').replace(/```\\s*/g, '').trim();\n  infographic = JSON.parse(cleanJson);\n} catch (e) {\n  // Fallback if parsing fails\n  infographic = {\n    infographicType: 'timeline',\n    title: 'Settlement Timeline',\n    description: 'Key dates from filing to payment'\n  };\n}\n\nreturn {\n  json: {\n    articleHtml: articleHtml,\n    articleType: 'settlement',\n    defendant: formData.Defendant_Name,\n    caseNumber: formData.Case_Number,\n    ctaType: 'email_signup',\n    pdfUrl: formData.pdfUrl || null,  // Will be set if PDF uploaded\n    customInstructions: formData.Custom_Instructions || '',\n    infographic: infographic,\n    metaData: {\n      defendant: formData.Defendant_Name,\n      caseNumber: formData.Case_Number,\n      articleType: 'settlement',\n      hasInfographic: true,\n      hasFAQ: true,\n      hasPDF: !!formData.pdfUrl\n    }\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        -96
+      ],
+      "id": "d72900b7-b665-49fd-b481-61d5b1a6c45f",
+      "name": "Prepare Payload"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "BWzLADDoeEBQR_TggvBdg",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/BWzLADDoeEBQR_TggvBdg",
+          "cachedResultName": "sub:New_Publish and Distribute"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        368,
+        -96
+      ],
+      "id": "5ebd4dcc-0717-4a0c-8c8b-a21503d0497b",
+      "name": "Execute Publish & Distribute"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        624,
+        -96
+      ],
+      "id": "578981fd-2a27-4564-9ced-e38e4d26b67d",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "content": "## Settlement Article Sub-Workflow\n\n**Purpose:** Generate comprehensive 1,200-1,800 word settlement articles for SEO\n\n**Key Features:**\n- Key Facts box\n- Table of Contents\n- Eligibility split view\n- Payment tiers\n- FAQ with schema markup\n- Infographic selection (AI-driven)\n- PDF embedding\n- Email signup CTAs\n\n**Components:**\n1. Main article generation (Claude Sonnet)\n2. Infographic type selection (Claude Haiku)\n3. Payload preparation\n4. Publish & Distribute execution\n\n**Setup Required:**\nUpdate Execute Workflow node with Publish & Distribute workflow ID.\n\n**Word Count Target:** 1,200-1,800 words",
+        "height": 520,
+        "width": 340,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -736,
+        96
+      ],
+      "typeVersion": 1,
+      "id": "88f03a5c-8cf6-493f-9bda-5779fca6cd24",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -720,
+        -96
+      ],
+      "id": "0a05f4f0-d358-4708-83b9-c2bc4db25038",
+      "name": "When Executed by Another Workflow"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-16T20:44:37.001Z",
+      "createdAt": "2026-01-16T20:44:37.001Z",
+      "role": "workflow:owner",
+      "workflowId": "NGjl5BYJckOVbjdi3KD0z",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-17T20:17:16.004Z",
+  "versionId": "777f77db-21f2-408e-aab9-d5c2b3120b1a"
+}
