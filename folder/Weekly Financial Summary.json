@@ -1,0 +1,512 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-01-25T00:38:35.000Z",
+    "createdAt": "2026-01-25T00:38:31.854Z",
+    "versionId": "36bf0c11-7860-443a-9efd-b9615a26dd88",
+    "workflowId": "CD_z3AZAwsnp7PguKfxJe",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "weeks",
+                "triggerAtHour": 16
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.3,
+        "position": [
+          -384,
+          0
+        ],
+        "id": "fac83b9d-e07a-4777-8aa4-1164564822c2",
+        "name": "Schedule Trigger"
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "claude-haiku-4-5-20251001",
+            "mode": "list",
+            "cachedResultName": "claude-haiku-4-5-20251001"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=You are a personal financial advisor helping Jim and his wife manage their household finances. Your tone is direct, encouraging without being cheerful, and focused on actionable insight rather than generic advice.\nOur current priorities:\n\nEstablish realistic budgets we can actually stick to—responsible but not punishing. We want to spend intentionally, not feel guilty about enjoying life.\nAccelerate credit card debt payoff. The debt isn't catastrophic, but eliminating it frees up meaningful monthly cash flow.\n\nContext you should know:\n\nWe're in the early months of consistent budget tracking, so trends are still emerging\nManual transaction entry means the data is complete and intentional\nWe'd rather adjust a budget to be realistic than perpetually fail against an aspirational number\n\nThis week's data:\n[BUDGET VS ACTUAL]\n{{ $json.budgetTable }}\n[DEBT SNAPSHOT]\n{{ $json.debtTable }}\nYour task:\nProvide a brief weekly financial check-in (aim for 150-250 words) that includes:\n\nBudget pulse: Which categories are on track, which need attention this week? If we're consistently over in a category, say so directly—it may be a budgeting problem, not a spending problem.\nOne observation: Surface one thing we might not notice ourselves—a trend forming, a connection between categories, an opportunity.\nDebt progress: Brief note on where we stand. If extra cash flow is available based on under-budget categories, mention it as a potential extra payment opportunity.\n\nSkip anything that feels like filler. We'd rather have a short, useful email than a comprehensive one we skim."
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.anthropic",
+        "typeVersion": 1,
+        "position": [
+          512,
+          0
+        ],
+        "id": "77d74dc8-c519-4ca6-b8d4-bc68ed506a85",
+        "name": "Message a model",
+        "credentials": {
+          "anthropicApi": {
+            "id": "QIUyAAWFmOxaIZc6",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "sendTo": "jimbrown131@gmail.com",
+          "subject": "Your weekly financial summary",
+          "message": "={{ $json.emailHtml }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.2,
+        "position": [
+          944,
+          0
+        ],
+        "id": "db72e904-e56b-4cee-901f-13a099a03a72",
+        "name": "Send a message",
+        "webhookId": "a9de8c01-ca4b-4b29-86e5-579308d36cb6",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "dmIKVw4RuLHhcC3Y",
+            "name": "Nwa Boost:Gmail"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const budgetData = $('Budget Query').all();\nconst debtData = $('Debt Query').all();\n\n// Format budget table\nlet budgetTable = `| Category | Budget | Spent | Remaining | Month % | Used % |\n|----------|--------|-------|-----------|---------|--------|\n`;\n\nfor (const row of budgetData) {\n  budgetTable += `| ${row.json.category} | $${row.json.budget} | $${row.json.spent} | $${row.json.remaining} | ${row.json.month_elapsed_pct}% | ${row.json.budget_used_pct}% |\\n`;\n}\n\n// Format debt table\nlet debtTable = `| Name | Type | Balance | Limit | Rate | Utilization |\n|------|------|---------|-------|------|-------------|\n`;\n\nfor (const row of debtData) {\n  debtTable += `| ${row.json.name} | ${row.json.debt_type} | $${row.json.current_balance} | $${row.json.credit_limit} | ${row.json.interest_rate}% | ${row.json.utilization_pct}% |\\n`;\n}\n\nreturn [{\n  json: {\n    budgetTable,\n    debtTable\n  }\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          288,
+          0
+        ],
+        "id": "5558a8cc-0c0f-42e5-828b-6d941e8b5613",
+        "name": "Code in JavaScript"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT \n  name,\n  debt_type,\n  current_balance,\n  credit_limit,\n  interest_rate,\n  ROUND((current_balance / NULLIF(credit_limit, 0)) * 100, 1) as utilization_pct\nFROM debts\nWHERE user_id = '85f72dce-2eb9-40e2-a01f-209f6c5ebbc1'\nORDER BY interest_rate DESC",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          -160,
+          0
+        ],
+        "id": "5896f220-1395-4e04-8c52-449150d6e79f",
+        "name": "Debt Query",
+        "credentials": {
+          "postgres": {
+            "id": "WqaHXWuXdqjVWBz7",
+            "name": "Postgres account"
+          }
+        },
+        "notes": " "
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT \n  c.name as category,\n  b.planned_amount as budget,\n  COALESCE(SUM(t.amount), 0) as spent,\n  b.planned_amount - COALESCE(SUM(t.amount), 0) as remaining,\n  ROUND(CAST((CURRENT_DATE - b.period_start) AS numeric) / \n        (b.period_end - b.period_start + 1) * 100, 0) as month_elapsed_pct,\n  ROUND(COALESCE(SUM(t.amount), 0) / NULLIF(b.planned_amount, 0) * 100, 0) as budget_used_pct\nFROM budgets b\nJOIN categories c ON b.category_id = c.id\nLEFT JOIN transactions t ON t.category_id = c.id \n  AND t.date >= b.period_start \n  AND t.date <= b.period_end\nWHERE b.period_start <= CURRENT_DATE \n  AND b.period_end >= CURRENT_DATE\n  AND b.user_id = '85f72dce-2eb9-40e2-a01f-209f6c5ebbc1'\nGROUP BY c.name, b.planned_amount, b.period_start, b.period_end\nORDER BY (COALESCE(SUM(t.amount), 0) / NULLIF(b.planned_amount, 0)) DESC",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          64,
+          0
+        ],
+        "id": "73717a48-ff07-460a-ba86-952c65d439e9",
+        "name": "Budget Query",
+        "credentials": {
+          "postgres": {
+            "id": "WqaHXWuXdqjVWBz7",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const llmOutput = $input.all()[0].json.content[0].text;\n\n// Convert markdown to HTML\nlet html = llmOutput\n  // Headers\n  .replace(/^# (.+)$/gm, '<h1 style=\"margin: 0 0 20px 0; color: #1a1a1a;\">$1</h1>')\n  .replace(/^\\*\\*(.+)\\*\\*$/gm, '<h2 style=\"margin: 24px 0 12px 0; color: #2d2d2d; font-size: 16px;\">$1</h2>')\n  // Inline bold\n  .replace(/\\*\\*(.+?)\\*\\*/g, '<strong>$1</strong>')\n  // Paragraphs (double newline)\n  .replace(/\\n\\n/g, '</p><p style=\"margin: 0 0 12px 0; line-height: 1.6; color: #333;\">')\n  // Single newlines\n  .replace(/\\n/g, '<br>');\n\n// Wrap in email template\nconst emailHtml = `\n<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"utf-8\">\n</head>\n<body style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;\">\n  <div style=\"background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);\">\n    <p style=\"margin: 0 0 12px 0; line-height: 1.6; color: #333;\">\n      ${html}\n    </p>\n  </div>\n  <p style=\"margin-top: 20px; font-size: 12px; color: #888; text-align: center;\">\n    Weekly budget summary from your finance app\n  </p>\n</body>\n</html>\n`;\n\nreturn [{\n  json: {\n    emailHtml\n  }\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          752,
+          -192
+        ],
+        "id": "9818ce85-0aed-4d85-94b5-8e4d04bec5ee",
+        "name": "Code in JavaScript1"
+      },
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          -384,
+          -176
+        ],
+        "id": "425d330b-0b94-411f-92a6-0e27fb3cfdcc",
+        "name": "When clicking ‘Execute workflow’"
+      }
+    ],
+    "connections": {
+      "Schedule Trigger": {
+        "main": [
+          [
+            {
+              "node": "Debt Query",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Message a model": {
+        "main": [
+          [
+            {
+              "node": "Code in JavaScript1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Code in JavaScript": {
+        "main": [
+          [
+            {
+              "node": "Message a model",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Debt Query": {
+        "main": [
+          [
+            {
+              "node": "Budget Query",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Budget Query": {
+        "main": [
+          [
+            {
+              "node": "Code in JavaScript",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Code in JavaScript1": {
+        "main": [
+          [
+            {
+              "node": "Send a message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "When clicking ‘Execute workflow’": {
+        "main": [
+          [
+            {
+              "node": "Debt Query",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "James Brown",
+    "name": "Version 36bf0c11",
+    "description": "",
+    "autosaved": false
+  },
+  "activeVersionId": "36bf0c11-7860-443a-9efd-b9615a26dd88",
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Debt Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Debt Query": {
+      "main": [
+        [
+          {
+            "node": "Budget Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Budget Query": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Debt Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-23T14:20:15.046Z",
+  "id": "CD_z3AZAwsnp7PguKfxJe",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Weekly Financial Summary",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtHour": 16
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -384,
+        0
+      ],
+      "id": "fac83b9d-e07a-4777-8aa4-1164564822c2",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-haiku-4-5-20251001",
+          "mode": "list",
+          "cachedResultName": "claude-haiku-4-5-20251001"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a personal financial advisor helping Jim and his wife manage their household finances. Your tone is direct, encouraging without being cheerful, and focused on actionable insight rather than generic advice.\nOur current priorities:\n\nEstablish realistic budgets we can actually stick to—responsible but not punishing. We want to spend intentionally, not feel guilty about enjoying life.\nAccelerate credit card debt payoff. The debt isn't catastrophic, but eliminating it frees up meaningful monthly cash flow.\n\nContext you should know:\n\nWe're in the early months of consistent budget tracking, so trends are still emerging\nManual transaction entry means the data is complete and intentional\nWe'd rather adjust a budget to be realistic than perpetually fail against an aspirational number\n\nThis week's data:\n[BUDGET VS ACTUAL]\n{{ $json.budgetTable }}\n[DEBT SNAPSHOT]\n{{ $json.debtTable }}\nYour task:\nProvide a brief weekly financial check-in (aim for 150-250 words) that includes:\n\nBudget pulse: Which categories are on track, which need attention this week? If we're consistently over in a category, say so directly—it may be a budgeting problem, not a spending problem.\nOne observation: Surface one thing we might not notice ourselves—a trend forming, a connection between categories, an opportunity.\nDebt progress: Brief note on where we stand. If extra cash flow is available based on under-budget categories, mention it as a potential extra payment opportunity.\n\nSkip anything that feels like filler. We'd rather have a short, useful email than a comprehensive one we skim."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        512,
+        0
+      ],
+      "id": "77d74dc8-c519-4ca6-b8d4-bc68ed506a85",
+      "name": "Message a model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "QIUyAAWFmOxaIZc6",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "jimbrown131@gmail.com",
+        "subject": "Your weekly financial summary",
+        "message": "={{ $json.emailHtml }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        944,
+        0
+      ],
+      "id": "db72e904-e56b-4cee-901f-13a099a03a72",
+      "name": "Send a message",
+      "webhookId": "a9de8c01-ca4b-4b29-86e5-579308d36cb6",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "dmIKVw4RuLHhcC3Y",
+          "name": "Nwa Boost:Gmail"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const budgetData = $('Budget Query').all();\nconst debtData = $('Debt Query').all();\n\n// Format budget table\nlet budgetTable = `| Category | Budget | Spent | Remaining | Month % | Used % |\n|----------|--------|-------|-----------|---------|--------|\n`;\n\nfor (const row of budgetData) {\n  budgetTable += `| ${row.json.category} | $${row.json.budget} | $${row.json.spent} | $${row.json.remaining} | ${row.json.month_elapsed_pct}% | ${row.json.budget_used_pct}% |\\n`;\n}\n\n// Format debt table\nlet debtTable = `| Name | Type | Balance | Limit | Rate | Utilization |\n|------|------|---------|-------|------|-------------|\n`;\n\nfor (const row of debtData) {\n  debtTable += `| ${row.json.name} | ${row.json.debt_type} | $${row.json.current_balance} | $${row.json.credit_limit} | ${row.json.interest_rate}% | ${row.json.utilization_pct}% |\\n`;\n}\n\nreturn [{\n  json: {\n    budgetTable,\n    debtTable\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        288,
+        0
+      ],
+      "id": "5558a8cc-0c0f-42e5-828b-6d941e8b5613",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  name,\n  debt_type,\n  current_balance,\n  credit_limit,\n  interest_rate,\n  ROUND((current_balance / NULLIF(credit_limit, 0)) * 100, 1) as utilization_pct\nFROM debts\nWHERE user_id = '85f72dce-2eb9-40e2-a01f-209f6c5ebbc1'\nORDER BY interest_rate DESC",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -160,
+        0
+      ],
+      "id": "5896f220-1395-4e04-8c52-449150d6e79f",
+      "name": "Debt Query",
+      "credentials": {
+        "postgres": {
+          "id": "WqaHXWuXdqjVWBz7",
+          "name": "Postgres account"
+        }
+      },
+      "notes": " "
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  c.name as category,\n  b.planned_amount as budget,\n  COALESCE(SUM(t.amount), 0) as spent,\n  b.planned_amount - COALESCE(SUM(t.amount), 0) as remaining,\n  ROUND(CAST((CURRENT_DATE - b.period_start) AS numeric) / \n        (b.period_end - b.period_start + 1) * 100, 0) as month_elapsed_pct,\n  ROUND(COALESCE(SUM(t.amount), 0) / NULLIF(b.planned_amount, 0) * 100, 0) as budget_used_pct\nFROM budgets b\nJOIN categories c ON b.category_id = c.id\nLEFT JOIN transactions t ON t.category_id = c.id \n  AND t.date >= b.period_start \n  AND t.date <= b.period_end\nWHERE b.period_start <= CURRENT_DATE \n  AND b.period_end >= CURRENT_DATE\n  AND b.user_id = '85f72dce-2eb9-40e2-a01f-209f6c5ebbc1'\nGROUP BY c.name, b.planned_amount, b.period_start, b.period_end\nORDER BY (COALESCE(SUM(t.amount), 0) / NULLIF(b.planned_amount, 0)) DESC",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        64,
+        0
+      ],
+      "id": "73717a48-ff07-460a-ba86-952c65d439e9",
+      "name": "Budget Query",
+      "credentials": {
+        "postgres": {
+          "id": "WqaHXWuXdqjVWBz7",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const llmOutput = $input.all()[0].json.content[0].text;\n\n// Convert markdown to HTML\nlet html = llmOutput\n  // Headers\n  .replace(/^# (.+)$/gm, '<h1 style=\"margin: 0 0 20px 0; color: #1a1a1a;\">$1</h1>')\n  .replace(/^\\*\\*(.+)\\*\\*$/gm, '<h2 style=\"margin: 24px 0 12px 0; color: #2d2d2d; font-size: 16px;\">$1</h2>')\n  // Inline bold\n  .replace(/\\*\\*(.+?)\\*\\*/g, '<strong>$1</strong>')\n  // Paragraphs (double newline)\n  .replace(/\\n\\n/g, '</p><p style=\"margin: 0 0 12px 0; line-height: 1.6; color: #333;\">')\n  // Single newlines\n  .replace(/\\n/g, '<br>');\n\n// Wrap in email template\nconst emailHtml = `\n<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"utf-8\">\n</head>\n<body style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;\">\n  <div style=\"background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);\">\n    <p style=\"margin: 0 0 12px 0; line-height: 1.6; color: #333;\">\n      ${html}\n    </p>\n  </div>\n  <p style=\"margin-top: 20px; font-size: 12px; color: #888; text-align: center;\">\n    Weekly budget summary from your finance app\n  </p>\n</body>\n</html>\n`;\n\nreturn [{\n  json: {\n    emailHtml\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        752,
+        -192
+      ],
+      "id": "9818ce85-0aed-4d85-94b5-8e4d04bec5ee",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -384,
+        -176
+      ],
+      "id": "425d330b-0b94-411f-92a6-0e27fb3cfdcc",
+      "name": "When clicking ‘Execute workflow’"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-23T14:20:15.049Z",
+      "createdAt": "2026-01-23T14:20:15.049Z",
+      "role": "workflow:owner",
+      "workflowId": "CD_z3AZAwsnp7PguKfxJe",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-01-25T00:38:31.851Z",
+  "versionId": "36bf0c11-7860-443a-9efd-b9615a26dd88"
+}
