@@ -1,0 +1,236 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Input": {
+      "main": [
+        [
+          {
+            "node": "Upsert Review Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Review Queue": {
+      "main": [
+        [
+          {
+            "node": "Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-30T17:45:58.415Z",
+  "id": "jSOo3FrSp8fbZYvCAeTRR",
+  "isArchived": false,
+  "meta": null,
+  "name": "SUB: Queue Review",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "pageLocation"
+            },
+            {
+              "name": "formType"
+            },
+            {
+              "name": "review_reason"
+            },
+            {
+              "name": "extracted_data"
+            },
+            {
+              "name": "confidence_scores"
+            },
+            {
+              "name": "source_step"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -80,
+        288
+      ],
+      "id": "7b80e0ea-ee21-455a-8944-ccf82c7e8330",
+      "name": "Input"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "YOUR_REVIEW_QUEUE_TABLE_ID",
+          "mode": "id"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "pageLocation",
+              "keyValue": "={{ $json.pageLocation }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pageLocation": "={{ $json.pageLocation }}",
+            "formType": "={{ $json.formType }}",
+            "review_reason": "={{ $json.review_reason }}",
+            "extracted_data": "={{ $json.extracted_data }}",
+            "confidence_scores": "={{ $json.confidence_scores }}",
+            "source_step": "={{ $json.source_step }}",
+            "review_status": "PENDING",
+            "created_at": "={{ new Date().toISOString() }}",
+            "reviewed_by": "",
+            "corrections_made": ""
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "pageLocation",
+              "displayName": "pageLocation",
+              "type": "string"
+            },
+            {
+              "id": "formType",
+              "displayName": "formType",
+              "type": "string"
+            },
+            {
+              "id": "review_reason",
+              "displayName": "review_reason",
+              "type": "string"
+            },
+            {
+              "id": "extracted_data",
+              "displayName": "extracted_data",
+              "type": "string"
+            },
+            {
+              "id": "confidence_scores",
+              "displayName": "confidence_scores",
+              "type": "string"
+            },
+            {
+              "id": "source_step",
+              "displayName": "source_step",
+              "type": "string"
+            },
+            {
+              "id": "review_status",
+              "displayName": "review_status",
+              "type": "string"
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "type": "string"
+            },
+            {
+              "id": "reviewed_by",
+              "displayName": "reviewed_by",
+              "type": "string"
+            },
+            {
+              "id": "corrections_made",
+              "displayName": "corrections_made",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        144,
+        288
+      ],
+      "id": "77aab515-7a9b-4e31-b600-e99ff28f0085",
+      "name": "Upsert Review Queue"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "queue_id",
+              "name": "queue_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "status",
+              "name": "status",
+              "value": "queued",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        368,
+        288
+      ],
+      "id": "2298b08a-2616-4041-b25b-fb1fb222a932",
+      "name": "Output"
+    },
+    {
+      "parameters": {
+        "content": "## SUB: Queue Review\n\n**Purpose:** Centralized review queue. Call this when something needs human eyes.\n\n**Inputs:**\n- `pageLocation` - which document\n- `formType` - 1099-MISC, 1099-INT, etc.\n- `review_reason` - why it's here\n- `extracted_data` - JSON string of what was extracted\n- `confidence_scores` - JSON string of per-field confidence\n- `source_step` - where in the pipeline it failed\n\n**Setup:**\n1. Create DataTable `1099-Review-Queue` with columns shown above\n2. Replace `YOUR_REVIEW_QUEUE_TABLE_ID` with actual table ID",
+        "height": 300,
+        "width": 400
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -416,
+        -32
+      ],
+      "typeVersion": 1,
+      "id": "b711ce9a-0979-4ccb-8fd8-fe0a7dfd72d2",
+      "name": "Instructions"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-30T17:45:58.423Z",
+      "createdAt": "2026-01-30T17:45:58.423Z",
+      "role": "workflow:owner",
+      "workflowId": "jSOo3FrSp8fbZYvCAeTRR",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [
+    {
+      "updatedAt": "2026-01-30T17:45:16.848Z",
+      "createdAt": "2026-01-30T17:45:16.848Z",
+      "id": "zRXoVmwhIgEZQ2QV",
+      "name": "1099-modular"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-31T17:05:16.273Z",
+  "versionId": "dfea2eb5-da3e-4dd6-a78d-a0fac092c624"
+}
