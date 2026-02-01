@@ -1,0 +1,383 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Input": {
+      "main": [
+        [
+          {
+            "node": "Check Type Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Type Router": {
+      "main": [
+        [
+          {
+            "node": "Check Document Quality",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check Classification",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check Extraction",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Document Quality": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Classification": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Extraction": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Results": {
+      "main": [
+        [
+          {
+            "node": "Status Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-30T17:46:45.573Z",
+  "id": "3d9kHZ4cwCHsAMPI6Rdm1",
+  "isArchived": false,
+  "meta": null,
+  "name": "SUB: Quality Gate",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "pageLocation"
+            },
+            {
+              "name": "check_type"
+            },
+            {
+              "name": "data"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        352
+      ],
+      "id": "0739d6be-d5f2-4e8b-bfff-e136672ebd90",
+      "name": "Input"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.check_type }}",
+                    "rightValue": "DOCUMENT_QUALITY",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Document Quality"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.check_type }}",
+                    "rightValue": "CLASSIFICATION",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Classification"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.check_type }}",
+                    "rightValue": "EXTRACTION",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Extraction"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        352
+      ],
+      "id": "171adb5c-5054-4e38-a1b7-0ecf60244fff",
+      "name": "Check Type Router"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Document Quality Check\n// Validates file size and basic integrity\n\nconst data = JSON.parse($json.data || '{}');\nconst fileSize = data.fileSize || 0;\n\nconst result = {\n  pageLocation: $json.pageLocation,\n  check_type: $json.check_type,\n  status: 'PASS',\n  reason: null,\n  details: {\n    file_size_bytes: fileSize,\n    file_size_kb: Math.round(fileSize / 1024)\n  }\n};\n\n// Too small - likely blank or corrupt\nif (fileSize < 10000) {\n  result.status = 'FAIL';\n  result.reason = 'File too small (< 10KB) - likely blank or corrupt';\n}\n// Too large - suspicious\nelse if (fileSize > 50000000) {\n  result.status = 'REVIEW';\n  result.reason = 'File unusually large (> 50MB) - may have scanning artifacts';\n}\n\nreturn { json: result };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        432,
+        192
+      ],
+      "id": "c9f0c514-bbb2-48f9-a6e0-ed559dda163b",
+      "name": "Check Document Quality"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Classification Quality Check\n// Validates classification confidence\n\nconst data = JSON.parse($json.data || '{}');\n\nconst result = {\n  pageLocation: $json.pageLocation,\n  check_type: $json.check_type,\n  status: 'PASS',\n  reason: null,\n  details: {\n    doc_type: data.doc_type,\n    confidence: data.classification_confidence,\n    quality_notes: data.document_quality_notes\n  }\n};\n\nconst confidence = data.classification_confidence || 'UNKNOWN';\n\nif (confidence === 'LOW' || confidence === 'UNKNOWN') {\n  result.status = 'REVIEW';\n  result.reason = `Classification confidence is ${confidence}`;\n  if (data.document_quality_notes) {\n    result.reason += `: ${data.document_quality_notes}`;\n  }\n}\n\nreturn { json: result };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        432,
+        352
+      ],
+      "id": "edaec809-acf2-4b7a-97cf-4eac0bfd8954",
+      "name": "Check Classification"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Extraction Quality Check\n// Validates TINs, amounts, and confidence scores\n\nconst data = JSON.parse($json.data || '{}');\nconst issues = [];\n\n// === TIN VALIDATION ===\nconst validateTIN = (tin, fieldName) => {\n  if (!tin || tin.trim() === '') return null;\n  const cleaned = tin.replace(/\\s/g, '');\n  \n  // EIN: XX-XXXXXXX\n  if (/^\\d{2}-\\d{7}$/.test(cleaned)) return null;\n  // SSN: XXX-XX-XXXX (with possible X masking)\n  if (/^[\\dX]{3}-[\\dX]{2}-[\\dX]{4}$/.test(cleaned)) return null;\n  \n  return `Invalid ${fieldName} format: ${tin}`;\n};\n\nconst payerIssue = validateTIN(data.payers_tin, 'Payer TIN');\nconst recipientIssue = validateTIN(data.recipient_tin, 'Recipient TIN');\nif (payerIssue) issues.push(payerIssue);\nif (recipientIssue) issues.push(recipientIssue);\n\n// === AMOUNT SANITY CHECKS ===\nconst parseCurrency = (val) => {\n  if (!val || val === '') return 0;\n  return parseFloat(String(val).replace(/[$,]/g, '')) || 0;\n};\n\nconst income = parseCurrency(\n  data.box_1_rents || \n  data.box_1_interest_income || \n  data.box_1a_total_ordinary_dividends ||\n  data.box_1_nonemployee_compensation\n);\n\nconst withholding = parseCurrency(data.box_4_federal_income_tax_withheld);\n\nif (withholding > income && income > 0) {\n  issues.push(`Withholding ($${withholding}) exceeds income ($${income})`);\n}\n\nif (income > 10000000) {\n  issues.push(`Income $${income.toLocaleString()} unusually high - verify decimal`);\n}\n\n// === LOW CONFIDENCE FIELDS ===\nconst lowConfidenceFields = [];\nfor (const [key, value] of Object.entries(data)) {\n  if (key.endsWith('_confidence') && (value === 'LOW' || value === 'UNREADABLE')) {\n    lowConfidenceFields.push(key.replace('_confidence', ''));\n  }\n}\n\nif (lowConfidenceFields.length > 0) {\n  issues.push(`Low confidence on: ${lowConfidenceFields.join(', ')}`);\n}\n\n// === LLM FLAGGED ===\nif (data.requires_human_review === true) {\n  issues.push(`LLM flagged: ${data.document_quality_notes || 'unspecified reason'}`);\n}\n\n// === BUILD RESULT ===\nconst result = {\n  pageLocation: $json.pageLocation,\n  check_type: $json.check_type,\n  status: issues.length === 0 ? 'PASS' : 'REVIEW',\n  reason: issues.length > 0 ? issues.join('; ') : null,\n  details: {\n    tin_valid: !payerIssue && !recipientIssue,\n    amount_issues: issues.filter(i => i.includes('$')),\n    low_confidence_fields: lowConfidenceFields,\n    llm_flagged: data.requires_human_review === true\n  }\n};\n\nreturn { json: result };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        432,
+        512
+      ],
+      "id": "1c5bd592-fc73-460e-bbed-7cb75b7d5b4f",
+      "name": "Check Extraction"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        640,
+        352
+      ],
+      "id": "c5360024-f4a2-4b1e-8617-34de23b89281",
+      "name": "Merge Results"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "PASS",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PASS"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "REVIEW",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "REVIEW"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "FAIL",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "FAIL"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        832,
+        352
+      ],
+      "id": "a9c059d1-a7e1-47c5-b50c-72c5f0394139",
+      "name": "Status Router"
+    },
+    {
+      "parameters": {
+        "content": "## SUB: Quality Gate\n\n**Purpose:** Reusable quality checkpoint. Use after document fetch, classification, and extraction.\n\n**Inputs:**\n- `pageLocation` - which document\n- `check_type` - DOCUMENT_QUALITY, CLASSIFICATION, or EXTRACTION\n- `data` - JSON string with the data to validate\n\n**Outputs:** Three branches\n- `PASS` - continue processing\n- `REVIEW` - needs human eyes\n- `FAIL` - unusable, log and skip\n\n**Usage:**\nCall this workflow, then handle the three output branches in your parent workflow.",
+        "height": 300,
+        "width": 400
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "34ab6e07-af28-415a-9f8e-f7ad6efbe672",
+      "name": "Instructions"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-30T17:46:45.576Z",
+      "createdAt": "2026-01-30T17:46:45.576Z",
+      "role": "workflow:owner",
+      "workflowId": "3d9kHZ4cwCHsAMPI6Rdm1",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [
+    {
+      "updatedAt": "2026-01-30T17:45:16.848Z",
+      "createdAt": "2026-01-30T17:45:16.848Z",
+      "id": "zRXoVmwhIgEZQ2QV",
+      "name": "1099-modular"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-31T17:05:37.347Z",
+  "versionId": "7163631b-3c4e-4e16-83ac-b91d9f1b4030"
+}
