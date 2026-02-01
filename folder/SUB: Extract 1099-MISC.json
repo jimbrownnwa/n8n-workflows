@@ -1,0 +1,525 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Input": {
+      "main": [
+        [
+          {
+            "node": "Extract 1099-MISC",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT-5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Extract 1099-MISC",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Extract 1099-MISC",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract 1099-MISC": {
+      "main": [
+        [
+          {
+            "node": "Package for Quality Gate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Package for Quality Gate": {
+      "main": [
+        [
+          {
+            "node": "Quality Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quality Gate": {
+      "main": [
+        [
+          {
+            "node": "Result Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Result Router": {
+      "main": [
+        [
+          {
+            "node": "Upsert 1099-MISC",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Queue for Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert 1099-MISC": {
+      "main": [
+        [
+          {
+            "node": "Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Queue for Review": {
+      "main": [
+        [
+          {
+            "node": "Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Error": {
+      "main": [
+        [
+          {
+            "node": "Log Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Error": {
+      "main": [
+        [
+          {
+            "node": "Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-30T17:47:28.160Z",
+  "id": "jnDGutQ9SCvcM5pCEEQ6H",
+  "isArchived": false,
+  "meta": null,
+  "name": "SUB: Extract 1099-MISC",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "pageLocation"
+            },
+            {
+              "name": "binaryData"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -192,
+        384
+      ],
+      "id": "5bf4e4f5-e13e-4b03-844b-7a7f60401030",
+      "name": "Input"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "You are an expert Tax Form Reader. You will be presented with a 1099-MISC form.\n\nYour job is to extract all data points as accurately as possible. For EACH field:\n\n1. Extract the value exactly as shown on the form\n2. Rate your confidence for that field: HIGH, MEDIUM, LOW, or UNREADABLE\n3. If ANY part of a field appears damaged, folded, smudged, or partially obscured, mark it LOW or UNREADABLE\n\nIMPORTANT RULES:\n- Double-check all numbers - do not mistake $ for a digit\n- If you cannot clearly read a value, mark it UNREADABLE rather than guessing\n- I would rather have you say \"I can't read this\" than give me a wrong number\n- Report any document quality issues (wrinkles, folds, smudges, misalignment)\n\nSet requires_human_review to true if:\n- Any field has LOW or UNREADABLE confidence\n- The form appears wrinkled, folded, or damaged\n- Any numbers are ambiguous (1 vs 7, 0 vs O, 5 vs S)\n- You are guessing based on context rather than clearly reading",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "type": "HumanMessagePromptTemplate",
+              "messageType": "imageBinary",
+              "binaryImageDataKey": "=data"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        -64,
+        384
+      ],
+      "id": "d633fbda-a7d3-416c-a56d-5f83b06b3ab8",
+      "name": "Extract 1099-MISC",
+      "retryOnFail": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "model": "gpt-5",
+        "options": {
+          "timeout": 60000,
+          "maxRetries": 2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        544
+      ],
+      "id": "4d2b76df-d5b1-44d4-9f5c-10ceb531b751",
+      "name": "GPT-5"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n    \"payer_name\": \"ABC Company Inc\",\n    \"payer_name_confidence\": \"HIGH\",\n    \"payer_address\": \"123 Main St, City, ST 12345\",\n    \"payer_address_confidence\": \"HIGH\",\n    \"payers_tin\": \"12-3456789\",\n    \"payers_tin_confidence\": \"HIGH\",\n    \"recipient_name\": \"John Doe\",\n    \"recipient_name_confidence\": \"HIGH\",\n    \"recipient_tin\": \"123-45-6789\",\n    \"recipient_tin_confidence\": \"HIGH\",\n    \"recipient_address\": \"456 Oak Ave, Town, ST 67890\",\n    \"recipient_address_confidence\": \"HIGH\",\n    \"account_number\": \"ABC123\",\n    \"account_number_confidence\": \"HIGH\",\n    \"year\": \"2024\",\n    \"box_1_rents\": \"1234.56\",\n    \"box_1_rents_confidence\": \"HIGH\",\n    \"box_2_royalties\": \"\",\n    \"box_2_royalties_confidence\": \"HIGH\",\n    \"box_3_other_income\": \"\",\n    \"box_3_other_income_confidence\": \"HIGH\",\n    \"box_4_federal_income_tax_withheld\": \"\",\n    \"box_4_federal_income_tax_withheld_confidence\": \"HIGH\",\n    \"box_16_state_tax_withheld\": \"\",\n    \"box_16_state_tax_withheld_confidence\": \"HIGH\",\n    \"box_18_state_income\": \"\",\n    \"box_18_state_income_confidence\": \"HIGH\",\n    \"document_quality_notes\": \"\",\n    \"extraction_warnings\": [],\n    \"requires_human_review\": false\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        96,
+        576
+      ],
+      "id": "94ff23a7-61f1-4f18-b08c-ab7969f0527c",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Package output for Quality Gate\n$json.pageLocation = $('Input').item.json.pageLocation;\n$json.formType = '1099-MISC';\n$json.extracted_data = JSON.stringify($json.output);\n$json.confidence_scores = JSON.stringify(\n  Object.fromEntries(\n    Object.entries($json.output || {}).filter(([k,v]) => k.endsWith('_confidence'))\n  )\n);\n\nreturn $input.item;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        288,
+        384
+      ],
+      "id": "1b1475bd-3bbc-4cba-956f-62b3d24af967",
+      "name": "Package for Quality Gate"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "YOUR_QUALITY_GATE_WORKFLOW_ID",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pageLocation": "={{ $json.pageLocation }}",
+            "check_type": "EXTRACTION",
+            "data": "={{ $json.extracted_data }}"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        480,
+        384
+      ],
+      "id": "9a3bd4d5-20fa-4ae3-9b3a-dbc483170144",
+      "name": "Quality Gate"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "PASS",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PASS"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "REVIEW",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "REVIEW"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        688,
+        384
+      ],
+      "id": "5cce7666-d522-40ad-9959-580d801e779b",
+      "name": "Result Router"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "YOUR_1099_MISC_TABLE_ID",
+          "mode": "id"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "pageLocation",
+              "keyValue": "={{ $('Input').item.json.pageLocation }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pageLocation": "={{ $('Input').item.json.pageLocation }}",
+            "payer_name": "={{ $('Package for Quality Gate').item.json.output.payer_name }}",
+            "payer_address": "={{ $('Package for Quality Gate').item.json.output.payer_address }}",
+            "payers_tin": "={{ $('Package for Quality Gate').item.json.output.payers_tin }}",
+            "recipient_name": "={{ $('Package for Quality Gate').item.json.output.recipient_name }}",
+            "recipient_tin": "={{ $('Package for Quality Gate').item.json.output.recipient_tin }}",
+            "recipient_address": "={{ $('Package for Quality Gate').item.json.output.recipient_address }}",
+            "account_number": "={{ $('Package for Quality Gate').item.json.output.account_number }}",
+            "year": "={{ $('Package for Quality Gate').item.json.output.year }}",
+            "box_1_rents": "={{ $('Package for Quality Gate').item.json.output.box_1_rents }}",
+            "box_2_royalties": "={{ $('Package for Quality Gate').item.json.output.box_2_royalties }}",
+            "box_3_other_income": "={{ $('Package for Quality Gate').item.json.output.box_3_other_income }}",
+            "box_4_federal_income_tax_withheld": "={{ $('Package for Quality Gate').item.json.output.box_4_federal_income_tax_withheld }}",
+            "box_16_state_tax_withheld": "={{ $('Package for Quality Gate').item.json.output.box_16_state_tax_withheld }}",
+            "box_18_state_income": "={{ $('Package for Quality Gate').item.json.output.box_18_state_income }}",
+            "extracted_at": "={{ new Date().toISOString() }}"
+          },
+          "matchingColumns": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        880,
+        304
+      ],
+      "id": "6f1f6491-be46-45f9-b40e-451558a1d172",
+      "name": "Upsert 1099-MISC"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "YOUR_QUEUE_REVIEW_WORKFLOW_ID",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pageLocation": "={{ $('Input').item.json.pageLocation }}",
+            "formType": "1099-MISC",
+            "review_reason": "={{ $json.reason }}",
+            "extracted_data": "={{ $('Package for Quality Gate').item.json.extracted_data }}",
+            "confidence_scores": "={{ $('Package for Quality Gate').item.json.confidence_scores }}",
+            "source_step": "EXTRACTION"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        880,
+        560
+      ],
+      "id": "8d952eed-be10-424c-984f-99da66ab5504",
+      "name": "Queue for Review"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Prepare error info for LLM failure\n$json.error_type = 'EXTRACTION_FAILED';\n$json.error_message = $json.error?.message || 'LLM extraction failed';\n$json.pageLocation = $('Input').item.json.pageLocation;\n\nreturn $input.item;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        288,
+        576
+      ],
+      "id": "97763722-5e60-45a5-8718-45ae00773205",
+      "name": "Prepare Error"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "YOUR_LOG_ERROR_WORKFLOW_ID",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pageLocation": "={{ $json.pageLocation }}",
+            "error_type": "={{ $json.error_type }}",
+            "error_message": "={{ $json.error_message }}",
+            "context": "={{ JSON.stringify({ formType: '1099-MISC', raw_error: $json.error }) }}"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        480,
+        576
+      ],
+      "id": "590cf1ea-d9c1-45e6-85a4-26b290c8aad1",
+      "name": "Log Error"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "status",
+              "name": "status",
+              "value": "={{ $json.status || 'error' }}",
+              "type": "string"
+            },
+            {
+              "id": "pageLocation",
+              "name": "pageLocation",
+              "value": "={{ $('Input').item.json.pageLocation }}",
+              "type": "string"
+            },
+            {
+              "id": "formType",
+              "name": "formType",
+              "value": "1099-MISC",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1088,
+        384
+      ],
+      "id": "6ceb651c-09fb-4255-85f6-238d936bbf96",
+      "name": "Output"
+    },
+    {
+      "parameters": {
+        "content": "## SUB: Extract 1099-MISC\n\n**Purpose:** Extract data from 1099-MISC forms with validation.\n\n**Inputs:**\n- `pageLocation` - document reference\n- `binaryData` - the image to process\n\n**Flow:**\n1. LLM extracts with confidence scores\n2. Quality Gate validates\n3. PASS → Upsert to main table\n4. REVIEW → Queue for human review\n5. ERROR → Log and exit\n\n**Setup:**\n1. Replace `YOUR_*_WORKFLOW_ID` placeholders\n2. Replace `YOUR_1099_MISC_TABLE_ID`\n3. Update Azure OpenAI credentials\n\n**To create other form types:**\nDuplicate this workflow and update:\n- Workflow name\n- Schema in Structured Output Parser\n- formType references\n- Target DataTable ID",
+        "height": 400,
+        "width": 400
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -208,
+        -80
+      ],
+      "typeVersion": 1,
+      "id": "ce6eb2dd-c0d3-4000-9f24-014f9f52351e",
+      "name": "Instructions"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-30T17:47:28.162Z",
+      "createdAt": "2026-01-30T17:47:28.162Z",
+      "role": "workflow:owner",
+      "workflowId": "jnDGutQ9SCvcM5pCEEQ6H",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [
+    {
+      "updatedAt": "2026-01-30T17:45:16.848Z",
+      "createdAt": "2026-01-30T17:45:16.848Z",
+      "id": "zRXoVmwhIgEZQ2QV",
+      "name": "1099-modular"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-31T17:05:08.729Z",
+  "versionId": "699bb2d2-e546-4410-a104-5a403ec3edb1"
+}
