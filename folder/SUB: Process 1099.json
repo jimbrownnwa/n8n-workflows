@@ -1,0 +1,904 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Input": {
+      "main": [
+        [
+          {
+            "node": "Classify Form Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT-5-MINI": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Classify Form Type",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classification Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Classify Form Type",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classify Form Type": {
+      "main": [
+        [
+          {
+            "node": "Package for Quality Gate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Package for Quality Gate": {
+      "main": [
+        [
+          {
+            "node": "Quality Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quality Gate": {
+      "main": [
+        [
+          {
+            "node": "Gate Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gate Router": {
+      "main": [
+        [
+          {
+            "node": "Form Type Router",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Queue Low Confidence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Form Type Router": {
+      "main": [
+        [
+          {
+            "node": "Extract MISC",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract INT",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract DIV",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract NEC",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Skip NOT_1099",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Queue Unsupported Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract MISC": {
+      "main": [
+        [
+          {
+            "node": "Merge Outputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract INT": {
+      "main": [
+        [
+          {
+            "node": "Merge Outputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract DIV": {
+      "main": [
+        [
+          {
+            "node": "Merge Outputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract NEC": {
+      "main": [
+        [
+          {
+            "node": "Merge Outputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Skip NOT_1099": {
+      "main": [
+        [
+          {
+            "node": "Merge Outputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Queue Unsupported Type": {
+      "main": [
+        [
+          {
+            "node": "Merge Outputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Queue Low Confidence": {
+      "main": [
+        [
+          {
+            "node": "Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Error": {
+      "main": [
+        [
+          {
+            "node": "Log Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Error": {
+      "main": [
+        [
+          {
+            "node": "Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Outputs": {
+      "main": [
+        [
+          {
+            "node": "Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-30T17:48:27.519Z",
+  "id": "1D-pSgYy1kO-eob-jfRet",
+  "isArchived": false,
+  "meta": null,
+  "name": "SUB: Process 1099",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "pageLocation"
+            },
+            {
+              "name": "binaryData"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -192,
+        512
+      ],
+      "id": "a0a86fbd-6809-4a30-a6bb-7cfc659b50a0",
+      "name": "Input"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Classify this image into exactly one of the following form types:\n\n1099-MISC\n1099-DIV\n1099-INT\n1099-B\n1099-NEC\n1099-OID\n1099-R\nNOT_1099\n\nRules:\n- Only proper tax forms with boxes count as 1099s\n- Cover pages, instruction pages, and supplementary materials are NOT_1099\n- Look for the form type indicator printed on the document\n\nFor your response:\n1. Provide the doc_type classification\n2. Rate your classification_confidence as HIGH, MEDIUM, or LOW:\n   - HIGH: Form type is clearly visible and unambiguous\n   - MEDIUM: Form type is visible but partially obscured or slightly unclear\n   - LOW: Form type is difficult to read, document is damaged, or you are uncertain\n3. Report the visible_form_number exactly as printed on the document\n4. Report the tax_year_visible if you can see it\n5. Add document_quality_notes if the document appears wrinkled, folded, damaged, or has any quality issues\n\nIf you cannot clearly identify the form type, classify as NOT_1099 with LOW confidence and explain in document_quality_notes.",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "type": "HumanMessagePromptTemplate",
+              "messageType": "imageBinary",
+              "binaryImageDataKey": "=data"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        96,
+        512
+      ],
+      "id": "b66e3cca-73f0-459a-8404-873722725f7e",
+      "name": "Classify Form Type",
+      "retryOnFail": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "model": "gpt-5-mini",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        64,
+        672
+      ],
+      "id": "839677af-7aa7-45ce-94b8-035b3e88d673",
+      "name": "GPT-5-MINI"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"doc_type\": \"1099-MISC\",\n\t\"classification_confidence\": \"HIGH\",\n\t\"visible_form_number\": \"1099-MISC\",\n\t\"tax_year_visible\": \"2024\",\n\t\"document_quality_notes\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        208,
+        784
+      ],
+      "id": "68c266d6-bcb2-4f5a-beda-c59c80096a0e",
+      "name": "Classification Parser"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Package classification for Quality Gate\n$json.pageLocation = $('Input').item.json.pageLocation;\n$json.check_data = JSON.stringify($json.output);\n\nreturn $input.item;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        496
+      ],
+      "id": "e2f66189-2cbc-4f0a-ac83-0acd30f9dde6",
+      "name": "Package for Quality Gate"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "YOUR_QUALITY_GATE_WORKFLOW_ID",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pageLocation": "={{ $json.pageLocation }}",
+            "check_type": "CLASSIFICATION",
+            "data": "={{ $json.check_data }}"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        608,
+        496
+      ],
+      "id": "f73132c1-879c-432a-b6e7-c2d1b2c8102c",
+      "name": "Quality Gate"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "PASS",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PASS"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "REVIEW",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "REVIEW"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        816,
+        512
+      ],
+      "id": "28c638dc-b8e1-42d3-9175-7237a3a60e1c",
+      "name": "Gate Router"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Package for Quality Gate').item.json.output.doc_type }}",
+                    "rightValue": "1099-MISC",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "3d40a047-8966-469e-86f5-bc60b4fdd226"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "1099-MISC"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Package for Quality Gate').item.json.output.doc_type }}",
+                    "rightValue": "1099-INT",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "0709c730-9b83-44a8-8ac7-9cee8550caec"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "1099-INT"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Package for Quality Gate').item.json.output.doc_type }}",
+                    "rightValue": "1099-DIV",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "04d477d0-3ff9-4016-99ae-082893b0210f"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "1099-DIV"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Package for Quality Gate').item.json.output.doc_type }}",
+                    "rightValue": "1099-NEC",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "8c63a6d9-7095-44e4-8be5-a33423d22aeb"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "1099-NEC"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Package for Quality Gate').item.json.output.doc_type }}",
+                    "rightValue": "NOT_1099",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "8c1f135c-c643-4c23-bd88-f52d197138de"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "NOT_1099"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1008,
+        400
+      ],
+      "id": "b0b22824-d663-4244-aa3f-143969c8cebe",
+      "name": "Form Type Router"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "YOUR_EXTRACT_MISC_WORKFLOW_ID",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pageLocation": "={{ $('Input').item.json.pageLocation }}",
+            "binaryData": "={{ $('Input').item.json.binaryData }}"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1248,
+        192
+      ],
+      "id": "ff58eeba-03ca-468d-8146-d91d6ed3278d",
+      "name": "Extract MISC"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "YOUR_EXTRACT_INT_WORKFLOW_ID",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pageLocation": "={{ $('Input').item.json.pageLocation }}",
+            "binaryData": "={{ $('Input').item.json.binaryData }}"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1248,
+        320
+      ],
+      "id": "d943a840-76ef-489f-9b7e-17b178c152e1",
+      "name": "Extract INT"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "YOUR_EXTRACT_DIV_WORKFLOW_ID",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pageLocation": "={{ $('Input').item.json.pageLocation }}",
+            "binaryData": "={{ $('Input').item.json.binaryData }}"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1248,
+        464
+      ],
+      "id": "c3a767a4-21b6-4f44-9f65-431a89280c88",
+      "name": "Extract DIV"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "YOUR_EXTRACT_NEC_WORKFLOW_ID",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pageLocation": "={{ $('Input').item.json.pageLocation }}",
+            "binaryData": "={{ $('Input').item.json.binaryData }}"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1248,
+        608
+      ],
+      "id": "3b966276-7e2a-4929-afdc-2b899a07a22b",
+      "name": "Extract NEC"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "status",
+              "name": "status",
+              "value": "skipped",
+              "type": "string"
+            },
+            {
+              "id": "reason",
+              "name": "reason",
+              "value": "NOT_1099 - not a tax form",
+              "type": "string"
+            },
+            {
+              "id": "pageLocation",
+              "name": "pageLocation",
+              "value": "={{ $('Input').item.json.pageLocation }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1248,
+        752
+      ],
+      "id": "10a8917b-07fb-4c5b-9b6f-07e5d32471a5",
+      "name": "Skip NOT_1099"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "YOUR_QUEUE_REVIEW_WORKFLOW_ID",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pageLocation": "={{ $('Input').item.json.pageLocation }}",
+            "formType": "={{ $('Package for Quality Gate').item.json.output.doc_type }}",
+            "review_reason": "Unsupported form type - needs manual extraction",
+            "extracted_data": "{}",
+            "confidence_scores": "{}",
+            "source_step": "CLASSIFICATION_ROUTING"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1248,
+        880
+      ],
+      "id": "0b1d1501-c707-4c86-8c47-3e7c3120d620",
+      "name": "Queue Unsupported Type"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "YOUR_QUEUE_REVIEW_WORKFLOW_ID",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pageLocation": "={{ $('Input').item.json.pageLocation }}",
+            "formType": "={{ $('Package for Quality Gate').item.json.output.doc_type || 'UNKNOWN' }}",
+            "review_reason": "={{ $json.reason || 'Classification confidence too low' }}",
+            "extracted_data": "={{ $('Package for Quality Gate').item.json.check_data }}",
+            "confidence_scores": "{}",
+            "source_step": "CLASSIFICATION"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        976,
+        768
+      ],
+      "id": "53ec046f-61aa-4be0-8bf5-89dd3748a8e3",
+      "name": "Queue Low Confidence"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Prepare error for classification failure\n$json.error_type = 'CLASSIFICATION_FAILED';\n$json.error_message = $json.error?.message || 'Classification LLM call failed';\n$json.pageLocation = $('Input').item.json.pageLocation;\n\nreturn $input.item;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        704
+      ],
+      "id": "7d1cc004-f670-4b26-9d51-8317fd6fcd7d",
+      "name": "Prepare Error"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "YOUR_LOG_ERROR_WORKFLOW_ID",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pageLocation": "={{ $json.pageLocation }}",
+            "error_type": "={{ $json.error_type }}",
+            "error_message": "={{ $json.error_message }}",
+            "context": "={{ JSON.stringify({ raw_error: $json.error }) }}"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        608,
+        704
+      ],
+      "id": "f2a1da17-b00d-4c30-9505-3ee54d750524",
+      "name": "Log Error"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1472,
+        512
+      ],
+      "id": "590f1b42-93e2-4178-ad08-208f095aaf00",
+      "name": "Merge Outputs"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "status",
+              "name": "status",
+              "value": "={{ $json.status || 'processed' }}",
+              "type": "string"
+            },
+            {
+              "id": "pageLocation",
+              "name": "pageLocation",
+              "value": "={{ $('Input').item.json.pageLocation }}",
+              "type": "string"
+            },
+            {
+              "id": "formType",
+              "name": "formType",
+              "value": "={{ $('Package for Quality Gate').item.json.output.doc_type || 'UNKNOWN' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1664,
+        512
+      ],
+      "id": "b45d26dc-5e8f-4c7f-a54a-42e07fdde03e",
+      "name": "Output"
+    },
+    {
+      "parameters": {
+        "content": "## SUB: Process 1099\n\n**Purpose:** Classify a document and route to the appropriate extractor.\n\n**Inputs:**\n- `pageLocation` - document reference\n- `binaryData` - the image to process\n\n**Flow:**\n1. Classify form type with confidence\n2. Quality Gate checks confidence\n3. PASS → Route to form-specific extractor\n4. REVIEW → Queue for human classification\n5. ERROR → Log and exit\n\n**Form Type Routing:**\n- 1099-MISC, INT, DIV, NEC → Call respective Extract workflow\n- NOT_1099 → Skip (cover pages, instructions)\n- Other (B, OID, R) → Queue as unsupported\n\n**Setup:**\n1. Replace all `YOUR_*_WORKFLOW_ID` placeholders\n2. Update Azure OpenAI credentials\n3. Create Extract workflows for each form type",
+        "height": 440,
+        "width": 400
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -16,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "3304221d-bd50-4caf-a34d-e1dc70051946",
+      "name": "Instructions"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-30T17:48:27.522Z",
+      "createdAt": "2026-01-30T17:48:27.522Z",
+      "role": "workflow:owner",
+      "workflowId": "1D-pSgYy1kO-eob-jfRet",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [
+    {
+      "updatedAt": "2026-01-30T17:45:16.848Z",
+      "createdAt": "2026-01-30T17:45:16.848Z",
+      "id": "zRXoVmwhIgEZQ2QV",
+      "name": "1099-modular"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-31T17:05:30.719Z",
+  "versionId": "538bf0e8-bec7-4fc0-b59a-cd75311ceb00"
+}
