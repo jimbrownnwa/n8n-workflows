@@ -1,0 +1,210 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Input": {
+      "main": [
+        [
+          {
+            "node": "Upsert Error Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Error Log": {
+      "main": [
+        [
+          {
+            "node": "Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-30T17:45:18.777Z",
+  "id": "prMLV3lD6Au8Le-09olJS",
+  "isArchived": false,
+  "meta": null,
+  "name": "SUB: Log Error",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "pageLocation"
+            },
+            {
+              "name": "error_type"
+            },
+            {
+              "name": "error_message"
+            },
+            {
+              "name": "context"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -64,
+        272
+      ],
+      "id": "e5a5c3dd-fed5-4247-bab5-b33c434f5aca",
+      "name": "Input"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "YOUR_ERROR_LOG_TABLE_ID",
+          "mode": "id"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "pageLocation",
+              "keyValue": "={{ $json.pageLocation }}"
+            },
+            {
+              "keyName": "error_type",
+              "keyValue": "={{ $json.error_type }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pageLocation": "={{ $json.pageLocation }}",
+            "error_type": "={{ $json.error_type }}",
+            "error_message": "={{ $json.error_message }}",
+            "context": "={{ $json.context }}",
+            "timestamp": "={{ new Date().toISOString() }}",
+            "resolved": false
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "pageLocation",
+              "displayName": "pageLocation",
+              "type": "string"
+            },
+            {
+              "id": "error_type",
+              "displayName": "error_type",
+              "type": "string"
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "type": "string"
+            },
+            {
+              "id": "context",
+              "displayName": "context",
+              "type": "string"
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "type": "string"
+            },
+            {
+              "id": "resolved",
+              "displayName": "resolved",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        160,
+        272
+      ],
+      "id": "57160d8e-ae1d-453b-974c-75518d61e859",
+      "name": "Upsert Error Log"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "log_id",
+              "name": "log_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "status",
+              "name": "status",
+              "value": "logged",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        384,
+        272
+      ],
+      "id": "57331c55-18b7-41de-ba2a-13379e150fca",
+      "name": "Output"
+    },
+    {
+      "parameters": {
+        "content": "## SUB: Log Error\n\n**Purpose:** Centralized error logging. Call this from anywhere a failure occurs.\n\n**Inputs:**\n- `pageLocation` - which document\n- `error_type` - QUALITY_FAILED, CLASSIFICATION_FAILED, EXTRACTION_FAILED, VALIDATION_FAILED\n- `error_message` - human-readable description\n- `context` - JSON string with additional debug info\n\n**Setup:**\n1. Create DataTable `1099-Extraction-Errors` with columns: pageLocation, error_type, error_message, context, timestamp, resolved\n2. Replace `YOUR_ERROR_LOG_TABLE_ID` with actual table ID",
+        "height": 280,
+        "width": 400
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        32,
+        -64
+      ],
+      "typeVersion": 1,
+      "id": "c7f3ba7a-3f76-41b9-b010-e5e41d8e6817",
+      "name": "Instructions"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-30T17:45:18.780Z",
+      "createdAt": "2026-01-30T17:45:18.780Z",
+      "role": "workflow:owner",
+      "workflowId": "prMLV3lD6Au8Le-09olJS",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [
+    {
+      "updatedAt": "2026-01-30T17:45:16.848Z",
+      "createdAt": "2026-01-30T17:45:16.848Z",
+      "id": "zRXoVmwhIgEZQ2QV",
+      "name": "1099-modular"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-31T17:05:23.507Z",
+  "versionId": "18000730-7e96-4983-adfb-5fda2fe612b0"
+}
