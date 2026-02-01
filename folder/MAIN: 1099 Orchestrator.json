@@ -1,0 +1,605 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "PDF Input": {
+      "main": [
+        [
+          {
+            "node": "Store PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store PDF": {
+      "main": [
+        [
+          {
+            "node": "PDF to PNG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDF to PNG": {
+      "main": [
+        [
+          {
+            "node": "Track Pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Track Pages": {
+      "main": [
+        [
+          {
+            "node": "Get PNG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get PNG": {
+      "main": [
+        [
+          {
+            "node": "Prepare for Quality Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare for Quality Gate": {
+      "main": [
+        [
+          {
+            "node": "Quality Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quality Gate": {
+      "main": [
+        [
+          {
+            "node": "Gate Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gate Router": {
+      "main": [
+        [
+          {
+            "node": "Process 1099",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Queue for Review",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process 1099": {
+      "main": [
+        [
+          {
+            "node": "Mark Processed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Queue for Review": {
+      "main": [
+        [
+          {
+            "node": "Mark Processed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Error": {
+      "main": [
+        [
+          {
+            "node": "Mark Processed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-30T17:49:32.863Z",
+  "id": "dHUvUl6TsIRUqHbVaNQ8w",
+  "isArchived": false,
+  "meta": null,
+  "name": "MAIN: 1099 Orchestrator",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Upload 1099 PDF",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "PDF File",
+              "fieldType": "file",
+              "multipleFiles": false,
+              "acceptFileTypes": ".pdf"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        288,
+        400
+      ],
+      "id": "c4d4862d-7a4c-4e3c-a09f-5b61193b4e0f",
+      "name": "PDF Input",
+      "webhookId": "943b61b4-0539-4c2d-8b14-30493f2a61e7"
+    },
+    {
+      "parameters": {
+        "resource": "blob",
+        "operation": "create",
+        "container": {
+          "__rl": true,
+          "value": "n8n",
+          "mode": "list",
+          "cachedResultName": "n8n"
+        },
+        "blobCreate": "=/tax/1099/{{ $json['PDF File'].filename }}",
+        "binaryPropertyName": "PDF File",
+        "options": {},
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-base.azureStorage",
+      "typeVersion": 1,
+      "position": [
+        496,
+        400
+      ],
+      "id": "4805abf6-dff6-49f0-a495-f1e36366edec",
+      "name": "Store PDF"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://jupyter-service/proxy/8000/api/convert-pdf-to-png",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "input_pdf_location",
+              "value": "=/tax/1099/{{ $('PDF Input').item.json['PDF File'].filename }}"
+            },
+            {
+              "name": "container",
+              "value": "n8n"
+            },
+            {
+              "name": "output_folder",
+              "value": "=/docs/{{ $json.contentMd5 }}/pages"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        688,
+        400
+      ],
+      "id": "63113452-0880-4070-8c1c-cc5bd594dfd2",
+      "name": "PDF to PNG"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "YOUR_CONTROL_TABLE_ID",
+          "mode": "id"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "pageLocation",
+              "keyValue": "={{ $json.output_location }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "docId": "={{ $('Store PDF').item.json.contentMd5 }}",
+            "pageId": "={{ $json.metadata.page_number }}",
+            "pageLocation": "={{ $json.output_location }}",
+            "processed": false,
+            "created_at": "={{ new Date().toISOString() }}"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        896,
+        400
+      ],
+      "id": "aae21e12-d82b-4051-9d6d-0179cbdf0602",
+      "name": "Track Pages"
+    },
+    {
+      "parameters": {
+        "resource": "blob",
+        "operation": "get",
+        "container": {
+          "__rl": true,
+          "value": "n8n",
+          "mode": "list",
+          "cachedResultName": "n8n"
+        },
+        "blob": {
+          "__rl": true,
+          "value": "={{ $json.pageLocation }}",
+          "mode": "id"
+        },
+        "options": {},
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-base.azureStorage",
+      "typeVersion": 1,
+      "position": [
+        1088,
+        400
+      ],
+      "id": "d5dcc339-d333-4176-bf5e-0a265e4946a0",
+      "name": "Get PNG"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Package data for Quality Gate\nconst binaryData = $binary?.data;\n\n$json.pageLocation = $('Track Pages').item.json.pageLocation;\n$json.fileSize = binaryData?.fileSize || 0;\n$json.check_data = JSON.stringify({ fileSize: $json.fileSize });\n\nreturn $input.item;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1296,
+        400
+      ],
+      "id": "13bf1292-e929-468a-8429-49fb38f798e5",
+      "name": "Prepare for Quality Gate"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "3d9kHZ4cwCHsAMPI6Rdm1",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/3d9kHZ4cwCHsAMPI6Rdm1",
+          "cachedResultName": "SUB: Quality Gate"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pageLocation": "={{ $json.pageLocation }}",
+            "check_type": "DOCUMENT_QUALITY",
+            "data": "={{ $json.check_data }}"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1488,
+        400
+      ],
+      "id": "2e130ba1-6781-48ad-bb15-ce80fafdebf3",
+      "name": "Quality Gate"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "PASS",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "7757116c-1f9c-4fa2-8e36-96bcf6e59f57"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PASS"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "REVIEW",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "6d7abeee-6b38-446e-80e8-805b9272d970"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "REVIEW"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "FAIL",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "ae3b2356-67d2-4c98-a096-4b1b6d34a013"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "FAIL"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1696,
+        384
+      ],
+      "id": "fdd44475-3950-4803-bfd9-47584114a6f0",
+      "name": "Gate Router"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "1D-pSgYy1kO-eob-jfRet",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/1D-pSgYy1kO-eob-jfRet",
+          "cachedResultName": "SUB: Process 1099"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pageLocation": "={{ $('Prepare for Quality Gate').item.json.pageLocation }}",
+            "binaryData": "={{ $('Get PNG').item.binary.data }}"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1904,
+        208
+      ],
+      "id": "3d974cf5-6696-4451-9b21-0e7507426a0b",
+      "name": "Process 1099"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "jSOo3FrSp8fbZYvCAeTRR",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/jSOo3FrSp8fbZYvCAeTRR",
+          "cachedResultName": "SUB: Queue Review"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pageLocation": "={{ $('Prepare for Quality Gate').item.json.pageLocation }}",
+            "formType": "UNKNOWN",
+            "review_reason": "={{ $json.reason || 'Document quality needs review' }}",
+            "extracted_data": "{}",
+            "confidence_scores": "{}",
+            "source_step": "DOCUMENT_QUALITY"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1904,
+        416
+      ],
+      "id": "c235fb23-a6c5-42f9-bcbe-792401dc608a",
+      "name": "Queue for Review"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "prMLV3lD6Au8Le-09olJS",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/prMLV3lD6Au8Le-09olJS",
+          "cachedResultName": "SUB: Log Error"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pageLocation": "={{ $('Prepare for Quality Gate').item.json.pageLocation }}",
+            "error_type": "QUALITY_CHECK_FAILED",
+            "error_message": "={{ $json.reason || 'Document failed quality check' }}",
+            "context": "={{ JSON.stringify($json.details || {}) }}"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1920,
+        592
+      ],
+      "id": "32cacd06-0807-4d3f-86a7-ca7c13d6de96",
+      "name": "Log Error"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "YOUR_CONTROL_TABLE_ID",
+          "mode": "id"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "pageLocation",
+              "keyValue": "={{ $('Prepare for Quality Gate').item.json.pageLocation }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "processed": true,
+            "processed_at": "={{ new Date().toISOString() }}",
+            "status": "={{ $json.status || 'processed' }}"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        2144,
+        416
+      ],
+      "id": "90e546f9-6eb6-427f-b151-0f05a713e7d7",
+      "name": "Mark Processed"
+    },
+    {
+      "parameters": {
+        "content": "## MAIN: 1099 Orchestrator\n\n**Purpose:** Top-level workflow that coordinates the entire 1099 processing pipeline.\n\n**Flow:**\n1. PDF uploaded via form\n2. Store in Azure Blob\n3. Convert to PNG pages\n4. Track each page in Control Table\n5. For each page:\n   - Quality Gate check\n   - PASS → Process 1099 (classify + extract)\n   - REVIEW → Queue for human review\n   - FAIL → Log error\n6. Mark page as processed\n\n**Setup:**\n1. Replace all `YOUR_*_WORKFLOW_ID` placeholders\n2. Replace `YOUR_*_TABLE_ID` placeholders\n3. Update Azure Storage credentials\n\n**Sub-workflows needed:**\n- SUB: Quality Gate\n- SUB: Process 1099\n- SUB: Queue Review\n- SUB: Log Error\n- SUB: Extract [FormType] (one per form)",
+        "height": 480,
+        "width": 400
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        288,
+        -112
+      ],
+      "typeVersion": 1,
+      "id": "d1f0f819-81be-4c2e-9b6c-031b2715c16d",
+      "name": "Instructions"
+    },
+    {
+      "parameters": {
+        "content": "## DataTables Required\n\n**1099-Control-Table**\n- docId (string)\n- pageId (string)\n- pageLocation (string)\n- processed (boolean)\n- status (string)\n- created_at (string)\n- processed_at (string)\n\n**1099-Review-Queue**\n- pageLocation (string)\n- formType (string)\n- review_reason (string)\n- extracted_data (string/JSON)\n- confidence_scores (string/JSON)\n- source_step (string)\n- review_status (string)\n- created_at (string)\n- reviewed_by (string)\n- corrections_made (string)\n\n**1099-Extraction-Errors**\n- pageLocation (string)\n- error_type (string)\n- error_message (string)\n- context (string/JSON)\n- timestamp (string)\n- resolved (boolean)\n\n**1099-MISC** (and similar for INT, DIV, NEC)\n- pageLocation (string)\n- payer_name (string)\n- payer_address (string)\n- payers_tin (string)\n- recipient_name (string)\n- recipient_tin (string)\n- recipient_address (string)\n- account_number (string)\n- year (string)\n- box_1_rents (string)\n- ... (form-specific fields)\n- extracted_at (string)",
+        "height": 720,
+        "width": 360
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -112,
+        -112
+      ],
+      "typeVersion": 1,
+      "id": "d0c0c0de-9ebb-479b-8133-ddb079d16c5f",
+      "name": "DataTables"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-30T17:49:32.867Z",
+      "createdAt": "2026-01-30T17:49:32.867Z",
+      "role": "workflow:owner",
+      "workflowId": "dHUvUl6TsIRUqHbVaNQ8w",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [
+    {
+      "updatedAt": "2026-01-30T17:45:16.848Z",
+      "createdAt": "2026-01-30T17:45:16.848Z",
+      "id": "zRXoVmwhIgEZQ2QV",
+      "name": "1099-modular"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-31T17:05:01.630Z",
+  "versionId": "520b5905-0537-4005-9016-fb84cc311ebf"
+}
