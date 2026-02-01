@@ -1,0 +1,355 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Receive Alert": {
+      "main": [
+        [
+          {
+            "node": "Normalize Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Data": {
+      "main": [
+        [
+          {
+            "node": "Validate Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Alert": {
+      "main": [
+        [
+          {
+            "node": "AI Analyze Impact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Analyze Impact": {
+      "main": [
+        [
+          {
+            "node": "Combine Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Results": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "createdAt": "2026-01-25T21:35:15.923Z",
+  "id": "eQYU5XCbKHUHiC8cLgDwy",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Combination - Market Alert Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "market-alert",
+        "options": {
+          "responseData": "allEntries"
+        }
+      },
+      "id": "9e97bc1e-a8be-46f0-952c-65d8b429102e",
+      "name": "Receive Alert",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        208,
+        144
+      ],
+      "webhookId": "market-alert-pipeline",
+      "notes": "Receives market alerts from external systems (Bloomberg, trading platforms, etc.)"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "266e58f5-5240-4a8e-b3dd-86e27d43a7fe",
+              "name": "alert_type",
+              "value": "={{ $json.alert_type }}",
+              "type": "string"
+            },
+            {
+              "id": "37edac57-e416-4857-84e6-d00b477fee8b",
+              "name": "company",
+              "value": "={{ $json.company }}",
+              "type": "string"
+            },
+            {
+              "id": "6f2569d6-5c50-4a94-bda7-f4fceb2d7e2e",
+              "name": "headline",
+              "value": "={{ $json.headline }}",
+              "type": "string"
+            },
+            {
+              "id": "46406950-fce9-4831-9244-6ae442a7262d",
+              "name": "details",
+              "value": "={{ $json.details }}",
+              "type": "string"
+            },
+            {
+              "id": "87c4c7a4-8de7-4c58-a356-b727c60d3a54",
+              "name": "source",
+              "value": "={{ $json.source }}",
+              "type": "string"
+            },
+            {
+              "id": "2be4df9d-4146-4ea9-8aca-727110b84a4d",
+              "name": "priority",
+              "value": "={{ $json.priority }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "43afbe91-bbd2-41a8-b5b0-49ea83a83a25",
+      "name": "Normalize Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        400,
+        144
+      ],
+      "notes": "Normalizes different incoming formats into standard structure"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "has-content",
+              "leftValue": "={{ $('Receive Alert').item.json.headline }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "8c34a8fc-37c5-4c60-952e-8230537d58fc",
+      "name": "Validate Alert",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [
+        624,
+        144
+      ],
+      "notes": "Filters out malformed or empty alerts"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4",
+          "mode": "list"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are a credit analyst at Silver Point Capital, a $43B distressed debt hedge fund.\n\nAnalyze market alerts and provide:\n1. **Impact Assessment**: How does this affect credit quality? (High/Medium/Low)\n2. **Portfolio Relevance**: Is this relevant to distressed debt investors?\n3. **Key Takeaway**: One sentence summary of what matters\n4. **Recommended Action**: What should the team do? (Monitor/Review/Urgent Action)\n\nBe concise and actionable. Focus on credit implications."
+            },
+            {
+              "content": "=Analyze this market alert:\n\n**Type:** {{ $json.alert_type }}\n**Company:** {{ $json.company }}\n**Headline:** {{ $json.headline }}\n**Details:** {{ $json.details }}\n**Source:** {{ $json.source }}"
+            }
+          ]
+        },
+        "options": {
+          "maxTokens": 500,
+          "temperature": 0.2
+        }
+      },
+      "id": "42b534e2-e59f-4ea8-b811-dcc1cd930685",
+      "name": "AI Analyze Impact",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.1,
+      "position": [
+        848,
+        144
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "6sKwLZ4CBgrhQ8HO",
+          "name": "Hostinger n8n"
+        }
+      },
+      "notes": "Uses AI to assess portfolio impact of the alert"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9204eb18-72c2-45f4-8887-9e0affa2e368",
+              "name": "message.content",
+              "value": "={{ $json.message.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "19962709-d370-44d8-ab20-627de7d499fc",
+      "name": "Combine Results",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1152,
+        144
+      ],
+      "notes": "Combines original alert with AI analysis"
+    },
+    {
+      "parameters": {
+        "content": "## Market Alert Pipeline\n\n**Combination:** Webhook → Transform → AI → Slack + Sheets\n\n**What it does:**\n1. Receives alerts via webhook (POST)\n2. Normalizes various payload formats\n3. Validates alert has required data\n4. AI analyzes portfolio impact\n5. Sends enriched alert to Slack\n6. Logs everything to Google Sheets\n\n**Your Webhook URL:**\n`https://your-n8n.com/webhook/market-alert`\n\n**Expected Payload:**\n```json\n{\n  \"alert_type\": \"credit_downgrade\",\n  \"company\": \"Acme Corp\",\n  \"headline\": \"S&P downgrades...\",\n  \"details\": \"...\",\n  \"source\": \"Bloomberg\",\n  \"priority\": \"high\"\n}\n```\n\n**Requirements:**\n- OpenAI API credentials\n- Slack OAuth credentials  \n- Google Sheets OAuth credentials\n- Sheet: Timestamp, Type, Company, Headline, Source, Priority, Analysis",
+        "height": 540,
+        "width": 400
+      },
+      "id": "427b5781-daf7-46ec-96bc-069a823a7b6d",
+      "name": "Documentation",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "channelMessage",
+        "teamId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "channelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "message": "=📊 *Market Alert: {{ $json.alert_type.toUpperCase() }}*\n\n*Company:* {{ $json.company }}\n*Headline:* {{ $json.headline }}\n*Source:* {{ $json.source }}\n*Priority:* {{ $json.priority }}\n\n---\n\n*🤖 AI Analysis:*\n{{ $json.ai_analysis }}\n\n_Received: {{ $json.received_at }}_",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.microsoftTeams",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        -48
+      ],
+      "id": "91909252-bb49-4e19-a6aa-06fa968179db",
+      "name": "Alert Team",
+      "webhookId": "cada3086-5a58-4a4a-8011-a46f324f846d"
+    },
+    {
+      "parameters": {
+        "resource": "table",
+        "workbook": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "worksheet": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "table": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.microsoftExcel",
+      "typeVersion": 2.2,
+      "position": [
+        1360,
+        240
+      ],
+      "id": "cea9c04e-f3fd-437a-b886-937914427dd0",
+      "name": "Append rows to table"
+    }
+  ],
+  "pinData": {
+    "Receive Alert": [
+      {
+        "json": {
+          "alert_type": "credit_downgrade",
+          "company": "Acme Corp",
+          "headline": "S&P downgrades...",
+          "details": "...",
+          "source": "Bloomberg",
+          "priority": "high"
+        }
+      }
+    ]
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-25T21:35:15.926Z",
+      "createdAt": "2026-01-25T21:35:15.926Z",
+      "role": "workflow:owner",
+      "workflowId": "eQYU5XCbKHUHiC8cLgDwy",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [
+    {
+      "updatedAt": "2025-12-29T20:41:42.665Z",
+      "createdAt": "2025-12-29T20:41:42.665Z",
+      "id": "9UD9jscTxK5UqGCn",
+      "name": "AI"
+    },
+    {
+      "updatedAt": "2026-01-25T21:32:36.683Z",
+      "createdAt": "2026-01-25T21:32:36.683Z",
+      "id": "QHOc3tThVGSKBhRs",
+      "name": "Combination"
+    },
+    {
+      "updatedAt": "2026-01-25T21:34:00.412Z",
+      "createdAt": "2026-01-25T21:34:00.412Z",
+      "id": "oNEkH1dfHcBVXuMu",
+      "name": "Webhook"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-31T17:04:26.687Z",
+  "versionId": "f39d72d8-ed48-43b7-b6c5-0702a69b78f4"
+}
