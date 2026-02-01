@@ -1,0 +1,424 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Filter Broker Emails": {
+      "main": [
+        [
+          {
+            "node": "Parse Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Email": {
+      "main": [
+        [
+          {
+            "node": "AI Summarize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Summarize": {
+      "main": [
+        [
+          {
+            "node": "Format Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Output": {
+      "main": [
+        [
+          {
+            "node": "Log to Research Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Filter Broker Emails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-25T21:28:27.858Z",
+  "id": "OVQjPGUf2HCv0_aHstb4p",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Combination - Email to Summary",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "from-broker",
+              "leftValue": "={{ $json.From }}",
+              "rightValue": "research@",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "38ff6187-4049-4b94-9527-829c09ccc0d8",
+      "name": "Filter Broker Emails",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [
+        2112,
+        352
+      ],
+      "notes": "Only process emails from research/broker addresses"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b942b939-3a04-4d9a-9eb0-40b4e719b7fb",
+              "name": "snippet",
+              "value": "={{ $json.snippet }}",
+              "type": "string"
+            },
+            {
+              "id": "2f246f01-5ee3-46f0-87c3-a6072c304a5a",
+              "name": "From",
+              "value": "={{ $json.From }}",
+              "type": "string"
+            },
+            {
+              "id": "9e098988-1786-43d6-9cfc-60bebc12f6ac",
+              "name": "Subject",
+              "value": "={{ $json.Subject }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f061039c-bd1b-46b2-a220-000daac2109c",
+      "name": "Parse Email",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2336,
+        352
+      ],
+      "notes": "Extracts and normalizes email fields"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4",
+          "mode": "list"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are a senior credit analyst at Silver Point Capital, a distressed debt hedge fund with $43B AUM. You specialize in analyzing leveraged companies and identifying credit risks.\n\nExtract and summarize broker research in a structured format focusing on:\n- Investment recommendation (buy/sell/hold)\n- Target companies mentioned\n- Key credit metrics cited\n- Risk factors identified\n- Notable price targets or valuations\n\nBe concise but capture all actionable insights."
+            },
+            {
+              "content": "=Analyze this broker research email and provide a structured summary JSON Output as follows:\n\n**Subject:** {{ $json.Subject }}\n**From:** {{ $json.From }}\n**Date:** {{ $today }}\n\n**Content:**\n{{ $json.snippet }}"
+            }
+          ]
+        },
+        "options": {
+          "maxTokens": 1500,
+          "temperature": 0.3
+        }
+      },
+      "id": "c9ed0b6a-d2ec-43a9-b1c4-1d8854013304",
+      "name": "AI Summarize",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.1,
+      "position": [
+        2512,
+        352
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "6sKwLZ4CBgrhQ8HO",
+          "name": "Hostinger n8n"
+        }
+      },
+      "notes": "Uses GPT-4 to extract key insights from broker research"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d941fb6e-6fbf-471c-ac50-96cfdbc58289",
+              "name": "message.content",
+              "value": "={{ $json.message.content }}",
+              "type": "string"
+            },
+            {
+              "id": "41ab0ae0-8680-4a7d-b780-533db807013f",
+              "name": "From",
+              "value": "={{ $('Parse Email').item.json.From }}",
+              "type": "string"
+            },
+            {
+              "id": "9fc77a31-e220-4e23-84ad-bca8bbece5b2",
+              "name": "Subject",
+              "value": "={{ $('Parse Email').item.json.Subject }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "90484b8a-c055-4be2-90d1-1f14466871da",
+      "name": "Format Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2864,
+        352
+      ],
+      "notes": "Combines AI summary with email metadata"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1_nRdR2_cNpeW5Tk8ycOCzfDM_8Xv0MwBlTkTXLxLG8g",
+          "mode": "list",
+          "cachedResultName": "Broker Summary",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1_nRdR2_cNpeW5Tk8ycOCzfDM_8Xv0MwBlTkTXLxLG8g/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1_nRdR2_cNpeW5Tk8ycOCzfDM_8Xv0MwBlTkTXLxLG8g/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $today }}",
+            "Subject": "={{ $json.Subject }}",
+            "From": "={{ $json.From }}",
+            "Summary": "={{ $json.message.content }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "From",
+              "displayName": "From",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Subject",
+              "displayName": "Subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "12578abc-ef13-42b5-9217-3b3eb05e4695",
+      "name": "Log to Research Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [
+        3056,
+        352
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "eOPhFUrfwo2AgnTD",
+          "name": "NWA Boost:Google Sheets"
+        }
+      },
+      "notes": "Logs summarized research to shared Google Sheet"
+    },
+    {
+      "parameters": {
+        "content": "## Email to Summary Pipeline\n\n**Combination:** Email Trigger → Filter → AI Summarizer → Sheets\n\n**What it does:**\n1. Monitors inbox every 5 minutes\n2. Filters for broker research emails\n3. Extracts email content\n4. AI summarizes key investment insights\n5. Logs summaries to shared Google Sheet\n\n**Customize:**\n- Adjust email filter patterns\n- Modify AI prompt for your needs\n- Add Slack notification for high-priority research\n- Process PDF attachments\n\n**Requirements:**\n- GMAIL email credentials\n- OpenAI API credentials\n- Google Sheets OAuth credentials\n- Sheet headers: Processed, Broker, Subject, Date, Summary\n\n",
+        "height": 584,
+        "width": 380
+      },
+      "id": "7c25b8f5-a640-48f5-b58f-f14ea3c98b05",
+      "name": "Documentation",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1472,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        1888,
+        352
+      ],
+      "id": "be64cd95-ac40-4513-91b6-947b8e9f1acb",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "dmIKVw4RuLHhcC3Y",
+          "name": "Nwa Boost:Gmail"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Gmail Trigger": [
+      {
+        "json": {
+          "id": "19c05e250f7e6db9",
+          "threadId": "19c05e250f7e6db9",
+          "snippet": "As of late January 2026, Apple Inc. (AAPL) is trading near record highs, with a market capitalization around $3 trillion, driven by strong iPhone 17 sales and optimism surrounding AI initiatives ahead of its Q1 2026 earnings report. Analysts expect revenue to exceed $138 billion for the quarter, bolstered by significant year-over-year growth in iPhone and services revenues. Key Financial and Market News (January 2026): Earnings Outlook: For Q1 2026, analysts anticipate earnings per share (EPS) of $2.68 on revenue of $138.4 billion, reflecting strong year-over-year growth from 2025. iPhone 17 Demand: Sales of the iPhone 17 series are strong, driving top-line growth, with forecasts suggesting increased iPhone revenue. AI Strategy: Investor sentiment is positive due to AI partnerships and advancements, including integration with Google's Gemini. Stock Performance: Shares are trading near the 52-week high, with a 50-day moving average of $269.07. Investor Sentiment: Analysts remain optimistic despite valuation concerns, with price targets raised as high as $315 by firms such as JPMorgan. Corporate Actions: Apple will host its 2026 Annual Meeting of Shareholders on February 24, 2026. Potential Risks: Production constraints related to memory shortages and ongoing legal challenges, including competition-related concerns and a lawsuit filed by xAI, could impact AI market positioning.",
+          "payload": {
+            "mimeType": "multipart/related"
+          },
+          "sizeEstimate": 13699,
+          "historyId": "5601983",
+          "internalDate": "1769625205000",
+          "labels": [
+            {
+              "id": "INBOX",
+              "name": "INBOX"
+            },
+            {
+              "id": "CATEGORY_PERSONAL",
+              "name": "CATEGORY_PERSONAL"
+            },
+            {
+              "id": "UNREAD",
+              "name": "UNREAD"
+            }
+          ],
+          "From": "Jim Brown <research@gmail.com>",
+          "Subject": "This is a research email",
+          "To": "Jim Brown <jim@nwaboost.com>"
+        }
+      }
+    ]
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-25T21:28:27.863Z",
+      "createdAt": "2026-01-25T21:28:27.863Z",
+      "role": "workflow:owner",
+      "workflowId": "OVQjPGUf2HCv0_aHstb4p",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [
+    {
+      "updatedAt": "2025-12-29T20:41:42.665Z",
+      "createdAt": "2025-12-29T20:41:42.665Z",
+      "id": "9UD9jscTxK5UqGCn",
+      "name": "AI"
+    },
+    {
+      "updatedAt": "2026-01-25T21:28:10.765Z",
+      "createdAt": "2026-01-25T21:28:10.765Z",
+      "id": "A94OX8SYnVBWuqpk",
+      "name": "Trigger"
+    },
+    {
+      "updatedAt": "2026-01-25T21:29:01.351Z",
+      "createdAt": "2026-01-25T21:29:01.351Z",
+      "id": "KflxKe9twr8ITJBr",
+      "name": "Data Source"
+    },
+    {
+      "updatedAt": "2026-01-25T21:32:36.683Z",
+      "createdAt": "2026-01-25T21:32:36.683Z",
+      "id": "QHOc3tThVGSKBhRs",
+      "name": "Combination"
+    },
+    {
+      "updatedAt": "2026-01-25T21:28:10.757Z",
+      "createdAt": "2026-01-25T21:28:10.757Z",
+      "id": "xWocBvW7RDudkZIr",
+      "name": "Module"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-31T17:04:24.967Z",
+  "versionId": "18d54ec8-47fd-42ba-a62d-5f358debec9a"
+}
