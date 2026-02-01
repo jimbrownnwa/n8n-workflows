@@ -1,0 +1,1803 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Store": {
+      "main": [
+        [
+          {
+            "node": "PDF to PNG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDF to PNG": {
+      "main": [
+        [
+          {
+            "node": "Upsert row(s) - data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDF Input": {
+      "main": [
+        [
+          {
+            "node": "Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI 1099 Reader": {
+      "main": [
+        [
+          {
+            "node": "Get PNG from Storage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get PNG from Storage": {
+      "main": [
+        [
+          {
+            "node": "Document Quality Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Document Quality Check": {
+      "main": [
+        [
+          {
+            "node": "Quality Check Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quality Check Router": {
+      "main": [
+        [
+          {
+            "node": "Classify Pages to Form Types",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Prepare Quality Error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Upsert - Review Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Quality Error": {
+      "main": [
+        [
+          {
+            "node": "Log Error - Quality/Classification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classify Pages to Form Types": {
+      "main": [
+        [
+          {
+            "node": "Classification Confidence Router",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Classification Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT-5-MINI": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Classify Pages to Form Types",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser - Classification": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Classify Pages to Form Types",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classification Confidence Router": {
+      "main": [
+        [
+          {
+            "node": "Prepare Classification Error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Classification Error": {
+      "main": [
+        [
+          {
+            "node": "Log Error - Classification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Error - Classification": {
+      "main": [
+        [
+          {
+            "node": "Upsert - Review Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Track Start Time Before LLM Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Track Start Time Before LLM Call": {
+      "main": [
+        [
+          {
+            "node": "Form Type Sort",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Form Type Sort": {
+      "main": [
+        [
+          {
+            "node": "Calculate LLM Runtime",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "1099-MISC Data Extraction",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "1099-INT Data Extraction",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "1099-DIV Data Extraction",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "1099-NEC Data Extraction",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Calculate LLM Runtime",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Calculate LLM Runtime",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Calculate LLM Runtime",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT-5 Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "1099-MISC Data Extraction",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "1099-INT Data Extraction",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "1099-DIV Data Extraction",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "1099-NEC Data Extraction",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser - 1099-MISC": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "1099-MISC Data Extraction",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser - 1099-INT": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "1099-INT Data Extraction",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser - 1099-DIV": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "1099-DIV Data Extraction",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser - 1099-NEC": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "1099-NEC Data Extraction",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1099-MISC Data Extraction": {
+      "main": [
+        [
+          {
+            "node": "Validate Extracted Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Upsert - Review Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1099-INT Data Extraction": {
+      "main": [
+        [
+          {
+            "node": "Validate Extracted Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Upsert - Review Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1099-DIV Data Extraction": {
+      "main": [
+        [
+          {
+            "node": "Validate Extracted Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Upsert - Review Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1099-NEC Data Extraction": {
+      "main": [
+        [
+          {
+            "node": "Validate Extracted Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Upsert - Review Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Extracted Data": {
+      "main": [
+        [
+          {
+            "node": "Validation Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validation Router": {
+      "main": [
+        [
+          {
+            "node": "Calculate LLM Runtime",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Upsert - Review Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-30T17:22:32.442Z",
+  "id": "4mn5PvhgrQRpme7oOzprM",
+  "isArchived": false,
+  "meta": null,
+  "name": "1099 PDF to Excel Workflow - Enhanced Error Handling",
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "blob",
+        "operation": "create",
+        "container": {
+          "__rl": true,
+          "value": "n8n",
+          "mode": "list",
+          "cachedResultName": "n8n"
+        },
+        "blobCreate": "=/tax/1099/{{ $json.test.filename }}",
+        "binaryPropertyName": "test",
+        "options": {},
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-base.azureStorage",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        -1296
+      ],
+      "id": "571536e4-9b3d-4574-a2d2-dd0c7e1a4f04",
+      "name": "Store"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://jupyter-service/proxy/8000/api/convert-pdf-to-png",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "input_pdf_location",
+              "value": "=/tax/1099/{{ $('PDF Input').item.json.test.filename }}"
+            },
+            {
+              "name": "container",
+              "value": "n8n"
+            },
+            {
+              "name": "output_folder",
+              "value": "=/docs/{{ $json.contentMd5 }}/pages"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -144,
+        -1296
+      ],
+      "id": "81178977-5997-4834-be63-89e6846a17a8",
+      "name": "PDF to PNG"
+    },
+    {
+      "parameters": {
+        "resource": "blob",
+        "operation": "get",
+        "container": {
+          "__rl": true,
+          "value": "n8n",
+          "mode": "list",
+          "cachedResultName": "n8n"
+        },
+        "blob": {
+          "__rl": true,
+          "value": "={{ $json.pageLocation }}",
+          "mode": "id"
+        },
+        "options": {},
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-base.azureStorage",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        832
+      ],
+      "id": "25a6c253-06bf-4d9a-9a25-14e993411ee7",
+      "name": "Get PNG from Storage"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Document Quality Pre-Check\n// Catches blank, corrupt, or suspicious files before wasting API calls\n\nconst binaryData = $binary?.data;\nconst fileSize = binaryData?.fileSize || 0;\n\nconst qualityCheck = {\n  file_size_bytes: fileSize,\n  file_size_kb: Math.round(fileSize / 1024),\n  status: 'OK',\n  reason: null\n};\n\n// Too small - likely blank or corrupt\nif (fileSize < 10000) {\n  qualityCheck.status = 'SKIP';\n  qualityCheck.reason = 'File suspiciously small (< 10KB) - likely blank or corrupt';\n}\n\n// Too large - may have scanning artifacts or issues\nif (fileSize > 50000000) {\n  qualityCheck.status = 'REVIEW';\n  qualityCheck.reason = 'File unusually large (> 50MB) - may have scanning artifacts';\n}\n\n$json.quality_check = qualityCheck;\n\nreturn $input.item;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -144,
+        832
+      ],
+      "id": "e7da0e4b-2603-42c3-9337-e4df329bbf75",
+      "name": "Document Quality Check"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.quality_check.status }}",
+                    "rightValue": "OK",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "3ca2ea98-6f25-448b-b1c8-81dbece945c8"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "OK - Process"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.quality_check.status }}",
+                    "rightValue": "SKIP",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "028d201d-4ca4-49d3-9e76-236afc1e193a"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "SKIP - Log Error"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.quality_check.status }}",
+                    "rightValue": "REVIEW",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "bb5546dc-05c9-464e-af60-ef7dc34cd8af"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "REVIEW - Queue"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        80,
+        816
+      ],
+      "id": "740fc09f-7727-4d50-b765-249ecc2a6584",
+      "name": "Quality Check Router"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"doc_type\": \"1099-MISC\",\n\t\"classification_confidence\": \"HIGH\",\n\t\"visible_form_number\": \"1099-MISC\",\n\t\"tax_year_visible\": \"2024\",\n\t\"document_quality_notes\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        432,
+        -752
+      ],
+      "id": "f90f2d87-bfe5-4c05-bd1c-2ac959197ade",
+      "name": "Structured Output Parser - Classification"
+    },
+    {
+      "parameters": {
+        "model": "gpt-5-mini",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        304,
+        -752
+      ],
+      "id": "dd440df3-df41-43c0-b227-b8605cbea1f6",
+      "name": "GPT-5-MINI"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Classify this image into exactly one of the following form types:\n\n1099-MISC\n1099-DIV\n1099-INT\n1099-B\n1099-NEC\n1099-OID\n1099-R\nNOT_1099\n\nRules:\n- Only proper tax forms with boxes count as 1099s\n- Cover pages, instruction pages, and supplementary materials are NOT_1099\n- Look for the form type indicator printed on the document\n\nFor your response:\n1. Provide the doc_type classification\n2. Rate your classification_confidence as HIGH, MEDIUM, or LOW:\n   - HIGH: Form type is clearly visible and unambiguous\n   - MEDIUM: Form type is visible but partially obscured or slightly unclear\n   - LOW: Form type is difficult to read, document is damaged, or you are uncertain\n3. Report the visible_form_number exactly as printed on the document\n4. Report the tax_year_visible if you can see it\n5. Add document_quality_notes if the document appears wrinkled, folded, damaged, or has any quality issues\n\nIf you cannot clearly identify the form type, classify as NOT_1099 with LOW confidence and explain in document_quality_notes.",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "type": "HumanMessagePromptTemplate",
+              "messageType": "imageBinary"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        304,
+        -976
+      ],
+      "id": "b8cc7e5f-1f8f-412c-b64e-67f197fee007",
+      "name": "Classify Pages to Form Types",
+      "alwaysOutputData": false,
+      "retryOnFail": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.classification_confidence }}",
+                    "rightValue": "LOW",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "LOW Confidence - Review"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.classification_confidence }}",
+                    "rightValue": "LOW",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEquals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "OK - Continue"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        656,
+        -1008
+      ],
+      "id": "19fb35a2-a83e-4c89-b2cb-0e703075291b",
+      "name": "Classification Confidence Router"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        880,
+        -160
+      ],
+      "id": "e799782e-c209-47e1-9561-fbeb26bc1192",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Track start time for LLM performance monitoring\n$input.item.json.startTime = Date.now();\n\nreturn $input.item;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        -160
+      ],
+      "id": "9b01632c-89a9-48fa-b06c-2165e3366668",
+      "name": "Track Start Time Before LLM Call"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.doc_type }}",
+                    "rightValue": "NOT_1099",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "NOT 1099's"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.doc_type }}",
+                    "rightValue": "1099-MISC",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "1099-MISC"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.doc_type }}",
+                    "rightValue": "1099-INT",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "1099-INT"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.doc_type }}",
+                    "rightValue": "1099-DIV",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "1099-DIV"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.doc_type }}",
+                    "rightValue": "1099-NEC",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "1099-NEC"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.doc_type }}",
+                    "rightValue": "1099-B",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "1099-B"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.doc_type }}",
+                    "rightValue": "1099-OID",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "1099-OID"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.doc_type }}",
+                    "rightValue": "1099-R",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "1099-R"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1328,
+        -256
+      ],
+      "id": "9674c5c7-ccd3-44af-8aa1-01d7e76f9786",
+      "name": "Form Type Sort"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "You are an expert Tax Form Reader. You will be presented with a 1099-MISC form.\n\nYour job is to extract all data points as accurately as possible. For EACH field:\n\n1. Extract the value exactly as shown on the form\n2. Rate your confidence for that field: HIGH, MEDIUM, LOW, or UNREADABLE\n3. If ANY part of a field appears damaged, folded, smudged, or partially obscured, mark it LOW or UNREADABLE\n\nIMPORTANT RULES:\n- Double-check all numbers - do not mistake $ for a digit\n- If you cannot clearly read a value, mark it UNREADABLE rather than guessing\n- I would rather have you say \"I can't read this\" than give me a wrong number\n- Report any document quality issues (wrinkles, folds, smudges, misalignment)\n\nSet requires_human_review to true if:\n- Any field has LOW or UNREADABLE confidence\n- The form appears wrinkled, folded, or damaged\n- Any numbers are ambiguous (1 vs 7, 0 vs O, 5 vs S)\n- You are guessing based on context rather than clearly reading",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "type": "HumanMessagePromptTemplate",
+              "messageType": "imageBinary",
+              "binaryImageDataKey": "=data"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        1552,
+        -704
+      ],
+      "id": "7e2614e6-a519-4188-bec1-26e06a8bf802",
+      "name": "1099-MISC Data Extraction",
+      "retryOnFail": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "You are an expert Tax Form Reader. You will be presented with a 1099-INT form.\n\nYour job is to extract all data points as accurately as possible. For EACH field:\n\n1. Extract the value exactly as shown on the form\n2. Rate your confidence for that field: HIGH, MEDIUM, LOW, or UNREADABLE\n3. If ANY part of a field appears damaged, folded, smudged, or partially obscured, mark it LOW or UNREADABLE\n\nIMPORTANT RULES:\n- Double-check all numbers - do not mistake $ for a digit\n- If you cannot clearly read a value, mark it UNREADABLE rather than guessing\n- I would rather have you say \"I can't read this\" than give me a wrong number\n- Report any document quality issues (wrinkles, folds, smudges, misalignment)\n\nSet requires_human_review to true if:\n- Any field has LOW or UNREADABLE confidence\n- The form appears wrinkled, folded, or damaged\n- Any numbers are ambiguous (1 vs 7, 0 vs O, 5 vs S)\n- You are guessing based on context rather than clearly reading",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "type": "HumanMessagePromptTemplate",
+              "messageType": "imageBinary",
+              "binaryImageDataKey": "=data"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        1552,
+        -240
+      ],
+      "id": "7fae7616-1f4a-49e3-82b1-da510cafe93f",
+      "name": "1099-INT Data Extraction",
+      "retryOnFail": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "You are an expert Tax Form Reader. You will be presented with a 1099-DIV form.\n\nYour job is to extract all data points as accurately as possible. For EACH field:\n\n1. Extract the value exactly as shown on the form\n2. Rate your confidence for that field: HIGH, MEDIUM, LOW, or UNREADABLE\n3. If ANY part of a field appears damaged, folded, smudged, or partially obscured, mark it LOW or UNREADABLE\n\nIMPORTANT RULES:\n- Double-check all numbers - do not mistake $ for a digit\n- If you cannot clearly read a value, mark it UNREADABLE rather than guessing\n- I would rather have you say \"I can't read this\" than give me a wrong number\n- Report any document quality issues (wrinkles, folds, smudges, misalignment)\n\nSet requires_human_review to true if:\n- Any field has LOW or UNREADABLE confidence\n- The form appears wrinkled, folded, or damaged\n- Any numbers are ambiguous (1 vs 7, 0 vs O, 5 vs S)\n- You are guessing based on context rather than clearly reading",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "type": "HumanMessagePromptTemplate",
+              "messageType": "imageBinary",
+              "binaryImageDataKey": "=data"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        1552,
+        160
+      ],
+      "id": "b51f9702-a34f-4c7f-9e3a-4ee6771ca34c",
+      "name": "1099-DIV Data Extraction",
+      "retryOnFail": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "You are an expert Tax Form Reader. You will be presented with a 1099-NEC form.\n\nYour job is to extract all data points as accurately as possible. For EACH field:\n\n1. Extract the value exactly as shown on the form\n2. Rate your confidence for that field: HIGH, MEDIUM, LOW, or UNREADABLE\n3. If ANY part of a field appears damaged, folded, smudged, or partially obscured, mark it LOW or UNREADABLE\n\nIMPORTANT RULES:\n- Double-check all numbers - do not mistake $ for a digit\n- If you cannot clearly read a value, mark it UNREADABLE rather than guessing\n- I would rather have you say \"I can't read this\" than give me a wrong number\n- Report any document quality issues (wrinkles, folds, smudges, misalignment)\n\nSet requires_human_review to true if:\n- Any field has LOW or UNREADABLE confidence\n- The form appears wrinkled, folded, or damaged\n- Any numbers are ambiguous (1 vs 7, 0 vs O, 5 vs S)\n- You are guessing based on context rather than clearly reading",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "type": "HumanMessagePromptTemplate",
+              "messageType": "imageBinary",
+              "binaryImageDataKey": "=data"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        1552,
+        656
+      ],
+      "id": "677ac12b-fa75-46d1-8838-c7c7d4a02c42",
+      "name": "1099-NEC Data Extraction",
+      "retryOnFail": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n    \"payer_name\": \"ABC Company Inc\",\n    \"payer_name_confidence\": \"HIGH\",\n    \"payer_address\": \"123 Main St, City, ST 12345\",\n    \"payer_address_confidence\": \"HIGH\",\n    \"payers_tin\": \"12-3456789\",\n    \"payers_tin_confidence\": \"HIGH\",\n    \"recipient_name\": \"John Doe\",\n    \"recipient_name_confidence\": \"HIGH\",\n    \"recipient_tin\": \"123-45-6789\",\n    \"recipient_tin_confidence\": \"HIGH\",\n    \"recipient_address\": \"456 Oak Ave, Town, ST 67890\",\n    \"recipient_address_confidence\": \"HIGH\",\n    \"account_number\": \"ABC123\",\n    \"account_number_confidence\": \"HIGH\",\n    \"year\": \"2024\",\n    \"box_1_rents\": \"1234.56\",\n    \"box_1_rents_confidence\": \"HIGH\",\n    \"box_2_royalties\": \"\",\n    \"box_2_royalties_confidence\": \"HIGH\",\n    \"box_3_other_income\": \"\",\n    \"box_3_other_income_confidence\": \"HIGH\",\n    \"box_4_federal_income_tax_withheld\": \"\",\n    \"box_4_federal_income_tax_withheld_confidence\": \"HIGH\",\n    \"box_16_state_tax_withheld\": \"\",\n    \"box_16_state_tax_withheld_confidence\": \"HIGH\",\n    \"box_18_state_income\": \"\",\n    \"box_18_state_income_confidence\": \"HIGH\",\n    \"document_quality_notes\": \"\",\n    \"extraction_warnings\": [],\n    \"requires_human_review\": false\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1680,
+        -480
+      ],
+      "id": "d8beedf2-7ee7-463b-a94a-2d1fb70aefbe",
+      "name": "Structured Output Parser - 1099-MISC"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n    \"payer_name\": \"ABC Bank\",\n    \"payer_name_confidence\": \"HIGH\",\n    \"payer_address\": \"123 Main St, City, ST 12345\",\n    \"payer_address_confidence\": \"HIGH\",\n    \"payers_tin\": \"12-3456789\",\n    \"payers_tin_confidence\": \"HIGH\",\n    \"recipient_name\": \"John Doe\",\n    \"recipient_name_confidence\": \"HIGH\",\n    \"recipient_tin\": \"123-45-6789\",\n    \"recipient_tin_confidence\": \"HIGH\",\n    \"recipient_address\": \"456 Oak Ave, Town, ST 67890\",\n    \"recipient_address_confidence\": \"HIGH\",\n    \"account_number\": \"ABC123\",\n    \"account_number_confidence\": \"HIGH\",\n    \"year\": \"2024\",\n    \"box_1_interest_income\": \"1234.56\",\n    \"box_1_interest_income_confidence\": \"HIGH\",\n    \"box_2_early_withdrawal_penalty\": \"\",\n    \"box_2_early_withdrawal_penalty_confidence\": \"HIGH\",\n    \"box_3_interest_on_us_savings_bonds\": \"\",\n    \"box_3_interest_on_us_savings_bonds_confidence\": \"HIGH\",\n    \"box_4_federal_income_tax_withheld\": \"\",\n    \"box_4_federal_income_tax_withheld_confidence\": \"HIGH\",\n    \"box_6_foreign_tax_paid\": \"\",\n    \"box_6_foreign_tax_paid_confidence\": \"HIGH\",\n    \"box_8_tax_exempt_interest\": \"\",\n    \"box_8_tax_exempt_interest_confidence\": \"HIGH\",\n    \"box_10_market_discount\": \"\",\n    \"box_10_market_discount_confidence\": \"HIGH\",\n    \"box_11_bond_premium\": \"\",\n    \"box_11_bond_premium_confidence\": \"HIGH\",\n    \"box_15_state\": \"\",\n    \"box_15_state_confidence\": \"HIGH\",\n    \"box_16_state_id_no\": \"\",\n    \"box_16_state_id_no_confidence\": \"HIGH\",\n    \"box_17_state_tax_withheld\": \"\",\n    \"box_17_state_tax_withheld_confidence\": \"HIGH\",\n    \"document_quality_notes\": \"\",\n    \"extraction_warnings\": [],\n    \"requires_human_review\": false\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1616,
+        -16
+      ],
+      "id": "18708a04-1301-4a10-96ab-ac5c0ef2b326",
+      "name": "Structured Output Parser - 1099-INT"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n    \"payer_name\": \"ABC Investments\",\n    \"payer_name_confidence\": \"HIGH\",\n    \"payer_address\": \"123 Main St, City, ST 12345\",\n    \"payer_address_confidence\": \"HIGH\",\n    \"payers_tin\": \"12-3456789\",\n    \"payers_tin_confidence\": \"HIGH\",\n    \"recipient_name\": \"John Doe\",\n    \"recipient_name_confidence\": \"HIGH\",\n    \"recipient_tin\": \"123-45-6789\",\n    \"recipient_tin_confidence\": \"HIGH\",\n    \"recipient_address\": \"456 Oak Ave, Town, ST 67890\",\n    \"recipient_address_confidence\": \"HIGH\",\n    \"account_number\": \"ABC123\",\n    \"account_number_confidence\": \"HIGH\",\n    \"year\": \"2024\",\n    \"box_1a_total_ordinary_dividends\": \"1234.56\",\n    \"box_1a_total_ordinary_dividends_confidence\": \"HIGH\",\n    \"box_1b_qualified_dividends\": \"\",\n    \"box_1b_qualified_dividends_confidence\": \"HIGH\",\n    \"box_2a_total_capital_gain_distribution\": \"\",\n    \"box_2a_total_capital_gain_distribution_confidence\": \"HIGH\",\n    \"box_3_nondividend_distributions\": \"\",\n    \"box_3_nondividend_distributions_confidence\": \"HIGH\",\n    \"box_4_federal_income_tax_withheld\": \"\",\n    \"box_4_federal_income_tax_withheld_confidence\": \"HIGH\",\n    \"box_14_state\": \"\",\n    \"box_14_state_confidence\": \"HIGH\",\n    \"box_15_state_id_no\": \"\",\n    \"box_15_state_id_no_confidence\": \"HIGH\",\n    \"box_16_state_tax_withheld\": \"\",\n    \"box_16_state_tax_withheld_confidence\": \"HIGH\",\n    \"document_quality_notes\": \"\",\n    \"extraction_warnings\": [],\n    \"requires_human_review\": false\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1616,
+        384
+      ],
+      "id": "94b860a3-3f4b-4f2f-b451-55bc2aa2660f",
+      "name": "Structured Output Parser - 1099-DIV"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n    \"payer_name\": \"ABC Company\",\n    \"payer_name_confidence\": \"HIGH\",\n    \"payer_address\": \"123 Main St, City, ST 12345\",\n    \"payer_address_confidence\": \"HIGH\",\n    \"payers_tin\": \"12-3456789\",\n    \"payers_tin_confidence\": \"HIGH\",\n    \"recipient_name\": \"John Doe\",\n    \"recipient_name_confidence\": \"HIGH\",\n    \"recipient_tin\": \"123-45-6789\",\n    \"recipient_tin_confidence\": \"HIGH\",\n    \"recipient_address\": \"456 Oak Ave, Town, ST 67890\",\n    \"recipient_address_confidence\": \"HIGH\",\n    \"account_number\": \"ABC123\",\n    \"account_number_confidence\": \"HIGH\",\n    \"year\": \"2024\",\n    \"box_1_nonemployee_compensation\": \"5000.00\",\n    \"box_1_nonemployee_compensation_confidence\": \"HIGH\",\n    \"box_2_payer_made_direct_sales\": \"unchecked\",\n    \"box_2_payer_made_direct_sales_confidence\": \"HIGH\",\n    \"box_4_federal_income_tax_withheld\": \"\",\n    \"box_4_federal_income_tax_withheld_confidence\": \"HIGH\",\n    \"box_5_state_tax_withheld\": \"\",\n    \"box_5_state_tax_withheld_confidence\": \"HIGH\",\n    \"box_6_state_id_no\": \"\",\n    \"box_6_state_id_no_confidence\": \"HIGH\",\n    \"box_7_state_income\": \"\",\n    \"box_7_state_income_confidence\": \"HIGH\",\n    \"document_quality_notes\": \"\",\n    \"extraction_warnings\": [],\n    \"requires_human_review\": false\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1616,
+        880
+      ],
+      "id": "2af18d66-2b0a-4feb-9f3d-ff2091063fd2",
+      "name": "Structured Output Parser - 1099-NEC"
+    },
+    {
+      "parameters": {
+        "model": "gpt-5",
+        "options": {
+          "timeout": 60000,
+          "maxRetries": 2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        1552,
+        -480
+      ],
+      "id": "0e50b3e3-9564-487c-8206-77b7b260e936",
+      "name": "GPT-5 Model"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Validate Extracted Data - TINs + Amounts + Confidence\n// Run this after each extraction before upserting to main tables\n\nconst output = $json.output || {};\n\n// === TIN VALIDATION ===\nconst validateTIN = (tin, fieldName) => {\n  if (!tin || tin.trim() === '') {\n    return { valid: true, note: 'Empty - may be intentional' };\n  }\n  \n  const cleaned = tin.replace(/\\s/g, '');\n  \n  // EIN: XX-XXXXXXX\n  if (/^\\d{2}-\\d{7}$/.test(cleaned)) return { valid: true };\n  \n  // SSN: XXX-XX-XXXX (with possible X masking)\n  if (/^[\\dX]{3}-[\\dX]{2}-[\\dX]{4}$/.test(cleaned)) return { valid: true };\n  \n  return { \n    valid: false, \n    field: fieldName,\n    value: tin,\n    reason: `Invalid TIN format: ${tin} - likely OCR error`\n  };\n};\n\nconst payerCheck = validateTIN(output.payers_tin, 'PayerTIN');\nconst recipientCheck = validateTIN(output.recipient_tin, 'RecipientTIN');\nconst tinIssues = [payerCheck, recipientCheck].filter(c => !c.valid);\n\n// === AMOUNT SANITY CHECKS ===\nconst amountWarnings = [];\n\nconst parseCurrency = (val) => {\n  if (!val || val === '') return 0;\n  return parseFloat(String(val).replace(/[$,]/g, '')) || 0;\n};\n\n// Get primary income field (varies by form type)\nconst income = parseCurrency(\n  output.box_1_rents || \n  output.box_1_interest_income || \n  output.box_1a_total_ordinary_dividends ||\n  output.box_1_nonemployee_compensation ||\n  0\n);\n\nconst withholding = parseCurrency(\n  output.box_4_federal_income_tax_withheld || 0\n);\n\n// Withholding can't exceed income\nif (withholding > income && income > 0) {\n  amountWarnings.push(\n    `Withholding ($${withholding}) exceeds income ($${income}) - likely OCR error or transposed digits`\n  );\n}\n\n// Flag unusually large values (> $10M)\nif (income > 10000000) {\n  amountWarnings.push(\n    `Income value $${income.toLocaleString()} unusually high - verify decimal placement`\n  );\n}\n\n// === CHECK FOR LOW CONFIDENCE FIELDS ===\nconst lowConfidenceFields = [];\nfor (const [key, value] of Object.entries(output)) {\n  if (key.endsWith('_confidence') && (value === 'LOW' || value === 'UNREADABLE')) {\n    lowConfidenceFields.push(key.replace('_confidence', ''));\n  }\n}\n\n// === COMBINE RESULTS ===\nconst validation = {\n  tin_valid: tinIssues.length === 0,\n  tin_issues: tinIssues,\n  amount_warnings: amountWarnings,\n  low_confidence_fields: lowConfidenceFields,\n  llm_flagged_review: output.requires_human_review === true,\n  all_passed: tinIssues.length === 0 && \n              amountWarnings.length === 0 && \n              lowConfidenceFields.length === 0 &&\n              output.requires_human_review !== true\n};\n\n$json.validation = validation;\n\n// Determine if human review is required\nif (!validation.all_passed) {\n  $json.requires_human_review = true;\n  $json.review_reasons = [\n    ...tinIssues.map(i => i.reason),\n    ...amountWarnings,\n    ...lowConfidenceFields.map(f => `Low confidence on field: ${f}`),\n    ...(output.requires_human_review ? ['LLM flagged for review: ' + (output.document_quality_notes || 'unspecified reason')] : [])\n  ];\n} else {\n  $json.requires_human_review = false;\n  $json.review_reasons = [];\n}\n\nreturn $input.item;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1904,
+        -592
+      ],
+      "id": "c6464f1b-e70f-4c58-b088-cd0e66f83de7",
+      "name": "Validate Extracted Data"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.requires_human_review }}",
+                    "rightValue": "={{ false }}",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Valid - Upsert"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.requires_human_review }}",
+                    "rightValue": "={{ true }}",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Review Required"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        2128,
+        -592
+      ],
+      "id": "d3450042-77aa-4a71-9ba8-6b55fe4615c3",
+      "name": "Validation Router"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Calculate LLM runtime for performance monitoring\nconst endTime = Date.now();\nconst startTime = $('Track Start Time Before LLM Call').item.json.startTime || endTime;\nconst runtime = endTime - startTime;\n\n$json.runtimeMs = runtime;\n\nreturn $input.item;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2352,
+        -176
+      ],
+      "id": "dfa8a0e2-6fe8-404f-beab-08aa60aa08f1",
+      "name": "Calculate LLM Runtime"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "REVIEW_QUEUE_TABLE_ID",
+          "mode": "id"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "pageLocation",
+              "keyValue": "={{ $('Merge').item.json.name }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pageLocation": "={{ $('Merge').item.json.name }}",
+            "formType": "={{ $json.output.doc_type || $('Classify Pages to Form Types').item.json.output.doc_type }}",
+            "review_reason": "={{ $json.review_reasons ? $json.review_reasons.join('; ') : 'Unspecified' }}",
+            "extracted_data": "={{ JSON.stringify($json.output) }}",
+            "validation_results": "={{ JSON.stringify($json.validation) }}",
+            "confidence_scores": "={{ JSON.stringify(Object.fromEntries(Object.entries($json.output || {}).filter(([k,v]) => k.endsWith('_confidence')))) }}",
+            "document_quality_notes": "={{ $json.output.document_quality_notes || '' }}",
+            "review_status": "PENDING",
+            "created_at": "={{ new Date().toISOString() }}",
+            "reviewed_by": "",
+            "corrections_made": ""
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "pageLocation",
+              "displayName": "pageLocation",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "formType",
+              "displayName": "formType",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "review_reason",
+              "displayName": "review_reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "extracted_data",
+              "displayName": "extracted_data",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "validation_results",
+              "displayName": "validation_results",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "confidence_scores",
+              "displayName": "confidence_scores",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "document_quality_notes",
+              "displayName": "document_quality_notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "review_status",
+              "displayName": "review_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "reviewed_by",
+              "displayName": "reviewed_by",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "corrections_made",
+              "displayName": "corrections_made",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        2352,
+        -368
+      ],
+      "id": "7370ddf5-c1bd-42bb-8bda-588fa4312505",
+      "name": "Upsert - Review Queue"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "ERROR_LOG_TABLE_ID",
+          "mode": "id"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "pageLocation",
+              "keyValue": "={{ $json.pageLocation || $('Get PNG from Storage').item.json.pageLocation || 'unknown' }}"
+            },
+            {
+              "keyName": "error_type",
+              "keyValue": "={{ $json.error_type || 'UNKNOWN' }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pageLocation": "={{ $json.pageLocation || $('Get PNG from Storage').item.json.pageLocation || 'unknown' }}",
+            "error_type": "={{ $json.error_type || 'PROCESSING_ERROR' }}",
+            "error_message": "={{ $json.error_message || $json.quality_check?.reason || 'Unknown error' }}",
+            "error_details": "={{ JSON.stringify($json) }}",
+            "timestamp": "={{ new Date().toISOString() }}",
+            "retry_count": "=0",
+            "resolved": "=false"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "pageLocation",
+              "displayName": "pageLocation",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "error_type",
+              "displayName": "error_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "error_details",
+              "displayName": "error_details",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "retry_count",
+              "displayName": "retry_count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false
+            },
+            {
+              "id": "resolved",
+              "displayName": "resolved",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        656,
+        1056
+      ],
+      "id": "d7b1e645-b56d-48a4-9912-5cdac5b534c8",
+      "name": "Log Error - Quality/Classification"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Prepare error info for logging\n$json.error_type = 'QUALITY_CHECK_FAILED';\n$json.error_message = $json.quality_check?.reason || 'Document failed quality check';\n\nreturn $input.item;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        368,
+        1056
+      ],
+      "id": "15e687de-df88-4700-adcd-82a99220a11c",
+      "name": "Prepare Quality Error"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Prepare error info for classification failure\n$json.error_type = 'CLASSIFICATION_LOW_CONFIDENCE';\n$json.error_message = 'Classification confidence too low: ' + ($json.output?.classification_confidence || 'unknown');\n$json.error_details = $json.output?.document_quality_notes || '';\n\nreturn $input.item;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        -976
+      ],
+      "id": "fb6213d8-56c1-4df0-aae8-ccece8b21f9f",
+      "name": "Prepare Classification Error"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "ERROR_LOG_TABLE_ID",
+          "mode": "id"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "pageLocation",
+              "keyValue": "={{ $('Merge').item.json.name || 'unknown' }}"
+            },
+            {
+              "keyName": "error_type",
+              "keyValue": "=CLASSIFICATION_LOW_CONFIDENCE"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pageLocation": "={{ $('Merge').item.json.name || 'unknown' }}",
+            "error_type": "=CLASSIFICATION_LOW_CONFIDENCE",
+            "error_message": "={{ $json.error_message }}",
+            "error_details": "={{ JSON.stringify($json.output) }}",
+            "timestamp": "={{ new Date().toISOString() }}",
+            "retry_count": "=0",
+            "resolved": "=false"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "pageLocation",
+              "displayName": "pageLocation",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "error_type",
+              "displayName": "error_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "error_details",
+              "displayName": "error_details",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "retry_count",
+              "displayName": "retry_count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false
+            },
+            {
+              "id": "resolved",
+              "displayName": "resolved",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        -976
+      ],
+      "id": "cb2f1f49-963e-46f8-8114-b2ec8247e7f8",
+      "name": "Log Error - Classification"
+    },
+    {
+      "parameters": {
+        "content": "## Enhanced 1099 Workflow with Error Handling\n\n### New Features:\n1. **Document Quality Pre-Check** - Catches blank/corrupt files before API calls\n2. **Classification Confidence Routing** - LOW confidence → Review Queue\n3. **Updated Extraction Prompts** - Require per-field confidence scores\n4. **TIN + Amount Validation** - Catches OCR errors\n5. **Review Queue** - Failed validations route here for human review\n6. **Error Logging** - All failures logged for pattern analysis\n\n### Required Setup:\n1. Create DataTable: `1099-Review-Queue` with fields shown in Upsert node\n2. Create DataTable: `1099-Extraction-Errors` with fields shown in Error Log node\n3. Update table IDs in the Upsert nodes (search for `_TABLE_ID`)",
+        "height": 768,
+        "width": 820
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -848,
+        -1904
+      ],
+      "typeVersion": 1,
+      "id": "c17350ba-296c-4772-bfcf-bc8d79735785",
+      "name": "Setup Instructions"
+    },
+    {
+      "parameters": {
+        "formTitle": "test",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "test",
+              "fieldType": "file",
+              "multipleFiles": false,
+              "acceptFileTypes": ".pdf"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        -592,
+        -1296
+      ],
+      "id": "99e36d26-fe41-46f4-94b9-14c5aa5a2f77",
+      "name": "PDF Input",
+      "webhookId": "ab4f0b9f-fc66-4ac7-ada2-04a4dfb6aa90"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "Mq4WgC118dvYcn8w",
+          "mode": "list",
+          "cachedResultName": "ControlTable",
+          "cachedResultUrl": "/projects/9x4YreqJO7HNuCif/datatables/Mq4WgC118dvYcn8w"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "pagelocation",
+              "keyValue": "={{ $json.output_location }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "processed": false,
+            "docid": "={{ $('Store').item.json.contentMd5 }}",
+            "pageid": "={{ $json.metadata.page_number }}",
+            "pagelocation": "={{ $json.output_location }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "docid",
+              "displayName": "docid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "pageid",
+              "displayName": "pageid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "pagelocation",
+              "displayName": "pagelocation",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "processed",
+              "displayName": "processed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -1296
+      ],
+      "id": "b71a4abb-92d7-41a6-9917-ad6d1dcd0267",
+      "name": "Upsert row(s) - data"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "pageLocation"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -592,
+        832
+      ],
+      "id": "a0be331e-25b1-42e8-a3a9-eb49b21d29cd",
+      "name": "AI 1099 Reader"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-30T17:22:32.446Z",
+      "createdAt": "2026-01-30T17:22:32.446Z",
+      "role": "workflow:owner",
+      "workflowId": "4mn5PvhgrQRpme7oOzprM",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-31T17:04:51.913Z",
+  "versionId": "4a9afd3f-8e8b-44bb-b81a-fb138181e45f"
+}
