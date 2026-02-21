@@ -1,0 +1,794 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Build Page Manifest": {
+      "main": [
+        [
+          {
+            "node": "Process Each Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Each Page": {
+      "main": [
+        [
+          {
+            "node": "Agent Architect — Final Assembly",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Agent Scout — Complexity Scorer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Scout — Complexity Scorer": {
+      "main": [
+        [
+          {
+            "node": "Wait After Scout",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait After Scout": {
+      "main": [
+        [
+          {
+            "node": "Parse Scout Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Scout Response": {
+      "main": [
+        [
+          {
+            "node": "Complexity Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Complexity Router": {
+      "main": [
+        [
+          {
+            "node": "Agent Describer — Complex Pages",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Agent Extractor — Standard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Describer — Complex Pages": {
+      "main": [
+        [
+          {
+            "node": "Wait After Describer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait After Describer": {
+      "main": [
+        [
+          {
+            "node": "Parse Complex Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Complex Output": {
+      "main": [
+        [
+          {
+            "node": "Merge Conversion Paths",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Extractor — Standard": {
+      "main": [
+        [
+          {
+            "node": "Wait After Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait After Extractor": {
+      "main": [
+        [
+          {
+            "node": "Parse Standard Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Standard Output": {
+      "main": [
+        [
+          {
+            "node": "Merge Conversion Paths",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Conversion Paths": {
+      "main": [
+        [
+          {
+            "node": "Agent Verifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Verifier": {
+      "main": [
+        [
+          {
+            "node": "Wait After Verifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait After Verifier": {
+      "main": [
+        [
+          {
+            "node": "Parse Verification & Collect",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Verification & Collect": {
+      "main": [
+        [
+          {
+            "node": "Process Each Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Architect — Final Assembly": {
+      "main": [
+        [
+          {
+            "node": "Format Readable Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Readable Output": {
+      "main": [
+        [
+          {
+            "node": "RAG Ingestion Pipeline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inbound Marker API w/ MD & Base64": {
+      "main": [
+        [
+          {
+            "node": "Build Page Manifest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-02-19T16:16:19.735Z",
+  "id": "QZgkQIhnCjRKZl9S",
+  "isArchived": false,
+  "meta": null,
+  "name": "Document Intelligence Pipeline — Demo (Stout)",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "// Pre-split single-page PDFs from a simulated CDD deliverable\n// Page 1: Title page (SIMPLE) - Project Atlas cover\n// Page 2: Executive Summary (MODERATE) - text with structured findings\n// Page 3: Market Sizing (COMPLEX) - bar chart + data table + callouts\n// Each page is ~2-4KB = ~700-1200 tokens (vs 102K for full PDF)\n\nconst pages = {\n  1: \"JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgKG9wZW5zb3VyY2UpCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNCAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0ZvbnQKPj4KZW5kb2JqCjQgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EtT2JsaXF1ZSAvRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZyAvTmFtZSAvRjMgL1N1YnR5cGUgL1R5cGUxIC9UeXBlIC9Gb250Cj4+CmVuZG9iago1IDAgb2JqCjw8Ci9Db250ZW50cyA5IDAgUiAvTWVkaWFCb3ggWyAwIDAgNzkyIDYxMiBdIC9QYXJlbnQgOCAwIFIgL1Jlc291cmNlcyA8PAovRm9udCAxIDAgUiAvUHJvY1NldCBbIC9QREYgL1RleHQgL0ltYWdlQiAvSW1hZ2VDIC9JbWFnZUkgXQo+PiAvUm90YXRlIDAgL1RyYW5zIDw8Cgo+PiAKICAvVHlwZSAvUGFnZQo+PgplbmRvYmoKNiAwIG9iago8PAovUGFnZU1vZGUgL1VzZU5vbmUgL1BhZ2VzIDggMCBSIC9UeXBlIC9DYXRhbG9nCj4+CmVuZG9iago3IDAgb2JqCjw8Ci9BdXRob3IgKGFub255bW91cykgL0NyZWF0aW9uRGF0ZSAoRDoyMDI2MDIxOTE3MjAwMSswMCcwMCcpIC9DcmVhdG9yIChhbm9ueW1vdXMpIC9LZXl3b3JkcyAoKSAvTW9kRGF0ZSAoRDoyMDI2MDIxOTE3MjAwMSswMCcwMCcpIC9Qcm9kdWNlciAoUmVwb3J0TGFiIFBERiBMaWJyYXJ5IC0gXChvcGVuc291cmNlXCkpIAogIC9TdWJqZWN0ICh1bnNwZWNpZmllZCkgL1RpdGxlICh1bnRpdGxlZCkgL1RyYXBwZWQgL0ZhbHNlCj4+CmVuZG9iago4IDAgb2JqCjw8Ci9Db3VudCAxIC9LaWRzIFsgNSAwIFIgXSAvVHlwZSAvUGFnZXMKPj4KZW5kb2JqCjkgMCBvYmoKPDwKL0ZpbHRlciBbIC9BU0NJSTg1RGVjb2RlIC9GbGF0ZURlY29kZSBdIC9MZW5ndGggNTIxCj4+CnN0cmVhbQpHYXJuUzlsJmNDJ1lOVTFiXTEqQ1dxQmRcYzdRL15paGAtLzdNSFgzVTMyXk1gTmIjMjBEKy8qVWM4cTY8V15Jc0RzIzwnKl8jJ0lOUi1raWdhViMyLjRCaSZKSTNUbypqSk5UNjUsZVwkOjdbVyRcJ3FyPHNILitaazhoaSUrPCVgXzx0byUxLShVTiItRW85KT11clBpNkxHUzktUFRLTXVfYmBEdVZtK0AsTmRHJj1mdCVKSCZBN1hdJiNXQjRNP2xecGJcKGhiO1IxaERgJUMlZVUkSzFZKWRVLy4iRjRJKlJsXlAwNkM7RFwhKjVXYGg+MCMoclhmbEZnbV5vOSMvbShsXHQmOlhQdCMvRk88ITQyJTU1Pl1hRlgpUFcxOmJ1JFIvYFFsJTRJTWw0KkNZZHVWKzclY0JKJ3RLPE5PczRPYVgiZ2c+XFVaK3I8dDRSOkZmQVdAVWtuJFlBTiVtNWhUMyFDQzVRcC81ZDFuMmAoQl1tQGA6SWNcZmhbXkRvJ1c4Qy4jcXB1a2M6RCNBb2lPZG4xNFlFaWIpPUstPz9MZDArRV9wVVNebGBNLztjS2lEZ0UoQVpOJV5wNjJNKVdrPDwnaiVCbEcoYGlWMk9YV1RsRVA4cm4zNytNNFpKQTxqR1RnZWAtIy0vMDVSbyhHRmxeclZaUEUobUchVWc6YyN+PmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDEwCjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDA2MSAwMDAwMCBuIAowMDAwMDAwMTEyIDAwMDAwIG4gCjAwMDAwMDAyMTkgMDAwMDAgbiAKMDAwMDAwMDMzMSAwMDAwMCBuIAowMDAwMDAwNDQ2IDAwMDAwIG4gCjAwMDAwMDA2MzkgMDAwMDAgbiAKMDAwMDAwMDcwNyAwMDAwMCBuIAowMDAwMDAwOTY4IDAwMDAwIG4gCjAwMDAwMDEwMjcgMDAwMDAgbiAKdHJhaWxlcgo8PAovSUQgCls8ODFhMWY3NTQ0MzY4MjJkZDg5YTNmODc2NjY1Y2E1YTM+PDgxYTFmNzU0NDM2ODIyZGQ4OWEzZjg3NjY2NWNhNWEzPl0KJSBSZXBvcnRMYWIgZ2VuZXJhdGVkIFBERiBkb2N1bWVudCAtLSBkaWdlc3QgKG9wZW5zb3VyY2UpCgovSW5mbyA3IDAgUgovUm9vdCA2IDAgUgovU2l6ZSAxMAo+PgpzdGFydHhyZWYKMTYzOAolJUVPRgo=\",\n  2: \"JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgKG9wZW5zb3VyY2UpCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNCAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0ZvbnQKPj4KZW5kb2JqCjQgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EtT2JsaXF1ZSAvRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZyAvTmFtZSAvRjMgL1N1YnR5cGUgL1R5cGUxIC9UeXBlIC9Gb250Cj4+CmVuZG9iago1IDAgb2JqCjw8Ci9Db250ZW50cyA5IDAgUiAvTWVkaWFCb3ggWyAwIDAgNzkyIDYxMiBdIC9QYXJlbnQgOCAwIFIgL1Jlc291cmNlcyA8PAovRm9udCAxIDAgUiAvUHJvY1NldCBbIC9QREYgL1RleHQgL0ltYWdlQiAvSW1hZ2VDIC9JbWFnZUkgXQo+PiAvUm90YXRlIDAgL1RyYW5zIDw8Cgo+PiAKICAvVHlwZSAvUGFnZQo+PgplbmRvYmoKNiAwIG9iago8PAovUGFnZU1vZGUgL1VzZU5vbmUgL1BhZ2VzIDggMCBSIC9UeXBlIC9DYXRhbG9nCj4+CmVuZG9iago3IDAgb2JqCjw8Ci9BdXRob3IgKGFub255bW91cykgL0NyZWF0aW9uRGF0ZSAoRDoyMDI2MDIxOTE3MjAwMSswMCcwMCcpIC9DcmVhdG9yIChhbm9ueW1vdXMpIC9LZXl3b3JkcyAoKSAvTW9kRGF0ZSAoRDoyMDI2MDIxOTE3MjAwMSswMCcwMCcpIC9Qcm9kdWNlciAoUmVwb3J0TGFiIFBERiBMaWJyYXJ5IC0gXChvcGVuc291cmNlXCkpIAogIC9TdWJqZWN0ICh1bnNwZWNpZmllZCkgL1RpdGxlICh1bnRpdGxlZCkgL1RyYXBwZWQgL0ZhbHNlCj4+CmVuZG9iago4IDAgb2JqCjw8Ci9Db3VudCAxIC9LaWRzIFsgNSAwIFIgXSAvVHlwZSAvUGFnZXMKPj4KZW5kb2JqCjkgMCBvYmoKPDwKL0ZpbHRlciBbIC9BU0NJSTg1RGVjb2RlIC9GbGF0ZURlY29kZSBdIC9MZW5ndGggMTY0Mgo+PgpzdHJlYW0KR2F0PSo/I1NJVSdSZTwyXEEyUHJEJWtIby0lQyRoS0A7X2FcIyZDMVR1LWxGY2s3cTpWKnA8PWdwZTNwZ05RM0FNM0ZnUWdfZDc5OTAsMnVJW2thcGxKaVY3cFVoXDJjZmswbjlKTjtZOFQ+QGhQbDQoVFpfSnI6YS0wcSo7NE9wYEprbjtDaGhYc088OSlBSmFDbUQ9UGtOMyk+IT4oTiJDQVNWISNfRjJpJVEnZiFWKE5MNFpnTE9VQ2gmUFNcMlpQSDBhTnBjckY6TWdoYFFZcDV1WVlKTzJFZUloVz5AKUtmRDJwYj5KRUkvYkFiMWVzZVguLj5IK0R0SFBeNC44NEwvXlpkTjA2TDgkUD1yKEI8QGQ5dTwzZDNcMCNHUzdHaG1yV1lzJyxgQEMkRWFeIUJuVEBvJGU/W1UxYS0tKTJrXyknQiMpW0trT3RcKlYoTiY7NmtqXz4oTXAoKk1KYkNMTEtwQy5Ickw9RDtKYVhnJENWWkE2MDtERWlaV1k5QVtMOGdbaTJoV1pvRDcpI0JHWGNPMCQ+TEpLYmdeLVdaLUZYVjBNdW1HTm9NLUA3VSsmRFdGJ2RuZGRXIk1HUyVCSFQ7IUQuRUQuSG9iJylHMjBlJTo7LE51bEAjQkloPFxoYGpbLmNOamwyQm9LRU5vJSNqXUBrQDAqQlBScGVQXVRnVTtmW1dFW0suJzBcWGpHOyRTWCUhS15qPW4kZmYjdGckJTFnJig+SlkhX0JsKSlJQD5xS2FLNzMsUUolayRjOGVHMU1vYGpiRkQyIjU9PCVoJmZeVC9qbi1mVjFsX3BqQmIxRHAwZ2E1VkUrOiE7U1A2b0JLZ0ZoUFsrS25TRD9SRjQjWSgmXGllWkxzP2lQIz8mTyowUCNpcWhzaidLTlxCR0FlMT8nSzhKLTE1UkorKkVqZWoxc2tbWihWUFkmXWBOLzVUWnUkXy40KiJqdFpebS9qbnBnXXNjQVBrSlxUNSk1aEkyOjJeLE4kP04lREBIaU9KMi1YJlYvPFBtQGB0QFdTQ1E3XDwpZlxJWFolPD4qTjMhZGVkLzhSJWhZXXMkaVFwTVBRWyFcJiZ1WU5sVGlhSC1GMG1UQS1CTEpwYTwqIShAO1pSPiQoamguITY6aVU7T1AjNkZCLVpnY1ZMXSdeUzVBZi1kYGJnTEo/JGNTOUUlaiNpPUJOIkttS1BUSyhzS2VWVTA6cF44Xj8qXDkmJVFoWVVVS1EnWVU/Mk0+cTMyKU5dX1NGZ19CIklMa2hmXnEuZkVnZy9HRURHWnM2NEBuLDpSTSZRbFBxKTpxKCUlMFk6YS1wTHFrKS4pWi1RSChLcjZFTSUlQTY3RUQxNExjVVJEQlBHWEY2UVNER0Y3I2srNjJWaiZecHRzLUNjLyxPRCklcUFTWl5jXDExcE5ESDFobTRiQzY2ZzNaVDQ/MEhOTyNuRFw+P3AvWUNDX14qb2J1X1ZDRWMnV2JJSyQxZkdbS1IlY0hBQ1oySlFhOlgkYUBAKFNcXjw7Im9yYCtkR0BwKzMrdTpkIVZCKDk/Mlp1SHFxPSZPRTJAPS1FXmRrK1hZJCFka2dIYkJRa105a2tcLDxtI0RWJFYjPFt0ciZaLzY3TTFyQio/K2hhaEFiVTFWc1YjNSYlc2cyVT9TOk9jX2stX2pJMWp1ZnBkT2ZDTHQsT2s1WFBeOCsqdHBbODcnNzVNVztCZzNOPnJZMWg2XF4sKT1pNSc2OyNEMXRfajJuaStlZzduTG1PKUx0M1EnMlo/ajZfTGdsKlsublIoZ3I6cVlZNChDP2RVRVlZL24ocmMpJ3U4cDQjIWBxTEFTclVccDpLLlFGa081bEokUWFcU3RJWHE4TmYnY0haRDZAKXJiQHRfRkt1KyxQKUxcIipgZztfaSc+PyhEXlY1YDNCbyo+Mz5EVjAjXlllRSNfLiI+YS8mRkVBaGNpR1VtOWhqR1hEUT1SPl0nQ25BX1k1bilrUGw7cXNEPjpdcSpFYjJTZFZqWWgsLW5eRmBpSUFrKFgiJktTKUklTmE6SydDWDNlQkFLIl1dViRkUUNVI1MhLWo8PidbQnRDJlxEY2UyKDhVOGMiX1Q6XyNmMjdLJ2FlZjUvVydDMV8+WWBFcWByXnNgSklCaUdHSmlzXSFiSj5GPFQvSihjcUwoYT1fYkZ+PmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDEwCjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDA2MSAwMDAwMCBuIAowMDAwMDAwMTEyIDAwMDAwIG4gCjAwMDAwMDAyMTkgMDAwMDAgbiAKMDAwMDAwMDMzMSAwMDAwMCBuIAowMDAwMDAwNDQ2IDAwMDAwIG4gCjAwMDAwMDA2MzkgMDAwMDAgbiAKMDAwMDAwMDcwNyAwMDAwMCBuIAowMDAwMDAwOTY4IDAwMDAwIG4gCjAwMDAwMDEwMjcgMDAwMDAgbiAKdHJhaWxlcgo8PAovSUQgCls8ODkyOWFjZmFlODU2YmRkMDA0ZDAzMjEzNjA1OTMxMDk+PDg5MjlhY2ZhZTg1NmJkZDAwNGQwMzIxMzYwNTkzMTA5Pl0KJSBSZXBvcnRMYWIgZ2VuZXJhdGVkIFBERiBkb2N1bWVudCAtLSBkaWdlc3QgKG9wZW5zb3VyY2UpCgovSW5mbyA3IDAgUgovUm9vdCA2IDAgUgovU2l6ZSAxMAo+PgpzdGFydHhyZWYKMjc2MAolJUVPRgo=\",\n  3: \"JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgKG9wZW5zb3VyY2UpCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNCAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0ZvbnQKPj4KZW5kb2JqCjQgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EtT2JsaXF1ZSAvRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZyAvTmFtZSAvRjMgL1N1YnR5cGUgL1R5cGUxIC9UeXBlIC9Gb250Cj4+CmVuZG9iago1IDAgb2JqCjw8Ci9Db250ZW50cyA5IDAgUiAvTWVkaWFCb3ggWyAwIDAgNzkyIDYxMiBdIC9QYXJlbnQgOCAwIFIgL1Jlc291cmNlcyA8PAovRm9udCAxIDAgUiAvUHJvY1NldCBbIC9QREYgL1RleHQgL0ltYWdlQiAvSW1hZ2VDIC9JbWFnZUkgXQo+PiAvUm90YXRlIDAgL1RyYW5zIDw8Cgo+PiAKICAvVHlwZSAvUGFnZQo+PgplbmRvYmoKNiAwIG9iago8PAovUGFnZU1vZGUgL1VzZU5vbmUgL1BhZ2VzIDggMCBSIC9UeXBlIC9DYXRhbG9nCj4+CmVuZG9iago3IDAgb2JqCjw8Ci9BdXRob3IgKGFub255bW91cykgL0NyZWF0aW9uRGF0ZSAoRDoyMDI2MDIxOTE3MjAwMSswMCcwMCcpIC9DcmVhdG9yIChhbm9ueW1vdXMpIC9LZXl3b3JkcyAoKSAvTW9kRGF0ZSAoRDoyMDI2MDIxOTE3MjAwMSswMCcwMCcpIC9Qcm9kdWNlciAoUmVwb3J0TGFiIFBERiBMaWJyYXJ5IC0gXChvcGVuc291cmNlXCkpIAogIC9TdWJqZWN0ICh1bnNwZWNpZmllZCkgL1RpdGxlICh1bnRpdGxlZCkgL1RyYXBwZWQgL0ZhbHNlCj4+CmVuZG9iago4IDAgb2JqCjw8Ci9Db3VudCAxIC9LaWRzIFsgNSAwIFIgXSAvVHlwZSAvUGFnZXMKPj4KZW5kb2JqCjkgMCBvYmoKPDwKL0ZpbHRlciBbIC9BU0NJSTg1RGVjb2RlIC9GbGF0ZURlY29kZSBdIC9MZW5ndGggMjEzNgo+PgpzdHJlYW0KR2F0bTxoZiU3LSY6VnI0RVBQSkZtNHN0bDdCNC1FT3NVVyFYQChUYTpYJ3BwUm47LGBQIVI0MzFAMShaT2VRW0ZbMXQzayIlN2Boci03LGhHa1s9Ly4vcExASWxtZm0pOFZnOiRsRmNJMiklVElOLi1QZ2QvZFs/ViRSN0AnTWcjPUglSStJbWNMMVhUZG8jbztcIlw6WlosbT4hJFVoQklncG9KVGBTVWc5RWA8Jj1lJl5VR2NiQzJLOXEoUFkuZlZNUjxBPGIvKVdkN21CV2E4TWZIRXFnbEgkL2Y7NlpLKW49czZfb0t1TFpTYyJLczVJK2BALlkxJ1lDai9ScF5gR2hMaS1PJzpEZm5EJlw/NCFgPiRdalk0XnFALyYwZVglRUosdVdyVywkR1pXMjtbckohNmlIL01lMW5XbmhbTVtjZ2opOCkqYVA2bDpiKitdJEBkI19BLyFsMz0uN0owaW8xMk1LUGk7cmQqImo6RTJSImIlJlZTM1AxXm42Oj5GOihxMV8lQyVYTzZrKGFpKWw0Yi0lVk1OVDAnQ19pcjhGUmhMMjQ+WCtfR0tTXiFLQFBsXmpwczVITl86bkpKJllkVjdwXzJGbU1CTyowIy4iTiVfQSJXNmhiKUo0cTYoK1JNOjtlVCZzSF5oT0A3TEcxbXRAKGlWakxMImJpMFJjIiJuPiI2VW9gWlJRODYkOlBaM1YnIy8/KlpEbWoqZlhKQmAiOWB1bW4vYG8iNGBCJiVoN1pGLUBULDpOIV9vNT9sazdFVSxBOlFOVjtCN08tSy0iNDthdGE4TChpMHBxQWppNjopUShHcWI0ViUmVF5cJUI6ImtPaUUvRGd1KW9hTkonNTUqPyZCbylRPW4iUXVrbmVwcWYlVSMsZF1dLjhON2ZaR2FeaVNCc1BZMzBhcURMUEcwRE9HNC8pOTRMbzg4X1ZNdDRMZXBUaUZnOCJWLCdaNTAhUTxMYEJadSE5SW4/PkA8b2hnYDRYTyJiPSVvZzl1UkFOJEBiXmZpO09eZj4yMU1NS2JiZjhFai5JMllfcnNjQE01RSE8LTUpYkhXKE1dQENdNiw5OC8vbihzNTZjZ2ZjMSVZaFNfW0csNToiTTtTVEUkZmZTV1VBJCR1QlxbKE4vO1llQV9JYmNrLGZPMzlKQWM7OlJPMypzT2psJzdSVU0/ZGUicE8hIy44PThfOUdrJUZWUEFbVz0oOUJMcjZWYDlUMWwtK1ExOGcyYG47JG0oLickSFsoUzgqVDVJVUdWNS1ibikkJV1LdSRHW1InZ1g0OThEUSYoNiYlYFtOL15HKCVJKFYwO09JInJiWGEyVWIoWkpFO3E1TVhUbVt0bUQpZUNGbnAiVl1uRDc7YVdAR2NCPm43NV5GUWJbUUcsST9SImhvZ243LEdGZmxaLS1iI0lpMlgxbC01aTJpc009XVg5S0c3TkkiVGN1cTU2Wj5MVzYyNUUnVF5CSSRFVyRpTS05KkJxT0BHZ10nODUkSUEnTEwzK188Jjs1I2JsLW8zS0c8KVVdbCciXlUsVltZVDIkcnJWJHRUNzs8YWJhJzk/STo3JitbXSYwJ2ckSUloXUohKWhMQ1ViaVokVk8zIT1nVW8icDZqQkVObmBlLWtmOyZcQjFJLGxibytQKmpbVUEqSWxqaidOY2kzZmBBZTJTREBWPlkwOGRKTUhORGc5PktcMmA+S1c9KVgjQF1JdUgxJWxKYy8uKm1hLSw8XiFPMD49JlleaT5cblAsM2IiLF48bUFkMVtnYmFRYFFsLjtZYEckWionJ2s8YEYtJjsuWGxWKC1OWWwzW2ZnTmk+QV0sa2lXZi06c1E8XjZQXkM/ZT9gNmJoL29EJmBGTWlyL21nLD4paVMiVTZWYmpDYGlUdVUrUGpxW0JuaERXXi9gLW1xKC4hIlJyaU5iNStoTEVDbXRxW1xxYWIlbyNIUE1NUUlhQEIlV2h1by90SHFXPVw3U1NUVFc+OmlCK3JbNFNDITxAJz04WF9dLG1MTyQ2XmxcaTJDNEJjMCFRV3IoLVV0Q0AiQj40QE03PWIqX1debEJdP3QrNzFkbUgwYktrIidtbFkrOk9tckdtPEMtRCkvXlAxby1BaCJjZTpxOXVvNkxmWjQ7OnB0LTlqaVhZK2MjUSgoSCZyJFtuPWAiNzdtVVInUzttZ21kI1tpN2wzTGw6TUlJNV1aV2NmSGpjUmguYzJZOXFsOyhJMWVpbCpLXEEjXURvKCVLVy1UQVMhU3NtblNldDdyWkwwPWVnTWtcJCRXaDFcNDcoKG9qNjcnYSpgI2ticXJDU3BcSGIqPGpaU2JqRlpGP2QtVWxDV2BYb2tuJ0MybSpqbTBDZT04P3IuazUyRSMwRW4mWUVUR2JUP1I/PyckXkU1bGZkYzNIJClsaUozMXUvNCFmQ1E7REpNcWEzdCVxczc1aT8wZVddIlc2IjwjSWpXInVZVnFIXUYoIzUsKCQuYXRTcXFfakFUbVo9N1RFWF1jbDdBUG9IMG1XbCRxM0BvWztdYzo4YTM2PGIhUEVya1c5KElgbjR0REVvRyRISDQvbyhXc2U2Zio1NmZDIjxVQ3JEO09vW1tNYVFeVUhhSUk5aWpoPWBxWCxhIidoVXMuck1AM1w+W1RmP0ZiSChBJjguI1wkIWE7VztVJi9wRCY4cl5HOioxTUpTPy5vVHApbjlbcmNRUW06QmBLOGlCZyRFZ1pBLD8sRm8xWDAyY0dJYWpTaEluZidiZllkNSZtMk9xaCFwQnJhKSU7IS00ImJNLGxTQlRXN0M1SEFBbltgJF1LOW5jX2F0YWlTXTMrLC1Bcn4+ZW5kc3RyZWFtCmVuZG9iagp4cmVmCjAgMTAKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDYxIDAwMDAwIG4gCjAwMDAwMDAxMTIgMDAwMDAgbiAKMDAwMDAwMDIxOSAwMDAwMCBuIAowMDAwMDAwMzMxIDAwMDAwIG4gCjAwMDAwMDA0NDYgMDAwMDAgbiAKMDAwMDAwMDYzOSAwMDAwMCBuIAowMDAwMDAwNzA3IDAwMDAwIG4gCjAwMDAwMDA5NjggMDAwMDAgbiAKMDAwMDAwMTAyNyAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9JRCAKWzwzZGQ1MDAyYjA2MjBlNjI3YjAyM2M3M2VhNjQ1NDE1MD48M2RkNTAwMmIwNjIwZTYyN2IwMjNjNzNlYTY0NTQxNTA+XQolIFJlcG9ydExhYiBnZW5lcmF0ZWQgUERGIGRvY3VtZW50IC0tIGRpZ2VzdCAob3BlbnNvdXJjZSkKCi9JbmZvIDcgMCBSCi9Sb290IDYgMCBSCi9TaXplIDEwCj4+CnN0YXJ0eHJlZgozMjU0CiUlRU9GCg==\"\n};\n\nconst items = [];\nfor (const [pageNum, b64] of Object.entries(pages)) {\n  items.push({\n    json: {\n      page_number: parseInt(pageNum),\n      total_pages: 1,\n      pdf_base64: b64,\n      retry_count: 0\n    }\n  });\n}\nreturn items;"
+      },
+      "id": "build_page_manifest",
+      "name": "Build Page Manifest",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        576,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "split_batches",
+      "name": "Process Each Page",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        800,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 300, messages: [{ role: 'user', content: [{ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: $json.pdf_base64 } }, { type: 'text', text: 'Look at page ' + $json.page_number + ' of this PDF. Assess visual complexity of ONLY this page. Classify as SIMPLE (title pages, disclaimers, text-only), MODERATE (text with simple tables, exec summaries), or COMPLEX (multi-panel charts, dense data visuals). Respond with ONLY JSON: {\"page_number\": N, \"complexity\": \"SIMPLE\", \"element_count\": N, \"has_charts\": false, \"has_tables\": false, \"reasoning\": \"one sentence\" }' }] }] })}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "agent_scout",
+      "name": "Agent Scout — Complexity Scorer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1024,
+        176
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "niFK024eGKjbCXhy",
+          "name": "PB2"
+        },
+        "anthropicApi": {
+          "id": "QIUyAAWFmOxaIZc6",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "wait_after_scout",
+      "name": "Wait After Scout",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1248,
+        176
+      ],
+      "webhookId": "9c1680b7-f3db-4f89-ab53-5931a8ea457b"
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst content = response.content[0].text;\nconst pageData = $('Process Each Page').first().json;\nlet parsed;\ntry {\n  const jsonStr = content.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n  parsed = JSON.parse(jsonStr);\n} catch (e) {\n  parsed = { page_number: pageData.page_number, complexity: 'COMPLEX', reasoning: 'Parse error, defaulting to complex', element_count: 0, has_charts: false, has_tables: false };\n}\nreturn [{ json: { page_number: pageData.page_number, total_pages: pageData.total_pages, pdf_base64: pageData.pdf_base64, retry_count: pageData.retry_count, complexity: parsed.complexity, scout_reasoning: parsed.reasoning, element_count: parsed.element_count || 0, has_charts: parsed.has_charts || false, has_tables: parsed.has_tables || false } }];"
+      },
+      "id": "parse_scout",
+      "name": "Parse Scout Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1472,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.complexity }}",
+                    "rightValue": "COMPLEX",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "cee99c81-1d01-4596-8b0b-04436075fd96"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Complex"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.complexity }}",
+                    "rightValue": "COMPLEX",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEquals"
+                    },
+                    "id": "b6302e27-fab8-4eda-ae0c-10d683e9e148"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Simple/Moderate"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "complexity_router",
+      "name": "Complexity Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1696,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 2000, messages: [{ role: 'user', content: [{ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: $json.pdf_base64 } }, { type: 'text', text: 'Analyze page ' + $json.page_number + ' of this PDF. Complex consulting deliverable page. Create structured summary for search and retrieval. Format: ### [Page title] then [page: ' + $json.page_number + '] [confidence: medium] [complex_visual: true] then sections for Key conclusion (2-4 sentences), Visual description (chart types, layout), Extracted data points (every number as bullets), Source attribution. Be thorough. Every number matters.' }] }] })}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "agent_describer",
+      "name": "Agent Describer — Complex Pages",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1920,
+        80
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "niFK024eGKjbCXhy",
+          "name": "PB2"
+        },
+        "anthropicApi": {
+          "id": "QIUyAAWFmOxaIZc6",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "wait_after_describer",
+      "name": "Wait After Describer",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2144,
+        80
+      ],
+      "webhookId": "531c3f35-f91e-4142-b659-4cd949128af2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst markdown = response.content[0].text;\nconst pageData = $('Complexity Router').first().json;\nreturn [{ json: { page_number: pageData.page_number, total_pages: pageData.total_pages, complexity: pageData.complexity, conversion_path: 'complex_describer', markdown_output: markdown, pdf_base64: pageData.pdf_base64 } }];"
+      },
+      "id": "parse_describer",
+      "name": "Parse Complex Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2368,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1500, messages: [{ role: 'user', content: [{ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: $json.pdf_base64 } }, { type: 'text', text: 'Extract content of page ' + $json.page_number + ' from this PDF into clean markdown. Preserve all text verbatim, format tables as markdown, use H3 for page title. Start with [page: ' + $json.page_number + '] [confidence: high]. Do NOT describe visuals, just extract text and tables.' }] }] })}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "agent_extractor",
+      "name": "Agent Extractor — Standard",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1920,
+        272
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "niFK024eGKjbCXhy",
+          "name": "PB2"
+        },
+        "anthropicApi": {
+          "id": "QIUyAAWFmOxaIZc6",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "wait_after_extractor",
+      "name": "Wait After Extractor",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2144,
+        272
+      ],
+      "webhookId": "311bf7d8-01da-4e67-bab3-03703d473a4c"
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst markdown = response.content[0].text;\nconst pageData = $('Complexity Router').first().json;\nreturn [{ json: { page_number: pageData.page_number, total_pages: pageData.total_pages, complexity: pageData.complexity, conversion_path: 'standard', markdown_output: markdown, pdf_base64: pageData.pdf_base64 } }];"
+      },
+      "id": "parse_extractor",
+      "name": "Parse Standard Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2368,
+        272
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "merge_paths",
+      "name": "Merge Conversion Paths",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        2592,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 400, messages: [{ role: 'user', content: [{ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: $json.pdf_base64 } }, { type: 'text', text: 'Quality verification: Compare page ' + $json.page_number + ' against this markdown extraction. Check numerical values, table structures, main claims, page number. MARKDOWN: ' + String($json.markdown_output || '').substring(0, 2000) + ' -- Respond with ONLY JSON: {\"page_number\": N, \"numerical_match\": true, \"structure_correct\": true, \"claims_captured\": true, \"page_number_correct\": true, \"confidence\": \"high\", \"issues\": \"none\" }' }] }] })}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "agent_verifier",
+      "name": "Agent Verifier",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2816,
+        176
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "niFK024eGKjbCXhy",
+          "name": "PB2"
+        },
+        "anthropicApi": {
+          "id": "QIUyAAWFmOxaIZc6",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "wait_after_verifier",
+      "name": "Wait After Verifier",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3040,
+        176
+      ],
+      "webhookId": "8b670605-2df0-4609-9c20-04313f198059"
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst content = response.content[0].text;\nconst conversionData = $('Merge Conversion Paths').first().json;\nlet verification;\ntry {\n  const jsonStr = content.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n  verification = JSON.parse(jsonStr);\n} catch (e) {\n  verification = { confidence: 'low', issues: 'Verification parse error', numerical_match: false, structure_correct: false, claims_captured: false, page_number_correct: true };\n}\nreturn [{ json: { page_number: conversionData.page_number, complexity: conversionData.complexity, conversion_path: conversionData.conversion_path, confidence: verification.confidence, verification_issues: verification.issues, numerical_match: verification.numerical_match, structure_correct: verification.structure_correct, claims_captured: verification.claims_captured, markdown_output: conversionData.markdown_output } }];"
+      },
+      "id": "parse_verifier",
+      "name": "Parse Verification & Collect",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3264,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst pages = items.map(item => item.json).sort((a, b) => a.page_number - b.page_number);\nconst total = pages.length;\nconst highConf = pages.filter(p => p.confidence === 'high').length;\nconst medConf = pages.filter(p => p.confidence === 'medium').length;\nconst lowConf = pages.filter(p => p.confidence === 'low').length;\nlet markdown = '---\\nproject: Demo Document\\ndate: ' + new Date().toISOString().split('T')[0] + '\\ntotal_pages: ' + total + '\\nconversion_quality:\\n  high_confidence: ' + (total > 0 ? Math.round(highConf/total*100) : 0) + '%\\n  medium_confidence: ' + (total > 0 ? Math.round(medConf/total*100) : 0) + '%\\n  low_confidence: ' + (total > 0 ? Math.round(lowConf/total*100) : 0) + '%\\npages_by_complexity:\\n  simple_moderate: ' + pages.filter(p => p.conversion_path === 'standard').length + '\\n  complex: ' + pages.filter(p => p.conversion_path === 'complex_describer').length + '\\n---\\n\\n# Document Intelligence Pipeline Output\\n';\nfor (const page of pages) { markdown += '\\n' + page.markdown_output + '\\n\\n---\\n'; }\nmarkdown += '\\n## Pipeline Quality Report\\n\\n| Page | Complexity | Path | Confidence | Issues |\\n|------|-----------|------|------------|--------|\\n';\nfor (const page of pages) { markdown += '| ' + page.page_number + ' | ' + page.complexity + ' | ' + page.conversion_path + ' | ' + page.confidence + ' | ' + (page.verification_issues || 'none') + ' |\\n'; }\nreturn [{ json: { assembled_markdown: markdown, quality_scorecard: { total_pages: total, high_confidence: highConf, medium_confidence: medConf, low_confidence: lowConf }, pages_processed: pages.map(p => ({ page: p.page_number, complexity: p.complexity, path: p.conversion_path, confidence: p.confidence })) } }];"
+      },
+      "id": "final_assembly",
+      "name": "Agent Architect — Final Assembly",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1024,
+        -16
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## STEP 1: Preprocessing\nPre-split single-page PDFs loaded as base64.\nProduction: Egnyte/SharePoint intake → Marker API splits PDF → individual pages queued for processing",
+        "height": 120,
+        "width": 520,
+        "color": 4
+      },
+      "id": "sticky_input",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        304,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## STEPS 2-5: Per-Page Processing Loop\nScout scores complexity → Router branches → Describer (complex) or Extractor (simple) converts → Verifier quality-checks against source → loop to next page",
+        "height": 100,
+        "width": 1900,
+        "color": 6
+      },
+      "id": "sticky_loop",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        816,
+        -400
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Complex Path (Describer)\nVision-based analysis for charts, tables, visuals.\nOutputs: key conclusion, visual description,\nextracted data points, source attribution",
+        "height": 100,
+        "width": 340,
+        "color": 2
+      },
+      "id": "sticky_complex",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1808,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Simple/Moderate Path (Extractor)\nDirect text extraction. Preserves structure,\ntables, and bullet points verbatim.\nFaster, lower token cost.",
+        "height": 100,
+        "width": 340,
+        "color": 5
+      },
+      "id": "sticky_simple",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1824,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## STEPS 6-7: Assembly → RAG Handoff\nStitches pages into structured markdown with YAML frontmatter\nand quality scorecard. Hands off to RAG ingestion pipeline\nfor chunking, embedding, and vector store upsert.",
+        "height": 110,
+        "width": 520,
+        "color": 4
+      },
+      "id": "sticky_output",
+      "name": "Sticky Note4",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        976,
+        -208
+      ]
+    },
+    {
+      "parameters": {
+        "source": "parameter",
+        "workflowJson": "={{ $('Agent Architect — Final Assembly').item.json.assembled_markdown }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1472,
+        -16
+      ],
+      "id": "7f922974-0154-4fbd-845e-3a96eb805ba7",
+      "name": "RAG Ingestion Pipeline",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.all();\nconst data = input[0].json;\nconst markdown = data.assembled_markdown || '';\nconst scorecard = data.quality_scorecard || {};\nconst pages = data.pages_processed || [];\n\n// Parse YAML frontmatter into clean summary\nlet yamlBlock = '';\nconst yamlMatch = markdown.match(/^---\\n([\\s\\S]*?)\\n---/);\nif (yamlMatch) {\n  const lines = yamlMatch[1].split('\\n');\n  yamlBlock = '═══════════════════════════════════════════\\n';\n  yamlBlock += '  DOCUMENT INTELLIGENCE PIPELINE REPORT\\n';\n  yamlBlock += '═══════════════════════════════════════════\\n\\n';\n  for (const line of lines) {\n    const trimmed = line.trim();\n    if (!trimmed) continue;\n    if (trimmed.match(/^\\w/) && trimmed.includes(':')) {\n      const [key, ...val] = trimmed.split(':');\n      const value = val.join(':').trim();\n      const label = key.trim()\n        .replace(/_/g, ' ')\n        .replace(/\\b\\w/g, c => c.toUpperCase());\n      if (value) {\n        yamlBlock += `  ${label}: ${value}\\n`;\n      } else {\n        yamlBlock += `\\n  ${label}:\\n`;\n      }\n    } else if (trimmed.includes(':')) {\n      const [key, ...val] = trimmed.split(':');\n      const label = key.trim()\n        .replace(/_/g, ' ')\n        .replace(/\\b\\w/g, c => c.toUpperCase());\n      yamlBlock += `    ${label}: ${val.join(':').trim()}\\n`;\n    }\n  }\n  yamlBlock += '\\n═══════════════════════════════════════════\\n';\n}\n\n// Extract body after frontmatter\nlet body = markdown.replace(/^---\\n[\\s\\S]*?\\n---\\n*/, '');\n\n// Clean up page markers for readability\nbody = body.replace(/\\[page: (\\d+)\\]/g, '\\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\\n  PAGE $1\\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');\nbody = body.replace(/\\[confidence: (\\w+)\\]/g, '[Confidence: $1]');\nbody = body.replace(/\\[complex_visual: (\\w+)\\]/g, '[Complex Visual: $1]');\n\n// Clean up markdown formatting for plain text display\nbody = body.replace(/^### (.+)$/gm, '\\n▸ $1');\nbody = body.replace(/^## (.+)$/gm, '\\n■ $1');\nbody = body.replace(/^# (.+)$/gm, '\\n████ $1 ████');\nbody = body.replace(/\\*\\*(.+?)\\*\\*/g, '$1');\nbody = body.replace(/\\*(.+?)\\*/g, '$1');\nbody = body.replace(/^---$/gm, '');\n\n// Clean up table to be readable\nbody = body.replace(/\\| Page .*\\|/g, '\\n  Page  | Complexity | Path              | Confidence | Issues');\nbody = body.replace(/\\|---.*\\|/g,    '  ------+------------+-------------------+------------+-------');\nbody = body.replace(/\\| (\\d)/g, '  $1    ');\nbody = body.replace(/\\|/g, ' | ');\n\nconst output = yamlBlock + '\\n' + body;\n\nreturn [{\n  json: {\n    formatted_output: output,\n    quality_summary: {\n      total_pages: scorecard.total_pages || 0,\n      high_confidence: scorecard.high_confidence || 0,\n      medium_confidence: scorecard.medium_confidence || 0,\n      low_confidence: scorecard.low_confidence || 0\n    },\n    pages_processed: pages\n  }\n}];"
+      },
+      "id": "format_output",
+      "name": "Format Readable Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        -16
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "trigger",
+      "name": "Inbound Marker API w/ MD & Base64",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        352,
+        176
+      ]
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-02-19T16:16:19.809Z",
+      "createdAt": "2026-02-19T16:16:19.809Z",
+      "role": "workflow:owner",
+      "workflowId": "QZgkQIhnCjRKZl9S",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-02-20T19:39:56.690Z",
+  "versionId": "1fcbcb2e-9cde-493f-9933-842ee87b9c9e"
+}
