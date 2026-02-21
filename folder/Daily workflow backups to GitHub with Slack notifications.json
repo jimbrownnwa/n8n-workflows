@@ -1,9 +1,9 @@
 {
   "active": true,
   "activeVersion": {
-    "updatedAt": "2026-01-30T14:13:16.000Z",
-    "createdAt": "2026-01-25T16:16:46.172Z",
-    "versionId": "67403ef8-0a78-411d-8ee7-ffe9a7a2b4bd",
+    "updatedAt": "2026-02-10T18:30:31.000Z",
+    "createdAt": "2026-02-10T18:30:21.242Z",
+    "versionId": "b6eed444-309b-4b78-aaa9-e1b66099f50d",
     "workflowId": "DvPH9MddQ0FQfBtF",
     "nodes": [
       {
@@ -25,7 +25,7 @@
         "type": "n8n-nodes-base.set",
         "position": [
           4608,
-          120
+          128
         ],
         "typeVersion": 3.3
       },
@@ -157,14 +157,15 @@
         "parameters": {
           "content": "# Links\n- ## [Github Folder](https://github.com/AndrewBoichenko/n8n-workflows/)",
           "height": 120,
-          "width": 400
+          "width": 400,
+          "color": 6
         },
         "id": "3803f1ca-9296-46ce-8e35-01d8c5f9812c",
         "name": "Sticky Note3",
         "type": "n8n-nodes-base.stickyNote",
         "position": [
-          992,
-          32
+          864,
+          -592
         ],
         "typeVersion": 1
       },
@@ -172,14 +173,15 @@
         "parameters": {
           "content": "# How it works \nThis workflow will backup all instance workflows to GitHub every 24 hours.\n\nThe files are saved into folders using `repo_path` for the directory path and `ID.json` for the filename.\nThe Repo Owner, Repo Name and Main folder are set using the `Config` node in the subworkflow. \n\nThe workflow runs calls itself to help reduce memory usage, Once the workflow has completed it will send an optional notification to Slack.\n\nPlease check out my other items on [gumroad](https://boanse.gumroad.com/?section=k_Sn6LcT_dzJFnp5jmsM5A%3D%3D)\nYou might also like something else☺️",
           "height": 340,
-          "width": 400
+          "width": 400,
+          "color": 6
         },
         "id": "ea1096b7-ac85-41ef-98b9-88e2f50b9d44",
         "name": "Sticky Note4",
         "type": "n8n-nodes-base.stickyNote",
         "position": [
-          992,
-          192
+          864,
+          -464
         ],
         "typeVersion": 1
       },
@@ -425,7 +427,7 @@
         "type": "n8n-nodes-base.httpRequest",
         "position": [
           3488,
-          -120
+          -128
         ],
         "typeVersion": 4.2
       },
@@ -451,35 +453,6 @@
           -48
         ],
         "webhookId": "c02eb407-5547-4aa0-9ebf-46dab67b63b6",
-        "typeVersion": 2.2,
-        "credentials": {
-          "slackApi": {
-            "id": "pBtkFKk519i0rGOe",
-            "name": "NWA Shop Local"
-          }
-        }
-      },
-      {
-        "parameters": {
-          "select": "channel",
-          "channelId": {
-            "__rl": true,
-            "value": "C0A82N7UPUL",
-            "mode": "list",
-            "cachedResultName": "daily-digest"
-          },
-          "text": "=✅ Backup has completed",
-          "otherOptions": {}
-        },
-        "id": "5f35553a-4e02-4a3f-a027-1d73860489ef",
-        "name": "Completed Notification",
-        "type": "n8n-nodes-base.slack",
-        "position": [
-          3024,
-          -432
-        ],
-        "webhookId": "a0c6e8c8-5d71-40fa-b02b-63a7ed5726c4",
-        "executeOnce": true,
         "typeVersion": 2.2,
         "credentials": {
           "slackApi": {
@@ -765,11 +738,11 @@
       }
     },
     "authors": "James Brown",
-    "name": "Version 67403ef8",
+    "name": "Version b6eed444",
     "description": "",
-    "autosaved": false
+    "autosaved": true
   },
-  "activeVersionId": "67403ef8-0a78-411d-8ee7-ffe9a7a2b4bd",
+  "activeVersionId": "b6eed444-309b-4b78-aaa9-e1b66099f50d",
   "connections": {
     "Config": {
       "main": [
@@ -1146,14 +1119,15 @@
       "parameters": {
         "content": "# Links\n- ## [Github Folder](https://github.com/AndrewBoichenko/n8n-workflows/)",
         "height": 120,
-        "width": 400
+        "width": 400,
+        "color": 6
       },
       "id": "3803f1ca-9296-46ce-8e35-01d8c5f9812c",
       "name": "Sticky Note3",
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        992,
-        32
+        864,
+        -592
       ],
       "typeVersion": 1
     },
@@ -1161,14 +1135,15 @@
       "parameters": {
         "content": "# How it works \nThis workflow will backup all instance workflows to GitHub every 24 hours.\n\nThe files are saved into folders using `repo_path` for the directory path and `ID.json` for the filename.\nThe Repo Owner, Repo Name and Main folder are set using the `Config` node in the subworkflow. \n\nThe workflow runs calls itself to help reduce memory usage, Once the workflow has completed it will send an optional notification to Slack.\n\nPlease check out my other items on [gumroad](https://boanse.gumroad.com/?section=k_Sn6LcT_dzJFnp5jmsM5A%3D%3D)\nYou might also like something else☺️",
         "height": 340,
-        "width": 400
+        "width": 400,
+        "color": 6
       },
       "id": "ea1096b7-ac85-41ef-98b9-88e2f50b9d44",
       "name": "Sticky Note4",
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        992,
-        192
+        864,
+        -464
       ],
       "typeVersion": 1
     },
@@ -1489,8 +1464,8 @@
       "name": "HTTP Request",
       "credentials": {
         "n8nApi": {
-          "id": "sSOSakGRBq2sKsiN",
-          "name": "n8n account"
+          "id": "DlBW5b5IBrCyfFVE",
+          "name": "n8n account 2"
         }
       }
     },
@@ -1533,6 +1508,6 @@
   },
   "tags": [],
   "triggerCount": 1,
-  "updatedAt": "2026-01-30T14:53:58.093Z",
-  "versionId": "6bfd52d8-0e34-473b-bdc8-fb091b3ef58b"
+  "updatedAt": "2026-02-21T18:58:09.785Z",
+  "versionId": "c6f7dcd9-6420-49e4-8046-770e9bc10221"
 }
