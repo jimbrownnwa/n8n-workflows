@@ -1,0 +1,837 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-01-25T16:18:03.000Z",
+    "createdAt": "2026-01-25T16:17:55.824Z",
+    "versionId": "223c230d-7bd0-4ed9-bde2-2368b7761593",
+    "workflowId": "TGQmnuXPE02r_J8_pzgVj",
+    "nodes": [
+      {
+        "parameters": {},
+        "id": "ad22c1c9-406a-46a3-b4ef-af7c43b8ca14",
+        "name": "Error Trigger",
+        "type": "n8n-nodes-base.errorTrigger",
+        "position": [
+          96,
+          704
+        ],
+        "typeVersion": 1
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "c1dacaca-1235-4ed4-b1cd-2d677dc7e3ba",
+                "name": "error_message",
+                "type": "string",
+                "value": "={{ $json.execution.error.message }}"
+              },
+              {
+                "id": "fec582fa-e2d6-4d30-a42c-0a080904ecd7",
+                "name": "node_with_error",
+                "type": "string",
+                "value": "={{ $json.execution.error.lastNodeExecuted }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "98df86f3-3d31-41e9-833b-3df1c53736c9",
+        "name": "Point Out Message & Node",
+        "type": "n8n-nodes-base.set",
+        "position": [
+          320,
+          704
+        ],
+        "typeVersion": 3.4
+      },
+      {
+        "parameters": {
+          "operation": "deactivate",
+          "workflowId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "DvPH9MddQ0FQfBtF"
+          },
+          "requestOptions": {}
+        },
+        "id": "4e5878e7-5796-42be-b348-4a603053a7c9",
+        "name": "Deactivate Workflow",
+        "type": "n8n-nodes-base.n8n",
+        "position": [
+          992,
+          608
+        ],
+        "typeVersion": 1,
+        "credentials": {
+          "n8nApi": {
+            "id": "sSOSakGRBq2sKsiN",
+            "name": "n8n account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "version": 2,
+              "leftValue": "",
+              "caseSensitive": true,
+              "typeValidation": "strict"
+            },
+            "combinator": "and",
+            "conditions": [
+              {
+                "id": "1dcc2e15-b6e4-4037-9079-7207be03095e",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                },
+                "leftValue": "={{ $json.approved }}",
+                "rightValue": ""
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "a345f6ef-85ff-4518-baa0-eb38e8368c74",
+        "name": "If User Deactivates",
+        "type": "n8n-nodes-base.if",
+        "position": [
+          768,
+          704
+        ],
+        "typeVersion": 2.2
+      },
+      {
+        "parameters": {},
+        "id": "7a758f1a-63b5-4ef9-9a3d-298bfb83f0cc",
+        "name": "User Ignored",
+        "type": "n8n-nodes-base.noOp",
+        "position": [
+          992,
+          800
+        ],
+        "typeVersion": 1
+      },
+      {
+        "parameters": {
+          "content": "# Basic Template",
+          "height": 544,
+          "width": 1520,
+          "color": 5
+        },
+        "id": "27da6d92-8bd7-4b89-b719-70946dbaef64",
+        "name": "Sticky Note",
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          -56,
+          416
+        ],
+        "typeVersion": 1
+      },
+      {
+        "parameters": {
+          "content": "# Start Using This Workflow\n\n\n\n\n\n\n",
+          "height": 1696,
+          "width": 464,
+          "color": 4
+        },
+        "id": "b78d28a2-5add-4e32-8582-cfc797dfc787",
+        "name": "Sticky Note3",
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          -560,
+          480
+        ],
+        "typeVersion": 1
+      },
+      {
+        "parameters": {
+          "content": "# CREDENTIALS",
+          "height": 592,
+          "width": 1520,
+          "color": 4
+        },
+        "id": "1dddfbef-2889-42cb-b529-6839aec52516",
+        "name": "Sticky Note4",
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          -80,
+          1584
+        ],
+        "typeVersion": 1
+      },
+      {
+        "parameters": {
+          "content": "## SMTP Email Setup\n\n### Gmail (Recommended)\n1. **Get App Password**: Google Account → Security → 2-Step Verification → App passwords\n   - Create one named \"n8n\" and save the 16-character password\n2. **Add to n8n**: Settings → Credentials → Create New → \"SMTP\"\n   - **User**: your.email@gmail.com  \n   - **Password**: The app password (not your regular password)\n   - **Host**: smtp.gmail.com | **Port**: 587 | **Security**: STARTTLS\n3. **Apply**: Select this credential in all Email Send nodes and update the email addresses\n\n### Other Providers\n- **Outlook**: smtp-mail.outlook.com, Port 587\n- **Yahoo**: smtp.mail.yahoo.com, Port 587\n",
+          "height": 480,
+          "width": 480
+        },
+        "id": "030a97ff-0452-48cf-9915-75387ae136f3",
+        "name": "Sticky Note5",
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          -64,
+          1664
+        ],
+        "typeVersion": 1
+      },
+      {
+        "parameters": {
+          "content": "## n8n API Setup\n\n1. **Create Token**: Settings → Personal API tokens → Create API token\n   - Name it \"Error Handler\" and **copy the token immediately**\n2. **Add Credential**: Settings → Credentials → Create New → \"n8n\"\n   - **API Key**: Paste your token\n   - **Base URL**: Your n8n instance URL (e.g., https://your-instance.n8n.cloud)\n3. **Update Workflow IDs**: In each \"Deactivate\" node, change \"yourworkflows.url\" to the actual workflow ID you want to monitor\n",
+          "height": 480,
+          "width": 480
+        },
+        "id": "4e55d09e-ff6a-40a0-9422-d8bc4c3f41a9",
+        "name": "Sticky Note6",
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          448,
+          1664
+        ],
+        "typeVersion": 1
+      },
+      {
+        "parameters": {
+          "content": "## Quick Test\nSend yourself a test email using an Email Send node to verify SMTP works, then test the n8n API by listing your workflows.\n\n## Common Issues\n- **Gmail not working?** Use App Password, not regular password\n- **Can't deactivate workflows?** Check your API token has write permissions\n- **Wrong workflow being deactivated?** Verify the workflow ID in the n8n nodes\n\n## Links\n- [SMTP Setup Guide](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.emailsend/)\n- [n8n API Guide](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.n8n/)",
+          "height": 480,
+          "width": 464
+        },
+        "id": "3274e40f-d70b-4c4c-8be6-e905f60952c9",
+        "name": "Sticky Note7",
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          944,
+          1664
+        ],
+        "typeVersion": 1
+      },
+      {
+        "parameters": {
+          "content": "## Activate and Test\n1. **Activate your main workflow with a temporary cron trigger**\n2. **Create a test failure** in your main workflow:\n   - Add a temporary HTTP node with invalid URL like `https://fake-url-that-fails.com`\n   - Or use a Set node with invalid expression like `{{ $invalidReference }}`\n3. **Let your main workflow run automatically** - it should fail and trigger the error handler\n4. **Check your email** and test both response options\n5. **Remove the test failure** once everything works\n",
+          "height": 352,
+          "width": 432
+        },
+        "id": "69101c0a-f005-4a74-933a-75869e094105",
+        "name": "Sticky Note9",
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          -576,
+          608
+        ],
+        "typeVersion": 1
+      },
+      {
+        "parameters": {
+          "content": "## What Happens When Errors Occur\n1. Your main workflow fails → Error handler automatically runs\n2. You get an email with error details and response options\n3. **If you choose \"Deactivate\"**: Workflow stops, you get confirmation email\n4. **If you choose \"Ignore\"**: Workflow stays active (error was temporary/acceptable)\n5. **Advanced template**: You can forward the decision to someone else via email\n",
+          "height": 320,
+          "width": 432
+        },
+        "id": "58502bfd-d268-4b07-b665-39d0a2f5d20c",
+        "name": "Sticky Note10",
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          -576,
+          976
+        ],
+        "typeVersion": 1
+      },
+      {
+        "parameters": {
+          "content": "## Pro Tips\n- **Test with non-critical workflows first** to get familiar with the process\n- **Set up email filters** to ensure error notifications don't go to spam\n- **Use the rerouting feature** for shared workflows where multiple people should be able to handle errors\n- **Monitor your email** - some errors need immediate attention while others can wait",
+          "height": 288,
+          "width": 432
+        },
+        "id": "9211442c-0c81-411d-ac2e-567b822da5d0",
+        "name": "Sticky Note11",
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          -560,
+          1360
+        ],
+        "typeVersion": 1
+      },
+      {
+        "parameters": {
+          "operation": "sendAndWait",
+          "sendTo": "jimbrown131@gmail.com",
+          "subject": "Error in Workflow",
+          "message": "=An error has occurred in your workflow with this message: {{ $json.error_message }}\n\nNode: {{ $json.node_with_error }}",
+          "approvalOptions": {
+            "values": {
+              "approvalType": "double",
+              "approveLabel": "Deactivate Workflow",
+              "disapproveLabel": "Ignore"
+            }
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.2,
+        "position": [
+          544,
+          704
+        ],
+        "id": "8df74588-f331-4e28-9381-db5977bbab13",
+        "name": "Send message and wait for response",
+        "webhookId": "4da2c7cf-222f-4d38-b648-da4b92d56c29",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "dmIKVw4RuLHhcC3Y",
+            "name": "Nwa Boost:Gmail"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "sendTo": "jimbrown131@gmail.com",
+          "subject": "Your Workflow Has Been Deactivated",
+          "message": "Workflow deactivated",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.2,
+        "position": [
+          1216,
+          608
+        ],
+        "id": "ad9e36fa-455a-4aad-abcd-9c8e28e4136b",
+        "name": "Send a message",
+        "webhookId": "450e04c2-75cc-4d9b-b950-0e13075bf5b9",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "dmIKVw4RuLHhcC3Y",
+            "name": "Nwa Boost:Gmail"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Error Trigger": {
+        "main": [
+          [
+            {
+              "node": "Point Out Message & Node",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Deactivate Workflow": {
+        "main": [
+          [
+            {
+              "node": "Send a message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If User Deactivates": {
+        "main": [
+          [
+            {
+              "node": "Deactivate Workflow",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "User Ignored",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Point Out Message & Node": {
+        "main": [
+          [
+            {
+              "node": "Send message and wait for response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send message and wait for response": {
+        "main": [
+          [
+            {
+              "node": "If User Deactivates",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "James Brown",
+    "name": "Version 223c230d",
+    "description": "",
+    "autosaved": false
+  },
+  "activeVersionId": "223c230d-7bd0-4ed9-bde2-2368b7761593",
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Point Out Message & Node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deactivate Workflow": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If User Deactivates": {
+      "main": [
+        [
+          {
+            "node": "Deactivate Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "User Ignored",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Point Out Message & Node": {
+      "main": [
+        [
+          {
+            "node": "Send message and wait for response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message and wait for response": {
+      "main": [
+        [
+          {
+            "node": "If User Deactivates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-15T18:30:45.887Z",
+  "id": "TGQmnuXPE02r_J8_pzgVj",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Error Workflow: Deactivate",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "ad22c1c9-406a-46a3-b4ef-af7c43b8ca14",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "position": [
+        -64,
+        1440
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c1dacaca-1235-4ed4-b1cd-2d677dc7e3ba",
+              "name": "error_message",
+              "type": "string",
+              "value": "={{ $json.execution.error.message }}"
+            },
+            {
+              "id": "fec582fa-e2d6-4d30-a42c-0a080904ecd7",
+              "name": "node_with_error",
+              "type": "string",
+              "value": "={{ $json.execution.error.lastNodeExecuted }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "98df86f3-3d31-41e9-833b-3df1c53736c9",
+      "name": "Point Out Message & Node",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        160,
+        1440
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "operation": "deactivate",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "DvPH9MddQ0FQfBtF"
+        },
+        "requestOptions": {}
+      },
+      "id": "4e5878e7-5796-42be-b348-4a603053a7c9",
+      "name": "Deactivate Workflow",
+      "type": "n8n-nodes-base.n8n",
+      "position": [
+        832,
+        1344
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "n8nApi": {
+          "id": "sSOSakGRBq2sKsiN",
+          "name": "n8n account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "1dcc2e15-b6e4-4037-9079-7207be03095e",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "leftValue": "={{ $json.approved }}",
+              "rightValue": ""
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a345f6ef-85ff-4518-baa0-eb38e8368c74",
+      "name": "If User Deactivates",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        608,
+        1440
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {},
+      "id": "7a758f1a-63b5-4ef9-9a3d-298bfb83f0cc",
+      "name": "User Ignored",
+      "type": "n8n-nodes-base.noOp",
+      "position": [
+        832,
+        1536
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "# Basic Template",
+        "height": 544,
+        "width": 1520,
+        "color": 5
+      },
+      "id": "27da6d92-8bd7-4b89-b719-70946dbaef64",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -224,
+        1184
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "# CREDENTIALS",
+        "height": 592,
+        "width": 1520,
+        "color": 4
+      },
+      "id": "1dddfbef-2889-42cb-b529-6839aec52516",
+      "name": "Sticky Note4",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -240,
+        2320
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## SMTP Email Setup\n\n### Gmail (Recommended)\n1. **Get App Password**: Google Account → Security → 2-Step Verification → App passwords\n   - Create one named \"n8n\" and save the 16-character password\n2. **Add to n8n**: Settings → Credentials → Create New → \"SMTP\"\n   - **User**: your.email@gmail.com  \n   - **Password**: The app password (not your regular password)\n   - **Host**: smtp.gmail.com | **Port**: 587 | **Security**: STARTTLS\n3. **Apply**: Select this credential in all Email Send nodes and update the email addresses\n\n### Other Providers\n- **Outlook**: smtp-mail.outlook.com, Port 587\n- **Yahoo**: smtp.mail.yahoo.com, Port 587\n",
+        "height": 480,
+        "width": 480
+      },
+      "id": "030a97ff-0452-48cf-9915-75387ae136f3",
+      "name": "Sticky Note5",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -224,
+        2400
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## n8n API Setup\n\n1. **Create Token**: Settings → Personal API tokens → Create API token\n   - Name it \"Error Handler\" and **copy the token immediately**\n2. **Add Credential**: Settings → Credentials → Create New → \"n8n\"\n   - **API Key**: Paste your token\n   - **Base URL**: Your n8n instance URL (e.g., https://your-instance.n8n.cloud)\n3. **Update Workflow IDs**: In each \"Deactivate\" node, change \"yourworkflows.url\" to the actual workflow ID you want to monitor\n",
+        "height": 480,
+        "width": 480
+      },
+      "id": "4e55d09e-ff6a-40a0-9422-d8bc4c3f41a9",
+      "name": "Sticky Note6",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        288,
+        2400
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Quick Test\nSend yourself a test email using an Email Send node to verify SMTP works, then test the n8n API by listing your workflows.\n\n## Common Issues\n- **Gmail not working?** Use App Password, not regular password\n- **Can't deactivate workflows?** Check your API token has write permissions\n- **Wrong workflow being deactivated?** Verify the workflow ID in the n8n nodes\n\n## Links\n- [SMTP Setup Guide](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.emailsend/)\n- [n8n API Guide](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.n8n/)",
+        "height": 480,
+        "width": 464
+      },
+      "id": "3274e40f-d70b-4c4c-8be6-e905f60952c9",
+      "name": "Sticky Note7",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        784,
+        2400
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## What Happens When Errors Occur\n1. Your main workflow fails → Error handler automatically runs\n2. You get an email with error details and response options\n3. **If you choose \"Deactivate\"**: Workflow stops, you get confirmation email\n4. **If you choose \"Ignore\"**: Workflow stays active (error was temporary/acceptable)\n5. **Advanced template**: You can forward the decision to someone else via email\n",
+        "height": 320,
+        "width": 432
+      },
+      "id": "58502bfd-d268-4b07-b665-39d0a2f5d20c",
+      "name": "Sticky Note10",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -736,
+        1392
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Pro Tips\n- **Test with non-critical workflows first** to get familiar with the process\n- **Set up email filters** to ensure error notifications don't go to spam\n- **Use the rerouting feature** for shared workflows where multiple people should be able to handle errors\n- **Monitor your email** - some errors need immediate attention while others can wait",
+        "height": 288,
+        "width": 432
+      },
+      "id": "9211442c-0c81-411d-ac2e-567b822da5d0",
+      "name": "Sticky Note11",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -736,
+        1664
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "jimbrown131@gmail.com",
+        "subject": "Error in Workflow",
+        "message": "=An error has occurred in your workflow with this message: {{ $json.error_message }}\n\nNode: {{ $json.node_with_error }}",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double",
+            "approveLabel": "Deactivate Workflow",
+            "disapproveLabel": "Ignore"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        384,
+        1440
+      ],
+      "id": "8df74588-f331-4e28-9381-db5977bbab13",
+      "name": "Send message and wait for response",
+      "webhookId": "4da2c7cf-222f-4d38-b648-da4b92d56c29",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "dmIKVw4RuLHhcC3Y",
+          "name": "Nwa Boost:Gmail"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "jimbrown131@gmail.com",
+        "subject": "Your Workflow Has Been Deactivated",
+        "message": "Workflow deactivated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1056,
+        1344
+      ],
+      "id": "ad9e36fa-455a-4aad-abcd-9c8e28e4136b",
+      "name": "Send a message",
+      "webhookId": "450e04c2-75cc-4d9b-b950-0e13075bf5b9",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "dmIKVw4RuLHhcC3Y",
+          "name": "Nwa Boost:Gmail"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Error Trigger": [
+      {
+        "json": {
+          "execution": {
+            "id": "2589",
+            "url": "https://n8n.srv1234150.hstgr.cloud/workflow/DvPH9MddQ0FQfBtF/executions/2589",
+            "error": {
+              "level": "warning",
+              "tags": {},
+              "description": "unauthorized",
+              "timestamp": 1771740028473,
+              "context": {
+                "itemIndex": 0,
+                "request": {
+                  "headers": {
+                    "accept": "application/json,text/html,application/xhtml+xml,application/xml,text/*;q=0.9, image/*;q=0.8, */*;q=0.7",
+                    "X-N8N-API-KEY": "**hidden**"
+                  },
+                  "method": "GET",
+                  "uri": "https://n8n.srv1234150.hstgr.cloud/api/v1/workflows",
+                  "gzip": true,
+                  "rejectUnauthorized": true,
+                  "followRedirect": true,
+                  "resolveWithFullResponse": true,
+                  "followAllRedirects": true,
+                  "timeout": 300000,
+                  "encoding": null,
+                  "json": false,
+                  "useStream": true
+                }
+              },
+              "functionality": "regular",
+              "name": "NodeApiError",
+              "node": {
+                "parameters": {
+                  "curlImport": "",
+                  "method": "GET",
+                  "url": "https://n8n.srv1234150.hstgr.cloud/api/v1/workflows",
+                  "authentication": "predefinedCredentialType",
+                  "nodeCredentialType": "n8nApi",
+                  "provideSslCertificates": false,
+                  "sendQuery": false,
+                  "sendHeaders": false,
+                  "sendBody": false,
+                  "options": {},
+                  "infoMessage": ""
+                },
+                "type": "n8n-nodes-base.httpRequest",
+                "typeVersion": 4.3,
+                "position": [
+                  2144,
+                  -48
+                ],
+                "id": "ae502ff7-01d7-46a3-86f5-6cd73f0af22f",
+                "name": "HTTP Request",
+                "credentials": {
+                  "n8nApi": {
+                    "id": "sSOSakGRBq2sKsiN",
+                    "name": "n8n account"
+                  }
+                }
+              },
+              "messages": [
+                "401 - \"{\\\"message\\\":\\\"unauthorized\\\"}\""
+              ],
+              "httpCode": "401",
+              "message": "Authorization failed - please check your credentials",
+              "stack": "NodeApiError: Authorization failed - please check your credentials\n    at ExecuteContext.requestWithAuthentication (/usr/local/lib/node_modules/n8n/node_modules/.pnpm/n8n-core@file+packages+core_@opentelemetry+api@1.9.0_@opentelemetry+sdk-trace-base@1.30_ec37920eb95917b28efaa783206b20f3/node_modules/n8n-core/src/execution-engine/node-execution-context/utils/request-helper-functions.ts:1513:10)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at ExecuteContext.requestWithAuthentication (/usr/local/lib/node_modules/n8n/node_modules/.pnpm/n8n-core@file+packages+core_@opentelemetry+api@1.9.0_@opentelemetry+sdk-trace-base@1.30_ec37920eb95917b28efaa783206b20f3/node_modules/n8n-core/src/execution-engine/node-execution-context/utils/request-helper-functions.ts:1813:11)"
+            },
+            "lastNodeExecuted": "HTTP Request",
+            "mode": "trigger",
+            "executionContext": {
+              "version": 1,
+              "establishedAt": 1771740026640,
+              "source": "trigger",
+              "triggerNode": {
+                "name": "Schedule Trigger",
+                "type": "n8n-nodes-base.scheduleTrigger"
+              }
+            }
+          },
+          "workflow": {
+            "id": "DvPH9MddQ0FQfBtF",
+            "name": "Daily workflow backups to GitHub with Slack notifications"
+          }
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-15T18:30:45.889Z",
+      "createdAt": "2026-01-15T18:30:45.889Z",
+      "role": "workflow:owner",
+      "workflowId": "TGQmnuXPE02r_J8_pzgVj",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-02-22T17:22:59.244Z",
+  "versionId": "4f5c93db-643c-4c23-9fcc-98d04346e5b9"
+}
