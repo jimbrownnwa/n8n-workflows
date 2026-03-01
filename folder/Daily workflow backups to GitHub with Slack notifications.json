@@ -862,14 +862,14 @@
         [],
         [
           {
-            "node": "Get a file",
-            "type": "main",
-            "index": 0
-          },
-          {
             "node": "Merge Items",
             "type": "main",
             "index": 1
+          },
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -1431,7 +1431,7 @@
       "name": "Loop Over Items",
       "type": "n8n-nodes-base.splitInBatches",
       "position": [
-        2816,
+        2768,
         -48
       ],
       "typeVersion": 3
@@ -1508,6 +1508,6 @@
   },
   "tags": [],
   "triggerCount": 1,
-  "updatedAt": "2026-02-21T18:58:09.785Z",
-  "versionId": "c6f7dcd9-6420-49e4-8046-770e9bc10221"
+  "updatedAt": "2026-03-01T15:42:32.758Z",
+  "versionId": "53f979c1-22bc-4ffb-aea0-62d02ccad433"
 }
