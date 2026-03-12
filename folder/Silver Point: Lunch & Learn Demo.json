@@ -1,0 +1,527 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Get New Worksheet ID": {
+      "main": [
+        [
+          {
+            "node": "Add a sheet to a workbook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add a sheet to a workbook": {
+      "main": [
+        [
+          {
+            "node": "Structure Incoming Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Dates": {
+      "main": [
+        [
+          {
+            "node": "Find Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Master": {
+      "main": [
+        [
+          {
+            "node": "Create a Copy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a Copy": {
+      "main": [
+        [
+          {
+            "node": "Get New Worksheet ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Column Headers": {
+      "main": [
+        [
+          {
+            "node": "Upload Daily Credit Position",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structure Incoming Data": {
+      "main": [
+        [
+          {
+            "node": "Add Column Headers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Current Prices (API Mock Up)": {
+      "main": [
+        [
+          {
+            "node": "Update Reference Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Reference Data": {
+      "main": [
+        [
+          {
+            "node": "Prep Summary Formulas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prep Summary Formulas": {
+      "main": [
+        [
+          {
+            "node": "Update Summary Tab Links",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily Credit Position Data": {
+      "main": [
+        [
+          {
+            "node": "Set Dates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload Daily Credit Position": {
+      "main": [
+        [
+          {
+            "node": "Get Current Prices (API Mock Up)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-03-11T23:16:56.436Z",
+  "id": "R15CWWYGejD70NHc",
+  "isArchived": false,
+  "meta": null,
+  "name": "Silver Point: Lunch & Learn Demo",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "addWorksheet",
+        "workbook": {
+          "__rl": true,
+          "value": "={{ $json.newFileId }}",
+          "mode": "id"
+        },
+        "additionalFields": {
+          "name": "=data_{{ $('Set Dates').item.json.todayStr }}"
+        }
+      },
+      "type": "n8n-nodes-base.microsoftExcel",
+      "typeVersion": 2.2,
+      "position": [
+        1232,
+        224
+      ],
+      "id": "8bf991b1-a9dd-4cce-90a0-82910f9050d1",
+      "name": "Add a sheet to a workbook",
+      "credentials": {
+        "microsoftExcelOAuth2Api": {
+          "id": "WrNIuzVM90wylIqP",
+          "name": "Microsoft Excel account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const location = $input.item.json.location;\nconst itemId = location.split('/items/')[1].split('?')[0];\n\nreturn [{ json: { newFileId: itemId } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1008,
+        224
+      ],
+      "id": "837921af-656c-4540-bcef-da506ae89783",
+      "name": "Get New Worksheet ID"
+    },
+    {
+      "parameters": {
+        "jsCode": "function getPrevBusinessDay(date, offset) {\n  let d = new Date(date);\n  let count = 0;\n  while (count < offset) {\n    d.setDate(d.getDate() - 1);\n    if (d.getDay() !== 0 && d.getDay() !== 6) count++;\n  }\n  return d.toISOString().slice(0, 10).replace(/-/g, '');\n}\nconst today = new Date();\nreturn [{ json: {\n  todayStr: today.toISOString().slice(0,10).replace(/-/g,''),\n  prevBizDay: getPrevBusinessDay(today, 1),    // e.g. '20250307'\n  twoBizDaysBack: getPrevBusinessDay(today, 2) // e.g. '20250306'\n}}];\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        304,
+        224
+      ],
+      "id": "704e4fc9-9bcc-46ce-847b-5ad7d0d262f0",
+      "name": "Set Dates"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "query": "v3"
+      },
+      "type": "n8n-nodes-base.microsoftOneDrive",
+      "typeVersion": 1.1,
+      "position": [
+        560,
+        224
+      ],
+      "id": "9b56cec0-7298-4423-be69-ce69b745c114",
+      "name": "Find Master",
+      "credentials": {
+        "microsoftOneDriveOAuth2Api": {
+          "id": "auFavEY3M0Wy6j0K",
+          "name": "Jim"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "copy",
+        "fileId": "={{ $json.id }}",
+        "additionalFields": {
+          "name": "=Portfolio_{{ $('Set Dates').item.json.todayStr }}.xlsx"
+        },
+        "parentReference": {
+          "id": "={{ $json.parentReference.id }}"
+        }
+      },
+      "type": "n8n-nodes-base.microsoftOneDrive",
+      "typeVersion": 1.1,
+      "position": [
+        784,
+        224
+      ],
+      "id": "6bc6f2f9-bc06-4bff-9c2e-367ea2f77516",
+      "name": "Create a Copy",
+      "credentials": {
+        "microsoftOneDriveOAuth2Api": {
+          "id": "IzOmsSihJD7Yhh9u",
+          "name": "Microsoft Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "worksheet",
+        "operation": "append",
+        "workbook": {
+          "__rl": true,
+          "value": "={{ $('Get New Worksheet ID').item.json.newFileId }}",
+          "mode": "id"
+        },
+        "worksheet": {
+          "__rl": true,
+          "value": "={{ $('Add a sheet to a workbook').item.json.name }}",
+          "mode": "id"
+        },
+        "dataMode": "raw",
+        "data": "=[\n  [\"Position\", \"Notional ($M)\", \"Market Value ($M)\", \"Duration (yrs)\", \"DV01 ($K)\"]\n]",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.microsoftExcel",
+      "typeVersion": 2.2,
+      "position": [
+        560,
+        528
+      ],
+      "id": "c41a5ff1-43ff-4dd5-89be-796a1fc43b14",
+      "name": "Add Column Headers",
+      "credentials": {
+        "microsoftExcelOAuth2Api": {
+          "id": "WrNIuzVM90wylIqP",
+          "name": "Microsoft Excel account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const positions = $('Daily Credit Position Data').first().json.positions;\n\nconst rows = positions.map(p => [\n  String(p.name),\n  String(p.notional),\n  String(p.market_value),\n  String(p.duration),\n  String(p.dv01)\n]);\n\nreturn [{ \n  json: { \n    rows: rows,\n    fileId: $('Get New Worksheet ID').first().json.newFileId,\n    sheetName: $('Add a sheet to a workbook').first().json.name\n  } \n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        304,
+        528
+      ],
+      "id": "0897777d-c3c2-4cce-8665-abfc5090ab6b",
+      "name": "Structure Incoming Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      values: [\n        [\"CDX IG 5Y Spread (bps)\", \"61.2\", \"62.5\", \"Bloomberg\"],\n        [\"CDX HY 5Y Spread (bps)\", \"308.5\", \"312.0\", \"Bloomberg\"],\n        [\"US HY OAS (bps)\", \"335.0\", \"340.0\", \"ICE BofA\"],\n        [\"10Y US Treasury Yield (%)\", \"4.31\", \"4.28\", \"FRED\"],\n        [\"2Y US Treasury Yield (%)\", \"4.68\", \"4.72\", \"FRED\"],\n        [\"USD/EUR FX Rate\", \"1.082\", \"1.085\", \"ECB\"],\n        [\"VIX Index\", \"13.9\", \"14.8\", \"CBOE\"],\n        [\"S&P 500 Level\", \"5671.0\", \"5650.0\", \"Yahoo Finance\"]\n      ]\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        528
+      ],
+      "id": "0cd68907-6521-4c32-9f50-f7068b94bba1",
+      "name": "Get Current Prices (API Mock Up)"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://graph.microsoft.com/v1.0/me/drive/items/{{ $('Structure Incoming Data').first().json.fileId }}/workbook/worksheets/reference_data/range(address='A4:D11')",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "microsoftExcelOAuth2Api",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={   \"values\": {{ JSON.stringify($json.values) }} }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1264,
+        528
+      ],
+      "id": "e8e4d726-d909-4536-82cf-c0a29fd2ce6a",
+      "name": "Update Reference Data",
+      "credentials": {
+        "microsoftExcelOAuth2Api": {
+          "id": "WrNIuzVM90wylIqP",
+          "name": "Microsoft Excel account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://graph.microsoft.com/v1.0/me/drive/items/{{ $('Structure Incoming Data').first().json.fileId }}/workbook/worksheets/summary/range(address='B6:C10')",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "microsoftExcelOAuth2Api",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={ \"values\": {{ JSON.stringify($('Prep Summary Formulas').first().json.values) }} }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1696,
+        528
+      ],
+      "id": "8238e9b8-50a4-407e-9280-3b28a63495e7",
+      "name": "Update Summary Tab Links",
+      "credentials": {
+        "microsoftExcelOAuth2Api": {
+          "id": "WrNIuzVM90wylIqP",
+          "name": "Microsoft Excel account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const t1 = $('Set Dates').first().json.prevBizDay;\nconst t2 = $('Set Dates').first().json.twoBizDaysBack;\n\nreturn [{\n  json: {\n    values: [\n      [`=INDIRECT(\"data_${t1}!C4\")`, `=INDIRECT(\"data_${t2}!C4\")`],\n      [`=INDIRECT(\"data_${t1}!C5\")`, `=INDIRECT(\"data_${t2}!C5\")`],\n      [`=INDIRECT(\"data_${t1}!C6\")`, `=INDIRECT(\"data_${t2}!C6\")`],\n      [`=INDIRECT(\"data_${t1}!C7\")`, `=INDIRECT(\"data_${t2}!C7\")`],\n      [`=INDIRECT(\"data_${t1}!C8\")`, `=INDIRECT(\"data_${t2}!C8\")`]\n    ]\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1488,
+        528
+      ],
+      "id": "c71ab419-4771-4cef-bdb8-6825fe418968",
+      "name": "Prep Summary Formulas"
+    },
+    {
+      "parameters": {
+        "content": "## What This Does\nThe workflow saves a fresh copy of the workbook dated for today, creates a new data tab for yesterday's positions, drops the incoming data payload directly into that tab, refreshes the market reference data with current benchmark levels, and then updates the Summary tab so it's automatically comparing the right two days. When the team opens the file in the morning, it's already done and already correct.",
+        "width": 576,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "f282c6c1-9844-4cc8-8a7a-361ce559117a",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        96,
+        224
+      ],
+      "id": "1e178fa6-f17a-4665-916a-7a9280fcd1ba",
+      "name": "Daily Credit Position Data"
+    },
+    {
+      "parameters": {
+        "content": "## Trigger\nrepresents the incoming daily data payload — simulating what would come from an upstream system in production",
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        400
+      ],
+      "typeVersion": 1,
+      "id": "db536fad-ee43-4922-9ee5-8c22299dc9cf",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "##Mock Data Feed\nmarket benchmark or reference rate ",
+        "height": 80
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1216,
+        672
+      ],
+      "typeVersion": 1,
+      "id": "7aafa84f-b00a-489d-82e4-513367c143fc",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://graph.microsoft.com/v1.0/me/drive/items/{{ $('Structure Incoming Data').first().json.fileId }}/workbook/worksheets/{{ $('Structure Incoming Data').first().json.sheetName }}/range(address='A2:E6')",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "microsoftExcelOAuth2Api",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={   \"values\": {{ JSON.stringify($('Structure Incoming Data').first().json.rows) }} }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        816,
+        528
+      ],
+      "id": "4a11be35-54e2-4c73-b379-69b575f30ec3",
+      "name": "Upload Daily Credit Position",
+      "credentials": {
+        "microsoftExcelOAuth2Api": {
+          "id": "WrNIuzVM90wylIqP",
+          "name": "Microsoft Excel account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Daily Credit Position Data": [
+      {
+        "json": {
+          "date": "20250312",
+          "positions": [
+            {
+              "name": "SP High Yield Bond Fund",
+              "notional": 148,
+              "market_value": 143.5,
+              "duration": 5.2,
+              "dv01": 74.6
+            },
+            {
+              "name": "IG Corporate Ladder",
+              "notional": 210,
+              "market_value": 210.8,
+              "duration": 8.7,
+              "dv01": 183.4
+            },
+            {
+              "name": "EM Sovereign Debt ETF",
+              "notional": 95,
+              "market_value": 90.2,
+              "duration": 6.4,
+              "dv01": 57.7
+            },
+            {
+              "name": "CLO Tranche — Mezz",
+              "notional": 55,
+              "market_value": 53,
+              "duration": 3.1,
+              "dv01": 16.4
+            },
+            {
+              "name": "Leveraged Loan Basket",
+              "notional": 182,
+              "market_value": 178.1,
+              "duration": 1.8,
+              "dv01": 32.1
+            }
+          ]
+        }
+      }
+    ],
+    "Set Dates": [
+      {
+        "json": {
+          "todayStr": "20260312",
+          "prevBizDay": "20260311",
+          "twoBizDaysBack": "20260310"
+        }
+      }
+    ]
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-03-11T23:16:56.440Z",
+      "createdAt": "2026-03-11T23:16:56.440Z",
+      "role": "workflow:owner",
+      "workflowId": "R15CWWYGejD70NHc",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-03-11T23:20:32.626Z",
+  "versionId": "ff36e015-69f5-4746-99eb-09c5d8e9c568"
+}
