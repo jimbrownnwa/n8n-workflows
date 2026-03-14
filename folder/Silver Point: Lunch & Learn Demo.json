@@ -113,17 +113,6 @@
         ]
       ]
     },
-    "Daily Credit Position Data": {
-      "main": [
-        [
-          {
-            "node": "Set Dates",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Upload Daily Credit Position": {
       "main": [
         [
@@ -134,12 +123,25 @@
           }
         ]
       ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Dates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "createdAt": "2026-03-11T23:16:56.436Z",
   "id": "R15CWWYGejD70NHc",
-  "isArchived": false,
-  "meta": null,
+  "isArchived": true,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
   "name": "Silver Point: Lunch & Learn Demo",
   "nodes": [
     {
@@ -370,39 +372,13 @@
     },
     {
       "parameters": {
-        "content": "## What This Does\nThe workflow saves a fresh copy of the workbook dated for today, creates a new data tab for yesterday's positions, drops the incoming data payload directly into that tab, refreshes the market reference data with current benchmark levels, and then updates the Summary tab so it's automatically comparing the right two days. When the team opens the file in the morning, it's already done and already correct.",
-        "width": 576,
-        "color": 3
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        0,
-        0
-      ],
-      "typeVersion": 1,
-      "id": "f282c6c1-9844-4cc8-8a7a-361ce559117a",
-      "name": "Sticky Note"
-    },
-    {
-      "parameters": {},
-      "type": "n8n-nodes-base.manualTrigger",
-      "typeVersion": 1,
-      "position": [
-        96,
-        224
-      ],
-      "id": "1e178fa6-f17a-4665-916a-7a9280fcd1ba",
-      "name": "Daily Credit Position Data"
-    },
-    {
-      "parameters": {
         "content": "## Trigger\nrepresents the incoming daily data payload — simulating what would come from an upstream system in production",
         "color": 6
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        0,
-        400
+        -48,
+        416
       ],
       "typeVersion": 1,
       "id": "db536fad-ee43-4922-9ee5-8c22299dc9cf",
@@ -410,13 +386,14 @@
     },
     {
       "parameters": {
-        "content": "##Mock Data Feed\nmarket benchmark or reference rate ",
-        "height": 80
+        "content": "## Mock Data Feed\nmarket benchmark or reference rate ",
+        "height": 112,
+        "color": 5
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1216,
-        672
+        1024,
+        704
       ],
       "typeVersion": 1,
       "id": "7aafa84f-b00a-489d-82e4-513367c143fc",
@@ -448,63 +425,26 @@
           "name": "Microsoft Excel account"
         }
       }
-    }
-  ],
-  "pinData": {
-    "Daily Credit Position Data": [
-      {
-        "json": {
-          "date": "20250312",
-          "positions": [
-            {
-              "name": "SP High Yield Bond Fund",
-              "notional": 148,
-              "market_value": 143.5,
-              "duration": 5.2,
-              "dv01": 74.6
-            },
-            {
-              "name": "IG Corporate Ladder",
-              "notional": 210,
-              "market_value": 210.8,
-              "duration": 8.7,
-              "dv01": 183.4
-            },
-            {
-              "name": "EM Sovereign Debt ETF",
-              "notional": 95,
-              "market_value": 90.2,
-              "duration": 6.4,
-              "dv01": 57.7
-            },
-            {
-              "name": "CLO Tranche — Mezz",
-              "notional": 55,
-              "market_value": 53,
-              "duration": 3.1,
-              "dv01": 16.4
-            },
-            {
-              "name": "Leveraged Loan Basket",
-              "notional": 182,
-              "market_value": 178.1,
-              "duration": 1.8,
-              "dv01": 32.1
-            }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
           ]
         }
-      }
-    ],
-    "Set Dates": [
-      {
-        "json": {
-          "todayStr": "20260312",
-          "prevBizDay": "20260311",
-          "twoBizDaysBack": "20260310"
-        }
-      }
-    ]
-  },
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        80,
+        224
+      ],
+      "id": "f8cc6811-7f23-43d5-9ba5-6c800aee5442",
+      "name": "Schedule Trigger"
+    }
+  ],
+  "pinData": {},
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate",
@@ -522,6 +462,6 @@
   "staticData": null,
   "tags": [],
   "triggerCount": 0,
-  "updatedAt": "2026-03-11T23:20:32.626Z",
-  "versionId": "ff36e015-69f5-4746-99eb-09c5d8e9c568"
+  "updatedAt": "2026-03-14T15:29:05.000Z",
+  "versionId": "77158bf0-1204-4720-b058-e05529cb5af9"
 }
