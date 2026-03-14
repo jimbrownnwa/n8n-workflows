@@ -1,0 +1,136 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Millionverifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Millionverifier": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-03-12T19:06:14.458Z",
+  "id": "J7Rg3FTTkycvs5jS",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Million Verifier",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -944,
+        -144
+      ],
+      "id": "4de4aa99-b914-46fe-8cda-86066ca10d1f",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://api.millionverifier.com/api/v3/?api=API_KEY_FOR_TEST&email=jimbrown131@gmail.com&timeout=10' \\",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -704,
+        -144
+      ],
+      "id": "e911dee2-59a6-46f5-80a8-09381ef4f188",
+      "name": "Millionverifier"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "370f8869-40be-4e59-8bd7-6166db47cd52",
+              "name": "quality",
+              "value": "={{ $json[\"quality\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "b77a9496-1eb7-43a0-a79f-137e2f902302",
+              "name": "result",
+              "value": "={{  $json.result }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -496,
+        -144
+      ],
+      "id": "27c80ff5-33f4-478a-9bc0-c695ac7ca0f0",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -288,
+        -144
+      ],
+      "id": "e722d7a2-6cdf-4f3d-b1b1-02f6cd70a9f6",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-03-12T19:06:14.460Z",
+      "createdAt": "2026-03-12T19:06:14.460Z",
+      "role": "workflow:owner",
+      "workflowId": "J7Rg3FTTkycvs5jS",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-03-14T21:53:22.124Z",
+  "versionId": "fd16b0d9-6bc0-4865-b938-37d346604444"
+}
