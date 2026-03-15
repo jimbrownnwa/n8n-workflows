@@ -1,0 +1,734 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Process Each Page": {
+      "main": [
+        [
+          {
+            "node": "Agent Architect — Final Assembly",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Agent Scout — Complexity Scorer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Scout — Complexity Scorer": {
+      "main": [
+        []
+      ]
+    },
+    "Wait After Scout": {
+      "main": [
+        [
+          {
+            "node": "Parse Scout Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Scout Response": {
+      "main": [
+        [
+          {
+            "node": "Complexity Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Complexity Router": {
+      "main": [
+        [
+          {
+            "node": "Agent Describer — Complex Pages",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Agent Extractor — Standard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Describer — Complex Pages": {
+      "main": [
+        [
+          {
+            "node": "Wait After Describer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait After Describer": {
+      "main": [
+        [
+          {
+            "node": "Parse Complex Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Complex Output": {
+      "main": [
+        [
+          {
+            "node": "Merge Conversion Paths",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Extractor — Standard": {
+      "main": [
+        [
+          {
+            "node": "Wait After Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait After Extractor": {
+      "main": [
+        [
+          {
+            "node": "Parse Standard Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Standard Output": {
+      "main": [
+        [
+          {
+            "node": "Merge Conversion Paths",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Conversion Paths": {
+      "main": [
+        [
+          {
+            "node": "Agent Verifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Verifier": {
+      "main": [
+        [
+          {
+            "node": "Wait After Verifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait After Verifier": {
+      "main": [
+        [
+          {
+            "node": "Parse Verification & Collect",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Verification & Collect": {
+      "main": [
+        [
+          {
+            "node": "Process Each Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Architect — Final Assembly": {
+      "main": [
+        [
+          {
+            "node": "Format Readable Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Readable Output": {
+      "main": [
+        [
+          {
+            "node": "RAG Ingestion Pipeline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inbound Marker API w/ MD & Base64": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-03-14T23:39:53.971Z",
+  "id": "UYdutYODgYd2BTxm",
+  "isArchived": true,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "delete",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "3b4330b7-8772-4601-8c23-0bb1f44a40af",
+      "name": "Process Each Page",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -288,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 300, messages: [{ role: 'user', content: [{ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: $json.pdf_base64 } }, { type: 'text', text: 'Look at page ' + $json.page_number + ' of this PDF. Assess visual complexity of ONLY this page. Classify as SIMPLE (title pages, disclaimers, text-only), MODERATE (text with simple tables, exec summaries), or COMPLEX (multi-panel charts, dense data visuals). Respond with ONLY JSON: {\"page_number\": N, \"complexity\": \"SIMPLE\", \"element_count\": N, \"has_charts\": false, \"has_tables\": false, \"reasoning\": \"one sentence\" }' }] }] })}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "c915cd9b-0531-423d-bc78-3a355a89401f",
+      "name": "Agent Scout — Complexity Scorer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -32,
+        416
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "niFK024eGKjbCXhy",
+          "name": "PB2"
+        },
+        "anthropicApi": {
+          "id": "QIUyAAWFmOxaIZc6",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "c570e842-fb95-43e8-8bd6-6a4a9b52ad1b",
+      "name": "Wait After Scout",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        256,
+        400
+      ],
+      "webhookId": "9c1680b7-f3db-4f89-ab53-5931a8ea457b"
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst content = response.content[0].text;\nconst pageData = $('Process Each Page').first().json;\nlet parsed;\ntry {\n  const jsonStr = content.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n  parsed = JSON.parse(jsonStr);\n} catch (e) {\n  parsed = { page_number: pageData.page_number, complexity: 'COMPLEX', reasoning: 'Parse error, defaulting to complex', element_count: 0, has_charts: false, has_tables: false };\n}\nreturn [{ json: { page_number: pageData.page_number, total_pages: pageData.total_pages, pdf_base64: pageData.pdf_base64, retry_count: pageData.retry_count, complexity: parsed.complexity, scout_reasoning: parsed.reasoning, element_count: parsed.element_count || 0, has_charts: parsed.has_charts || false, has_tables: parsed.has_tables || false } }];"
+      },
+      "id": "bfaae93e-919f-44a4-85e4-b91b017a6dc3",
+      "name": "Parse Scout Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.complexity }}",
+                    "rightValue": "COMPLEX",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "cee99c81-1d01-4596-8b0b-04436075fd96"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Complex"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.complexity }}",
+                    "rightValue": "COMPLEX",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEquals"
+                    },
+                    "id": "b6302e27-fab8-4eda-ae0c-10d683e9e148"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Simple/Moderate"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "353d4aaf-48a2-4620-862c-f3226b0c301e",
+      "name": "Complexity Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        704,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 2000, messages: [{ role: 'user', content: [{ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: $json.pdf_base64 } }, { type: 'text', text: 'Analyze page ' + $json.page_number + ' of this PDF. Complex consulting deliverable page. Create structured summary for search and retrieval. Format: ### [Page title] then [page: ' + $json.page_number + '] [confidence: medium] [complex_visual: true] then sections for Key conclusion (2-4 sentences), Visual description (chart types, layout), Extracted data points (every number as bullets), Source attribution. Be thorough. Every number matters.' }] }] })}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "5c029ceb-c58e-4af8-a819-5ed7fef97044",
+      "name": "Agent Describer — Complex Pages",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        928,
+        304
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "niFK024eGKjbCXhy",
+          "name": "PB2"
+        },
+        "anthropicApi": {
+          "id": "QIUyAAWFmOxaIZc6",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "fae37198-063f-4abb-9691-2e665711cdac",
+      "name": "Wait After Describer",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1152,
+        304
+      ],
+      "webhookId": "531c3f35-f91e-4142-b659-4cd949128af2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst markdown = response.content[0].text;\nconst pageData = $('Complexity Router').first().json;\nreturn [{ json: { page_number: pageData.page_number, total_pages: pageData.total_pages, complexity: pageData.complexity, conversion_path: 'complex_describer', markdown_output: markdown, pdf_base64: pageData.pdf_base64 } }];"
+      },
+      "id": "f6782f04-76df-4063-a861-ff8771358c01",
+      "name": "Parse Complex Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1376,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1500, messages: [{ role: 'user', content: [{ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: $json.pdf_base64 } }, { type: 'text', text: 'Extract content of page ' + $json.page_number + ' from this PDF into clean markdown. Preserve all text verbatim, format tables as markdown, use H3 for page title. Start with [page: ' + $json.page_number + '] [confidence: high]. Do NOT describe visuals, just extract text and tables.' }] }] })}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "d878117f-a063-4c1a-a9b9-4e60fa8d12af",
+      "name": "Agent Extractor — Standard",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        928,
+        496
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "niFK024eGKjbCXhy",
+          "name": "PB2"
+        },
+        "anthropicApi": {
+          "id": "QIUyAAWFmOxaIZc6",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "aca98463-5336-43aa-8977-9bd1c1546a96",
+      "name": "Wait After Extractor",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1152,
+        496
+      ],
+      "webhookId": "311bf7d8-01da-4e67-bab3-03703d473a4c"
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst markdown = response.content[0].text;\nconst pageData = $('Complexity Router').first().json;\nreturn [{ json: { page_number: pageData.page_number, total_pages: pageData.total_pages, complexity: pageData.complexity, conversion_path: 'standard', markdown_output: markdown, pdf_base64: pageData.pdf_base64 } }];"
+      },
+      "id": "c5f8fab8-5d95-43e6-942d-42312fe50fd5",
+      "name": "Parse Standard Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1376,
+        496
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "b1d6df4e-d163-4d0e-b68d-00e9b7b076bc",
+      "name": "Merge Conversion Paths",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        1600,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 400, messages: [{ role: 'user', content: [{ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: $json.pdf_base64 } }, { type: 'text', text: 'Quality verification: Compare page ' + $json.page_number + ' against this markdown extraction. Check numerical values, table structures, main claims, page number. MARKDOWN: ' + String($json.markdown_output || '').substring(0, 2000) + ' -- Respond with ONLY JSON: {\"page_number\": N, \"numerical_match\": true, \"structure_correct\": true, \"claims_captured\": true, \"page_number_correct\": true, \"confidence\": \"high\", \"issues\": \"none\" }' }] }] })}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "5d5c2142-a8e7-45d4-a2bc-231e334a0363",
+      "name": "Agent Verifier",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1824,
+        400
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "niFK024eGKjbCXhy",
+          "name": "PB2"
+        },
+        "anthropicApi": {
+          "id": "QIUyAAWFmOxaIZc6",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "b8fc27c3-740b-4d90-b7d6-568b747bfda2",
+      "name": "Wait After Verifier",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2048,
+        400
+      ],
+      "webhookId": "8b670605-2df0-4609-9c20-04313f198059"
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst content = response.content[0].text;\nconst conversionData = $('Merge Conversion Paths').first().json;\nlet verification;\ntry {\n  const jsonStr = content.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n  verification = JSON.parse(jsonStr);\n} catch (e) {\n  verification = { confidence: 'low', issues: 'Verification parse error', numerical_match: false, structure_correct: false, claims_captured: false, page_number_correct: true };\n}\nreturn [{ json: { page_number: conversionData.page_number, complexity: conversionData.complexity, conversion_path: conversionData.conversion_path, confidence: verification.confidence, verification_issues: verification.issues, numerical_match: verification.numerical_match, structure_correct: verification.structure_correct, claims_captured: verification.claims_captured, markdown_output: conversionData.markdown_output } }];"
+      },
+      "id": "770cc710-2cd3-4c55-8de5-7c8f4b1db8c0",
+      "name": "Parse Verification & Collect",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2272,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst pages = items.map(item => item.json).sort((a, b) => a.page_number - b.page_number);\nconst total = pages.length;\nconst highConf = pages.filter(p => p.confidence === 'high').length;\nconst medConf = pages.filter(p => p.confidence === 'medium').length;\nconst lowConf = pages.filter(p => p.confidence === 'low').length;\nlet markdown = '---\\nproject: Demo Document\\ndate: ' + new Date().toISOString().split('T')[0] + '\\ntotal_pages: ' + total + '\\nconversion_quality:\\n  high_confidence: ' + (total > 0 ? Math.round(highConf/total*100) : 0) + '%\\n  medium_confidence: ' + (total > 0 ? Math.round(medConf/total*100) : 0) + '%\\n  low_confidence: ' + (total > 0 ? Math.round(lowConf/total*100) : 0) + '%\\npages_by_complexity:\\n  simple_moderate: ' + pages.filter(p => p.conversion_path === 'standard').length + '\\n  complex: ' + pages.filter(p => p.conversion_path === 'complex_describer').length + '\\n---\\n\\n# Document Intelligence Pipeline Output\\n';\nfor (const page of pages) { markdown += '\\n' + page.markdown_output + '\\n\\n---\\n'; }\nmarkdown += '\\n## Pipeline Quality Report\\n\\n| Page | Complexity | Path | Confidence | Issues |\\n|------|-----------|------|------------|--------|\\n';\nfor (const page of pages) { markdown += '| ' + page.page_number + ' | ' + page.complexity + ' | ' + page.conversion_path + ' | ' + page.confidence + ' | ' + (page.verification_issues || 'none') + ' |\\n'; }\nreturn [{ json: { assembled_markdown: markdown, quality_scorecard: { total_pages: total, high_confidence: highConf, medium_confidence: medConf, low_confidence: lowConf }, pages_processed: pages.map(p => ({ page: p.page_number, complexity: p.complexity, path: p.conversion_path, confidence: p.confidence })) } }];"
+      },
+      "id": "1a4da540-5561-4c66-9b03-18e8311df935",
+      "name": "Agent Architect — Final Assembly",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "source": "parameter",
+        "workflowJson": "={{ $('Agent Architect — Final Assembly').item.json.assembled_markdown }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        448,
+        176
+      ],
+      "id": "358bdd7a-8c45-4472-8bde-078d48410482",
+      "name": "RAG Ingestion Pipeline",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.all();\nconst data = input[0].json;\nconst markdown = data.assembled_markdown || '';\nconst scorecard = data.quality_scorecard || {};\nconst pages = data.pages_processed || [];\n\n// Parse YAML frontmatter into clean summary\nlet yamlBlock = '';\nconst yamlMatch = markdown.match(/^---\\n([\\s\\S]*?)\\n---/);\nif (yamlMatch) {\n  const lines = yamlMatch[1].split('\\n');\n  yamlBlock = '═══════════════════════════════════════════\\n';\n  yamlBlock += '  DOCUMENT INTELLIGENCE PIPELINE REPORT\\n';\n  yamlBlock += '═══════════════════════════════════════════\\n\\n';\n  for (const line of lines) {\n    const trimmed = line.trim();\n    if (!trimmed) continue;\n    if (trimmed.match(/^\\w/) && trimmed.includes(':')) {\n      const [key, ...val] = trimmed.split(':');\n      const value = val.join(':').trim();\n      const label = key.trim()\n        .replace(/_/g, ' ')\n        .replace(/\\b\\w/g, c => c.toUpperCase());\n      if (value) {\n        yamlBlock += `  ${label}: ${value}\\n`;\n      } else {\n        yamlBlock += `\\n  ${label}:\\n`;\n      }\n    } else if (trimmed.includes(':')) {\n      const [key, ...val] = trimmed.split(':');\n      const label = key.trim()\n        .replace(/_/g, ' ')\n        .replace(/\\b\\w/g, c => c.toUpperCase());\n      yamlBlock += `    ${label}: ${val.join(':').trim()}\\n`;\n    }\n  }\n  yamlBlock += '\\n═══════════════════════════════════════════\\n';\n}\n\n// Extract body after frontmatter\nlet body = markdown.replace(/^---\\n[\\s\\S]*?\\n---\\n*/, '');\n\n// Clean up page markers for readability\nbody = body.replace(/\\[page: (\\d+)\\]/g, '\\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\\n  PAGE $1\\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');\nbody = body.replace(/\\[confidence: (\\w+)\\]/g, '[Confidence: $1]');\nbody = body.replace(/\\[complex_visual: (\\w+)\\]/g, '[Complex Visual: $1]');\n\n// Clean up markdown formatting for plain text display\nbody = body.replace(/^### (.+)$/gm, '\\n▸ $1');\nbody = body.replace(/^## (.+)$/gm, '\\n■ $1');\nbody = body.replace(/^# (.+)$/gm, '\\n████ $1 ████');\nbody = body.replace(/\\*\\*(.+?)\\*\\*/g, '$1');\nbody = body.replace(/\\*(.+?)\\*/g, '$1');\nbody = body.replace(/^---$/gm, '');\n\n// Clean up table to be readable\nbody = body.replace(/\\| Page .*\\|/g, '\\n  Page  | Complexity | Path              | Confidence | Issues');\nbody = body.replace(/\\|---.*\\|/g,    '  ------+------------+-------------------+------------+-------');\nbody = body.replace(/\\| (\\d)/g, '  $1    ');\nbody = body.replace(/\\|/g, ' | ');\n\nconst output = yamlBlock + '\\n' + body;\n\nreturn [{\n  json: {\n    formatted_output: output,\n    quality_summary: {\n      total_pages: scorecard.total_pages || 0,\n      high_confidence: scorecard.high_confidence || 0,\n      medium_confidence: scorecard.medium_confidence || 0,\n      low_confidence: scorecard.low_confidence || 0\n    },\n    pages_processed: pages\n  }\n}];"
+      },
+      "id": "919d4d52-7428-4de6-b13d-af47112df4e6",
+      "name": "Format Readable Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        176
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "254df7a4-6660-4c04-ae42-6be650ea21c4",
+      "name": "Inbound Marker API w/ MD & Base64",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1088,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "1nl62VdV4CluY6inqiVqvJhT_wrIpCCBI",
+          "mode": "list",
+          "cachedResultName": "Target markdown spec - sample.pdf",
+          "cachedResultUrl": "https://drive.google.com/file/d/1nl62VdV4CluY6inqiVqvJhT_wrIpCCBI/view?usp=drivesdk"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -848,
+        400
+      ],
+      "id": "b463c25a-da14-4e77-a70e-6f941b2abf72",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "1FTU4WPUYe5B9Ioa",
+          "name": "NWABoost: Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -640,
+        400
+      ],
+      "id": "a74dcc99-f2ae-458f-a576-940cc8abcfea",
+      "name": "Extract from File"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-03-14T23:39:53.974Z",
+      "createdAt": "2026-03-14T23:39:53.974Z",
+      "role": "workflow:owner",
+      "workflowId": "UYdutYODgYd2BTxm",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-03-15T00:22:13.000Z",
+  "versionId": "f4bc8d13-dd85-4fe6-a4c3-d2a342b893b4"
+}
