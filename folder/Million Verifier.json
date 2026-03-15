@@ -7,7 +7,7 @@
       "main": [
         [
           {
-            "node": "Millionverifier",
+            "node": "Download file",
             "type": "main",
             "index": 0
           }
@@ -35,6 +35,22 @@
           }
         ]
       ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        []
+      ]
     }
   },
   "createdAt": "2026-03-12T19:06:14.458Z",
@@ -50,8 +66,8 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -944,
-        -144
+        -1072,
+        -96
       ],
       "id": "4de4aa99-b914-46fe-8cda-86066ca10d1f",
       "name": "When clicking ‘Execute workflow’"
@@ -64,8 +80,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -704,
-        -144
+        -752,
+        -288
       ],
       "id": "e911dee2-59a6-46f5-80a8-09381ef4f188",
       "name": "Millionverifier"
@@ -93,8 +109,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -496,
-        -144
+        -576,
+        -288
       ],
       "id": "27c80ff5-33f4-478a-9bc0-c695ac7ca0f0",
       "name": "Edit Fields"
@@ -106,11 +122,52 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -288,
-        -144
+        -384,
+        -288
       ],
       "id": "e722d7a2-6cdf-4f3d-b1b1-02f6cd70a9f6",
       "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "1nl62VdV4CluY6inqiVqvJhT_wrIpCCBI",
+          "mode": "list",
+          "cachedResultName": "Target markdown spec - sample.pdf",
+          "cachedResultUrl": "https://drive.google.com/file/d/1nl62VdV4CluY6inqiVqvJhT_wrIpCCBI/view?usp=drivesdk"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -864,
+        -96
+      ],
+      "id": "488c06e7-4795-492d-b374-66c0306ee724",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "1FTU4WPUYe5B9Ioa",
+          "name": "NWABoost: Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -656,
+        -96
+      ],
+      "id": "2041d3fa-c1eb-4cbb-a43e-7f45db617925",
+      "name": "Extract from File"
     }
   ],
   "pinData": {},
@@ -131,6 +188,6 @@
   "staticData": null,
   "tags": [],
   "triggerCount": 0,
-  "updatedAt": "2026-03-14T21:53:22.124Z",
-  "versionId": "fd16b0d9-6bc0-4865-b938-37d346604444"
+  "updatedAt": "2026-03-14T23:38:50.596Z",
+  "versionId": "bb89454f-0f1f-471a-ba54-a1fbae5e8f2f"
 }
