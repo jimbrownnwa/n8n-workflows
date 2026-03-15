@@ -1,9 +1,9 @@
 {
   "active": true,
   "activeVersion": {
-    "updatedAt": "2026-02-10T18:30:31.000Z",
-    "createdAt": "2026-02-10T18:30:21.242Z",
-    "versionId": "b6eed444-309b-4b78-aaa9-e1b66099f50d",
+    "updatedAt": "2026-03-14T22:50:04.000Z",
+    "createdAt": "2026-03-14T22:49:03.758Z",
+    "versionId": "334d81d1-3274-4868-adff-13009770361c",
     "workflowId": "DvPH9MddQ0FQfBtF",
     "nodes": [
       {
@@ -24,8 +24,8 @@
         "name": "Return",
         "type": "n8n-nodes-base.set",
         "position": [
-          4608,
-          128
+          4736,
+          -176
         ],
         "typeVersion": 3.3
       },
@@ -35,8 +35,8 @@
         "name": "Merge Items",
         "type": "n8n-nodes-base.merge",
         "position": [
-          3712,
-          0
+          3840,
+          -304
         ],
         "typeVersion": 2
       },
@@ -48,8 +48,8 @@
         "name": "isDiffOrNew",
         "type": "n8n-nodes-base.code",
         "position": [
-          3936,
-          0
+          4064,
+          -304
         ],
         "typeVersion": 1
       },
@@ -74,8 +74,8 @@
         "name": "Create new file",
         "type": "n8n-nodes-base.github",
         "position": [
-          4384,
-          -48
+          4512,
+          -352
         ],
         "webhookId": "b440dead-fad0-4546-8ca7-201aa2ea2936",
         "typeVersion": 1,
@@ -108,8 +108,8 @@
         "name": "Edit existing file",
         "type": "n8n-nodes-base.github",
         "position": [
-          4384,
-          -240
+          4512,
+          -544
         ],
         "webhookId": "1dfc4103-7c23-4814-a0b5-dd4f5a96d36b",
         "typeVersion": 1,
@@ -148,8 +148,8 @@
         "name": "Filter",
         "type": "n8n-nodes-base.filter",
         "position": [
-          2592,
-          -48
+          2720,
+          -352
         ],
         "typeVersion": 2.2
       },
@@ -164,8 +164,8 @@
         "name": "Sticky Note3",
         "type": "n8n-nodes-base.stickyNote",
         "position": [
-          864,
-          -592
+          992,
+          -896
         ],
         "typeVersion": 1
       },
@@ -180,8 +180,8 @@
         "name": "Sticky Note4",
         "type": "n8n-nodes-base.stickyNote",
         "position": [
-          864,
-          -464
+          992,
+          -768
         ],
         "typeVersion": 1
       },
@@ -271,8 +271,8 @@
         "name": "Switch",
         "type": "n8n-nodes-base.switch",
         "position": [
-          4160,
-          -16
+          4288,
+          -320
         ],
         "typeVersion": 3.2
       },
@@ -313,8 +313,8 @@
         "name": "Config",
         "type": "n8n-nodes-base.set",
         "position": [
-          1920,
-          -48
+          2048,
+          -352
         ],
         "typeVersion": 3.4
       },
@@ -332,8 +332,8 @@
         "name": "Schedule Trigger",
         "type": "n8n-nodes-base.scheduleTrigger",
         "position": [
-          1472,
-          48
+          1600,
+          -256
         ],
         "typeVersion": 1.2
       },
@@ -359,8 +359,8 @@
         "name": "Get a file",
         "type": "n8n-nodes-base.github",
         "position": [
-          3040,
-          -96
+          3168,
+          -400
         ],
         "webhookId": "c12420d3-b858-4ee4-81c4-9adc03e30865",
         "typeVersion": 1.1,
@@ -412,8 +412,8 @@
         "name": "Is File too large?",
         "type": "n8n-nodes-base.if",
         "position": [
-          3264,
-          -96
+          3392,
+          -400
         ],
         "typeVersion": 2.2
       },
@@ -426,8 +426,8 @@
         "name": "Get File",
         "type": "n8n-nodes-base.httpRequest",
         "position": [
-          3488,
-          -128
+          3616,
+          -432
         ],
         "typeVersion": 4.2
       },
@@ -449,8 +449,8 @@
         "name": "Starting Message",
         "type": "n8n-nodes-base.slack",
         "position": [
-          1696,
-          -48
+          1824,
+          -352
         ],
         "webhookId": "c02eb407-5547-4aa0-9ebf-46dab67b63b6",
         "typeVersion": 2.2,
@@ -469,8 +469,8 @@
         "name": "Loop Over Items",
         "type": "n8n-nodes-base.splitInBatches",
         "position": [
-          2816,
-          -48
+          2896,
+          -352
         ],
         "typeVersion": 3
       },
@@ -479,8 +479,8 @@
         "type": "n8n-nodes-base.manualTrigger",
         "typeVersion": 1,
         "position": [
-          1472,
-          -144
+          1600,
+          -448
         ],
         "id": "241698ab-bafb-464c-aaf9-900ff3b0f1b6",
         "name": "When clicking ‘Execute workflow’"
@@ -495,15 +495,15 @@
         "type": "n8n-nodes-base.httpRequest",
         "typeVersion": 4.3,
         "position": [
-          2144,
-          -48
+          2272,
+          -352
         ],
         "id": "ae502ff7-01d7-46a3-86f5-6cd73f0af22f",
         "name": "HTTP Request",
         "credentials": {
           "n8nApi": {
-            "id": "sSOSakGRBq2sKsiN",
-            "name": "n8n account"
+            "id": "DlBW5b5IBrCyfFVE",
+            "name": "n8n account 2"
           }
         }
       },
@@ -514,8 +514,8 @@
         "type": "n8n-nodes-base.code",
         "typeVersion": 2,
         "position": [
-          2368,
-          -48
+          2496,
+          -352
         ],
         "id": "bacefe0b-a34b-4aff-9c5a-21ea70f19546",
         "name": "Code in JavaScript"
@@ -640,14 +640,14 @@
           [],
           [
             {
-              "node": "Get a file",
-              "type": "main",
-              "index": 0
-            },
-            {
               "node": "Merge Items",
               "type": "main",
               "index": 1
+            },
+            {
+              "node": "Get a file",
+              "type": "main",
+              "index": 0
             }
           ]
         ]
@@ -738,11 +738,11 @@
       }
     },
     "authors": "James Brown",
-    "name": "Version b6eed444",
+    "name": "Version 334d81d1",
     "description": "",
     "autosaved": true
   },
-  "activeVersionId": "b6eed444-309b-4b78-aaa9-e1b66099f50d",
+  "activeVersionId": "334d81d1-3274-4868-adff-13009770361c",
   "connections": {
     "Config": {
       "main": [
@@ -986,8 +986,8 @@
       "name": "Return",
       "type": "n8n-nodes-base.set",
       "position": [
-        4608,
-        128
+        4736,
+        -176
       ],
       "typeVersion": 3.3
     },
@@ -997,8 +997,8 @@
       "name": "Merge Items",
       "type": "n8n-nodes-base.merge",
       "position": [
-        3712,
-        0
+        3840,
+        -304
       ],
       "typeVersion": 2
     },
@@ -1010,8 +1010,8 @@
       "name": "isDiffOrNew",
       "type": "n8n-nodes-base.code",
       "position": [
-        3936,
-        0
+        4064,
+        -304
       ],
       "typeVersion": 1
     },
@@ -1036,8 +1036,8 @@
       "name": "Create new file",
       "type": "n8n-nodes-base.github",
       "position": [
-        4384,
-        -48
+        4512,
+        -352
       ],
       "webhookId": "b440dead-fad0-4546-8ca7-201aa2ea2936",
       "typeVersion": 1,
@@ -1070,8 +1070,8 @@
       "name": "Edit existing file",
       "type": "n8n-nodes-base.github",
       "position": [
-        4384,
-        -240
+        4512,
+        -544
       ],
       "webhookId": "1dfc4103-7c23-4814-a0b5-dd4f5a96d36b",
       "typeVersion": 1,
@@ -1110,8 +1110,8 @@
       "name": "Filter",
       "type": "n8n-nodes-base.filter",
       "position": [
-        2592,
-        -48
+        2720,
+        -352
       ],
       "typeVersion": 2.2
     },
@@ -1126,8 +1126,8 @@
       "name": "Sticky Note3",
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        864,
-        -592
+        992,
+        -896
       ],
       "typeVersion": 1
     },
@@ -1142,8 +1142,8 @@
       "name": "Sticky Note4",
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        864,
-        -464
+        992,
+        -768
       ],
       "typeVersion": 1
     },
@@ -1233,8 +1233,8 @@
       "name": "Switch",
       "type": "n8n-nodes-base.switch",
       "position": [
-        4160,
-        -16
+        4288,
+        -320
       ],
       "typeVersion": 3.2
     },
@@ -1275,8 +1275,8 @@
       "name": "Config",
       "type": "n8n-nodes-base.set",
       "position": [
-        1920,
-        -48
+        2048,
+        -352
       ],
       "typeVersion": 3.4
     },
@@ -1294,8 +1294,8 @@
       "name": "Schedule Trigger",
       "type": "n8n-nodes-base.scheduleTrigger",
       "position": [
-        1472,
-        48
+        1600,
+        -256
       ],
       "typeVersion": 1.2
     },
@@ -1321,8 +1321,8 @@
       "name": "Get a file",
       "type": "n8n-nodes-base.github",
       "position": [
-        3040,
-        -96
+        3168,
+        -400
       ],
       "webhookId": "c12420d3-b858-4ee4-81c4-9adc03e30865",
       "typeVersion": 1.1,
@@ -1374,8 +1374,8 @@
       "name": "Is File too large?",
       "type": "n8n-nodes-base.if",
       "position": [
-        3264,
-        -96
+        3392,
+        -400
       ],
       "typeVersion": 2.2
     },
@@ -1388,8 +1388,8 @@
       "name": "Get File",
       "type": "n8n-nodes-base.httpRequest",
       "position": [
-        3488,
-        -128
+        3616,
+        -432
       ],
       "typeVersion": 4.2
     },
@@ -1411,8 +1411,8 @@
       "name": "Starting Message",
       "type": "n8n-nodes-base.slack",
       "position": [
-        1696,
-        -48
+        1824,
+        -352
       ],
       "webhookId": "c02eb407-5547-4aa0-9ebf-46dab67b63b6",
       "typeVersion": 2.2,
@@ -1431,8 +1431,8 @@
       "name": "Loop Over Items",
       "type": "n8n-nodes-base.splitInBatches",
       "position": [
-        2768,
-        -48
+        2896,
+        -352
       ],
       "typeVersion": 3
     },
@@ -1441,8 +1441,8 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        1472,
-        -144
+        1600,
+        -448
       ],
       "id": "241698ab-bafb-464c-aaf9-900ff3b0f1b6",
       "name": "When clicking ‘Execute workflow’"
@@ -1457,8 +1457,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        2144,
-        -48
+        2272,
+        -352
       ],
       "id": "ae502ff7-01d7-46a3-86f5-6cd73f0af22f",
       "name": "HTTP Request",
@@ -1476,8 +1476,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2368,
-        -48
+        2496,
+        -352
       ],
       "id": "bacefe0b-a34b-4aff-9c5a-21ea70f19546",
       "name": "Code in JavaScript"
@@ -1508,6 +1508,6 @@
   },
   "tags": [],
   "triggerCount": 1,
-  "updatedAt": "2026-03-01T15:42:32.758Z",
-  "versionId": "53f979c1-22bc-4ffb-aea0-62d02ccad433"
+  "updatedAt": "2026-03-14T22:49:03.756Z",
+  "versionId": "334d81d1-3274-4868-adff-13009770361c"
 }
