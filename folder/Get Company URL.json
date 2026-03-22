@@ -1,0 +1,1529 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run an Actor and get dataset": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Run an Actor and get dataset",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-03-10T20:27:59.912Z",
+  "id": "30mXt839v1ev1qJu",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Get Company URL",
+  "nodes": [
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1ZS3xZwQu6lDn_SFsmD7lsCzR6muYWzjuxhHhxa50rro",
+          "mode": "list",
+          "cachedResultName": "phantombuster-all-leads-03102026 (1)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZS3xZwQu6lDn_SFsmD7lsCzR6muYWzjuxhHhxa50rro/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1715659177,
+          "mode": "list",
+          "cachedResultName": "phantombuster-all-leads-03102026 (1)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZS3xZwQu6lDn_SFsmD7lsCzR6muYWzjuxhHhxa50rro/edit#gid=1715659177"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "processed",
+              "lookupValue": "n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -448,
+        64
+      ],
+      "id": "9559ce6d-a05e-41f2-a040-e3c81b0ae9ee",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "eOPhFUrfwo2AgnTD",
+          "name": "NWA Boost:Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "413d6b01-0f61-4471-96ac-eb1757ab8c3b",
+              "name": "linkedinCompanyUrl",
+              "value": "={{ $json.linkedinCompanyUrl }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        64
+      ],
+      "id": "ed1bd082-7287-4515-a53f-3573d71ef345",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "Run actor and get dataset",
+        "actorId": {
+          "__rl": true,
+          "value": "AjfNXEI9qTA2IdaAX",
+          "mode": "list",
+          "cachedResultName": "🔥Bulk Linkedin Company Profile Scraper (No Cookies) (dev_fusion/Linkedin-Company-Scraper)",
+          "cachedResultUrl": "https://console.apify.com/actors/AjfNXEI9qTA2IdaAX/input"
+        },
+        "customBody": "={\n    \"profileUrls\": [\n        \"{{ $('Edit Fields').item.json.linkedinCompanyUrl }}\"\n    ]\n}",
+        "timeout": {}
+      },
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 1,
+      "position": [
+        672,
+        112
+      ],
+      "id": "4ca6f4ea-43e3-4118-b03c-bbd5ed46d10e",
+      "name": "Run an Actor and get dataset",
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "credentials": {
+        "apifyApi": {
+          "id": "yQhrYqwilo3zE6O6",
+          "name": "jimbrown131: Apify"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "maxItems": 125
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        0,
+        64
+      ],
+      "id": "c5236105-70dc-4838-8968-89e1abaa562e",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1ZS3xZwQu6lDn_SFsmD7lsCzR6muYWzjuxhHhxa50rro",
+          "mode": "list",
+          "cachedResultName": "phantombuster-all-leads-03102026 (1)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZS3xZwQu6lDn_SFsmD7lsCzR6muYWzjuxhHhxa50rro/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 205981210,
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZS3xZwQu6lDn_SFsmD7lsCzR6muYWzjuxhHhxa50rro/edit#gid=205981210"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "fullName": "={{ $('Code in JavaScript1').item.json.fullName }}",
+            "firstName": "={{ $('Code in JavaScript1').item.json.firstName }}",
+            "lastName": "={{ $('Code in JavaScript1').item.json.lastName }}",
+            "linkedinJobTitle": "={{ $('Code in JavaScript1').item.json.linkedinJobTitle }}",
+            "companyName": "={{ $('Run an Actor and get dataset').item.json.companyName }}",
+            "companyURL": "={{ $('Run an Actor and get dataset').item.json.websiteUrl }}",
+            "industry": "={{ $('Run an Actor and get dataset').item.json.industry }}",
+            "employeeCount": "={{ $('Run an Actor and get dataset').item.json.employeeCount }}",
+            "HQ": "={{ $('Run an Actor and get dataset').item.json.headquarter.city }}{{ $('Run an Actor and get dataset').item.json.headquarter.geographicArea }}",
+            "jobAgeBucket": "={{ $('Code in JavaScript1').item.json.job_age_bucket }}",
+            "processed": "n"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "fullName",
+              "displayName": "fullName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "firstName",
+              "displayName": "firstName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lastName",
+              "displayName": "lastName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinJobTitle",
+              "displayName": "linkedinJobTitle",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "companyName",
+              "displayName": "companyName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "companyURL",
+              "displayName": "companyURL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "industry",
+              "displayName": "industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "employeeCount",
+              "displayName": "employeeCount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "HQ",
+              "displayName": "HQ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed",
+              "displayName": "processed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "jobAgeBucket",
+              "displayName": "jobAgeBucket",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        864,
+        -208
+      ],
+      "id": "3083e9e6-4493-45d0-b583-2d55119ae8cb",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "eOPhFUrfwo2AgnTD",
+          "name": "NWA Boost:Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        448,
+        64
+      ],
+      "id": "ced24a80-709b-4709-a94b-ccc274461a4f",
+      "name": "Loop Over Items",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1ZS3xZwQu6lDn_SFsmD7lsCzR6muYWzjuxhHhxa50rro",
+          "mode": "list",
+          "cachedResultName": "phantombuster-all-leads-03102026 (1)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZS3xZwQu6lDn_SFsmD7lsCzR6muYWzjuxhHhxa50rro/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1715659177,
+          "mode": "list",
+          "cachedResultName": "phantombuster-all-leads-03102026 (1)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZS3xZwQu6lDn_SFsmD7lsCzR6muYWzjuxhHhxa50rro/edit#gid=1715659177"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{ $('Code in JavaScript1').item.json.row_number }}",
+            "processed": "y"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "linkedinProfileUrl",
+              "displayName": "linkedinProfileUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "salesNavigatorProfileUrl",
+              "displayName": "salesNavigatorProfileUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fullName",
+              "displayName": "fullName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "firstName",
+              "displayName": "firstName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lastName",
+              "displayName": "lastName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "companyName",
+              "displayName": "companyName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinCompanyUrl",
+              "displayName": "linkedinCompanyUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "salesNavigatorCompanyUrl",
+              "displayName": "salesNavigatorCompanyUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinJobTitle",
+              "displayName": "linkedinJobTitle",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinJobDateRange",
+              "displayName": "linkedinJobDateRange",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinJobLocation",
+              "displayName": "linkedinJobLocation",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "companyIndustry",
+              "displayName": "companyIndustry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinHeadline",
+              "displayName": "linkedinHeadline",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "location",
+              "displayName": "location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinDescription",
+              "displayName": "linkedinDescription",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinSkillsLabel",
+              "displayName": "linkedinSkillsLabel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "previousCompanyName",
+              "displayName": "previousCompanyName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinPreviousCompanyUrl",
+              "displayName": "linkedinPreviousCompanyUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinPreviousCompanySlug",
+              "displayName": "linkedinPreviousCompanySlug",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinPreviousJobTitle",
+              "displayName": "linkedinPreviousJobTitle",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinPreviousJobDateRange",
+              "displayName": "linkedinPreviousJobDateRange",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinPreviousJobLocation",
+              "displayName": "linkedinPreviousJobLocation",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinJobDescription",
+              "displayName": "linkedinJobDescription",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinPreviousJobDescription",
+              "displayName": "linkedinPreviousJobDescription",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinSchoolName",
+              "displayName": "linkedinSchoolName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinSchoolCompanyUrl",
+              "displayName": "linkedinSchoolCompanyUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinSchoolCompanySlug",
+              "displayName": "linkedinSchoolCompanySlug",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinSchoolDegree",
+              "displayName": "linkedinSchoolDegree",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinSchoolDateRange",
+              "displayName": "linkedinSchoolDateRange",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinSchoolDescription",
+              "displayName": "linkedinSchoolDescription",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinPreviousSchoolName",
+              "displayName": "linkedinPreviousSchoolName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinPreviousSchoolCompanyUrl",
+              "displayName": "linkedinPreviousSchoolCompanyUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinPreviousSchoolCompanySlug",
+              "displayName": "linkedinPreviousSchoolCompanySlug",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinPreviousSchoolDegree",
+              "displayName": "linkedinPreviousSchoolDegree",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinPreviousSchoolDateRange",
+              "displayName": "linkedinPreviousSchoolDateRange",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinPreviousSchoolDescription",
+              "displayName": "linkedinPreviousSchoolDescription",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinMutualConnectionsUrl",
+              "displayName": "linkedinMutualConnectionsUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinProfileSlug",
+              "displayName": "linkedinProfileSlug",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "salesNavigatorProfileSlug",
+              "displayName": "salesNavigatorProfileSlug",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinCompanySlug",
+              "displayName": "linkedinCompanySlug",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinProfileId",
+              "displayName": "linkedinProfileId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinProfileUrn",
+              "displayName": "linkedinProfileUrn",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "connectionDegree",
+              "displayName": "connectionDegree",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "createdAt",
+              "displayName": "createdAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updatedAt",
+              "displayName": "updatedAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "createdBy",
+              "displayName": "createdBy",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updatedBy",
+              "displayName": "updatedBy",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed",
+              "displayName": "processed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1072,
+        -208
+      ],
+      "id": "175de57a-8d5c-4059-921e-d3014f52ca7e",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "eOPhFUrfwo2AgnTD",
+          "name": "NWA Boost:Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "function parseMonthYear(value) {\n  if (!value) return null;\n\n  const startPart = value.split(' - ')[0].trim();\n  const parts = startPart.split(' ');\n  if (parts.length !== 2) return null;\n\n  const monthMap = {\n    jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5,\n    jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11\n  };\n\n  const month = monthMap[parts[0].toLowerCase()];\n  const year = parseInt(parts[1], 10);\n\n  if (month === undefined || isNaN(year)) return null;\n\n  return new Date(year, month, 1);\n}\n\nfunction getDateBucket(startDate) {\n  if (!startDate) return '';\n\n  const today = new Date();\n  const diffMs = today - startDate;\n  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));\n\n  if (diffDays < 90) return '<90 days';\n  if (diffDays <= 180) return '90-180 days';\n  return '>180 days';\n}\n\nreturn items.map((item, i) => {\n  const raw = item.json.linkedinJobDateRange || '';\n  const startDate = parseMonthYear(raw);\n  const bucket = getDateBucket(startDate);\n\n  return {\n    json: {\n      ...item.json,\n      normalized_job_start: startDate\n        ? startDate.toISOString().split('T')[0]\n        : '',\n      job_age_bucket: bucket\n    },\n    pairedItem: { item: i }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        64
+      ],
+      "id": "e5052b7d-2888-42b5-8fcb-8e4cfbedb5ec",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b2df97e3-3268-41a8-a658-9157b612fb0f",
+              "leftValue": "={{ $('Loop Over Items').item.json.websiteUrl }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        656,
+        -48
+      ],
+      "id": "fbdf48ae-eb9f-426a-bbcc-f6fa1e83f599",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1ZS3xZwQu6lDn_SFsmD7lsCzR6muYWzjuxhHhxa50rro",
+          "mode": "list",
+          "cachedResultName": "phantombuster-all-leads-03102026 (1)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZS3xZwQu6lDn_SFsmD7lsCzR6muYWzjuxhHhxa50rro/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1715659177,
+          "mode": "list",
+          "cachedResultName": "phantombuster-all-leads-03102026 (1)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZS3xZwQu6lDn_SFsmD7lsCzR6muYWzjuxhHhxa50rro/edit#gid=1715659177"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{ $('Code in JavaScript1').item.json.row_number }}",
+            "processed": "y"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "linkedinProfileUrl",
+              "displayName": "linkedinProfileUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "salesNavigatorProfileUrl",
+              "displayName": "salesNavigatorProfileUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fullName",
+              "displayName": "fullName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "firstName",
+              "displayName": "firstName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lastName",
+              "displayName": "lastName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "companyName",
+              "displayName": "companyName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinCompanyUrl",
+              "displayName": "linkedinCompanyUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "salesNavigatorCompanyUrl",
+              "displayName": "salesNavigatorCompanyUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinJobTitle",
+              "displayName": "linkedinJobTitle",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinJobDateRange",
+              "displayName": "linkedinJobDateRange",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinJobLocation",
+              "displayName": "linkedinJobLocation",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "companyIndustry",
+              "displayName": "companyIndustry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinHeadline",
+              "displayName": "linkedinHeadline",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "location",
+              "displayName": "location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinDescription",
+              "displayName": "linkedinDescription",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinSkillsLabel",
+              "displayName": "linkedinSkillsLabel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "previousCompanyName",
+              "displayName": "previousCompanyName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinPreviousCompanyUrl",
+              "displayName": "linkedinPreviousCompanyUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinPreviousCompanySlug",
+              "displayName": "linkedinPreviousCompanySlug",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinPreviousJobTitle",
+              "displayName": "linkedinPreviousJobTitle",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinPreviousJobDateRange",
+              "displayName": "linkedinPreviousJobDateRange",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinPreviousJobLocation",
+              "displayName": "linkedinPreviousJobLocation",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinJobDescription",
+              "displayName": "linkedinJobDescription",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinPreviousJobDescription",
+              "displayName": "linkedinPreviousJobDescription",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinSchoolName",
+              "displayName": "linkedinSchoolName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinSchoolCompanyUrl",
+              "displayName": "linkedinSchoolCompanyUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinSchoolCompanySlug",
+              "displayName": "linkedinSchoolCompanySlug",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinSchoolDegree",
+              "displayName": "linkedinSchoolDegree",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinSchoolDateRange",
+              "displayName": "linkedinSchoolDateRange",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinSchoolDescription",
+              "displayName": "linkedinSchoolDescription",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinPreviousSchoolName",
+              "displayName": "linkedinPreviousSchoolName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinPreviousSchoolCompanyUrl",
+              "displayName": "linkedinPreviousSchoolCompanyUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinPreviousSchoolCompanySlug",
+              "displayName": "linkedinPreviousSchoolCompanySlug",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinPreviousSchoolDegree",
+              "displayName": "linkedinPreviousSchoolDegree",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinPreviousSchoolDateRange",
+              "displayName": "linkedinPreviousSchoolDateRange",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinPreviousSchoolDescription",
+              "displayName": "linkedinPreviousSchoolDescription",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinMutualConnectionsUrl",
+              "displayName": "linkedinMutualConnectionsUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinProfileSlug",
+              "displayName": "linkedinProfileSlug",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "salesNavigatorProfileSlug",
+              "displayName": "salesNavigatorProfileSlug",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinCompanySlug",
+              "displayName": "linkedinCompanySlug",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinProfileId",
+              "displayName": "linkedinProfileId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedinProfileUrn",
+              "displayName": "linkedinProfileUrn",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "connectionDegree",
+              "displayName": "connectionDegree",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "createdAt",
+              "displayName": "createdAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updatedAt",
+              "displayName": "updatedAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "createdBy",
+              "displayName": "createdBy",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updatedBy",
+              "displayName": "updatedBy",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed",
+              "displayName": "processed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        960,
+        16
+      ],
+      "id": "0b7f0c44-279e-473b-bdf9-f3cd09fac707",
+      "name": "Update row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "eOPhFUrfwo2AgnTD",
+          "name": "NWA Boost:Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -672,
+        -96
+      ],
+      "id": "5a3f6091-b99d-4014-8871-1d28bf833e8f",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "content": "## Trigger\nCan run on a schedule or executed manually\n",
+        "height": 96,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -720,
+        -240
+      ],
+      "typeVersion": 1,
+      "id": "2ff376ff-5a7b-4380-bebc-57e2d9dfe816",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -672,
+        64
+      ],
+      "id": "09f3180d-7fd4-45c1-928a-c5e66af938c4",
+      "name": "Manual Trigger"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-03-10T20:27:59.916Z",
+      "createdAt": "2026-03-10T20:27:59.916Z",
+      "role": "workflow:owner",
+      "workflowId": "30mXt839v1ev1qJu",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-03-21T16:15:35.013Z",
+  "versionId": "0b5c63f7-f33e-4054-957d-4976fb5551d0"
+}
