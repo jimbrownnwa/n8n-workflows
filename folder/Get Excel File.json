@@ -1,0 +1,210 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Find Master": {
+      "main": [
+        []
+      ]
+    },
+    "Daily Credit Position Data": {
+      "main": [
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "Download a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-04-04T16:27:28.452Z",
+  "id": "8U0WWHsk6oZKek7o",
+  "isArchived": true,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Get Excel File",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "search",
+        "query": "v3"
+      },
+      "type": "n8n-nodes-base.microsoftOneDrive",
+      "typeVersion": 1.1,
+      "position": [
+        864,
+        176
+      ],
+      "id": "a0559fab-32d6-4ea7-9a41-af4dc9159712",
+      "name": "Find Master",
+      "credentials": {
+        "microsoftOneDriveOAuth2Api": {
+          "id": "auFavEY3M0Wy6j0K",
+          "name": "Jim"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        688,
+        384
+      ],
+      "id": "6e4160d1-39f2-43ee-a8d3-f9924f410c35",
+      "name": "Daily Credit Position Data"
+    },
+    {
+      "parameters": {
+        "resource": "worksheet",
+        "workbook": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.microsoftExcel",
+      "typeVersion": 2.2,
+      "position": [
+        1232,
+        176
+      ],
+      "id": "28fd9815-f5b8-4b2c-9509-c88931e5135f",
+      "name": "Get sheets",
+      "credentials": {
+        "microsoftExcelOAuth2Api": {
+          "id": "WrNIuzVM90wylIqP",
+          "name": "Microsoft Excel account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "fileId": "=01OPTKJ4SYDRSPVFV3RNHKOR3IKDDK6266"
+      },
+      "type": "n8n-nodes-base.microsoftOneDrive",
+      "typeVersion": 1.1,
+      "position": [
+        960,
+        384
+      ],
+      "id": "77c0bd09-8946-42a5-b958-04662a8b87dd",
+      "name": "Get a file",
+      "credentials": {
+        "microsoftOneDriveOAuth2Api": {
+          "id": "IzOmsSihJD7Yhh9u",
+          "name": "Microsoft Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "messageAttachment",
+        "operation": "download",
+        "messageId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "attachmentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        }
+      },
+      "type": "n8n-nodes-base.microsoftOutlook",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        192
+      ],
+      "id": "e079ada2-ce93-4a42-9533-30806fc55f49",
+      "name": "Download an attachment",
+      "webhookId": "47921bad-e349-4c0b-b6bc-0b38805cd526",
+      "credentials": {
+        "microsoftOutlookOAuth2Api": {
+          "id": "xT3cYlYrY2PBuhf8",
+          "name": "Microsoft Outlook account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "operation": "search",
+        "query": "personal"
+      },
+      "type": "n8n-nodes-base.microsoftOneDrive",
+      "typeVersion": 1.1,
+      "position": [
+        640,
+        176
+      ],
+      "id": "6977c55b-851f-40b9-9a41-af2fe3b003cc",
+      "name": "Search a folder",
+      "credentials": {
+        "microsoftOneDriveOAuth2Api": {
+          "id": "IzOmsSihJD7Yhh9u",
+          "name": "Microsoft Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": "={{ $json.createdBy.application.id }}"
+      },
+      "type": "n8n-nodes-base.microsoftOneDrive",
+      "typeVersion": 1.1,
+      "position": [
+        1168,
+        384
+      ],
+      "id": "bea5688a-0f25-4700-8997-5b544fd9038a",
+      "name": "Download a file",
+      "credentials": {
+        "microsoftOneDriveOAuth2Api": {
+          "id": "IzOmsSihJD7Yhh9u",
+          "name": "Microsoft Drive account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-04-04T16:27:28.455Z",
+      "createdAt": "2026-04-04T16:27:28.455Z",
+      "role": "workflow:owner",
+      "workflowId": "8U0WWHsk6oZKek7o",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-04-23T19:53:20.000Z",
+  "versionId": "7309e78c-3388-4521-8906-3c5523833566"
+}
