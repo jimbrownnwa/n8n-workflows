@@ -1,0 +1,656 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "PnL Email Arrives": {
+      "main": [
+        [
+          {
+            "node": "Extract Analyst Code from Subject",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Analyst Code from Subject": {
+      "main": [
+        [
+          {
+            "node": "Parse Sheet 1 - PnL > 2bps",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Parse Sheet 2 - Px Chg > 20%",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Parse Sheet 3 - Cash Non-Performing",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Parse Sheet 4 - Thinly Traded",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Sheet 1 - PnL > 2bps": {
+      "main": [
+        [
+          {
+            "node": "Tag Sheet 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Sheet 2 - Px Chg > 20%": {
+      "main": [
+        [
+          {
+            "node": "Tag Sheet 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Sheet 3 - Cash Non-Performing": {
+      "main": [
+        [
+          {
+            "node": "Tag Sheet 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Sheet 4 - Thinly Traded": {
+      "main": [
+        [
+          {
+            "node": "Tag Sheet 4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tag Sheet 1": {
+      "main": [
+        [
+          {
+            "node": "Merge Sheets 1+2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tag Sheet 2": {
+      "main": [
+        [
+          {
+            "node": "Merge Sheets 1+2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Tag Sheet 3": {
+      "main": [
+        [
+          {
+            "node": "Merge Sheets 3+4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tag Sheet 4": {
+      "main": [
+        [
+          {
+            "node": "Merge Sheets 3+4",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Sheets 1+2": {
+      "main": [
+        [
+          {
+            "node": "Merge All Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Sheets 3+4": {
+      "main": [
+        [
+          {
+            "node": "Merge All Sheets",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge All Sheets": {
+      "main": [
+        [
+          {
+            "node": "Normalize & Build Tracker Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & Build Tracker Records": {
+      "main": [
+        [
+          {
+            "node": "Upsert Line Items to tracker table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Line Items to tracker table": {
+      "main": [
+        [
+          {
+            "node": "Generate Ingestion Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-03-23T15:50:57.638Z",
+  "id": "4Jf7jnQPM5da02zs",
+  "isArchived": true,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "T+3 PnL Review - WF1: Ingestion & Line Item Extraction_v2",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {
+          "custom": "contains(subject, 'P&L Review for Analyst')",
+          "hasAttachments": true,
+          "readStatus": "unread"
+        },
+        "options": {
+          "attachmentsPrefix": "attachment_",
+          "downloadAttachments": true
+        }
+      },
+      "id": "trigger_1",
+      "name": "PnL Email Arrives",
+      "type": "n8n-nodes-base.microsoftOutlookTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        496
+      ],
+      "credentials": {
+        "microsoftOutlookOAuth2Api": {
+          "id": "if3VG3dFw3DY6IvG",
+          "name": "Jims Outlook"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "analyst_code",
+              "name": "analystCode",
+              "type": "string",
+              "value": "={{ $json.subject.match(/Analyst:\\s*(\\w+)/i) ? $json.subject.match(/Analyst:\\s*(\\w+)/i)[1] : 'UNKNOWN' }}"
+            },
+            {
+              "id": "review_month",
+              "name": "reviewMonth",
+              "type": "string",
+              "value": "={{ $json.subject.match(/^(\\w+\\s+\\d{4})/) ? $json.subject.match(/^(\\w+\\s+\\d{4})/)[1] : 'Unknown' }}"
+            },
+            {
+              "id": "deadline_date",
+              "name": "deadlineDate",
+              "type": "string",
+              "value": "={{ $json.bodyPreview.match(/(\\d{2}\\/\\d{2}\\/\\d{4})/) ? $json.bodyPreview.match(/(\\d{2}\\/\\d{2}\\/\\d{4})/)[1] : '' }}"
+            },
+            {
+              "id": "email_id",
+              "name": "originalEmailId",
+              "type": "string",
+              "value": "={{ $json.id }}"
+            },
+            {
+              "id": "received_at",
+              "name": "receivedAt",
+              "type": "string",
+              "value": "={{ $json.receivedDateTime }}"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "extract_analyst_1",
+      "name": "Extract Analyst Code from Subject",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "binaryPropertyName": "attachment_0",
+        "fileFormat": "xls",
+        "options": {
+          "headerRow": true,
+          "includeEmptyCells": true,
+          "range": "A16",
+          "sheetName": "(Sheet1) PnL > 2 bps"
+        }
+      },
+      "id": "parse_sheet1",
+      "name": "Parse Sheet 1 - PnL > 2bps",
+      "type": "n8n-nodes-base.spreadsheetFile",
+      "typeVersion": 2,
+      "position": [
+        448,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "binaryPropertyName": "attachment_0",
+        "fileFormat": "xls",
+        "options": {
+          "headerRow": true,
+          "includeEmptyCells": true,
+          "range": "A2",
+          "sheetName": "(Sheet2) Px Chg > 20%"
+        }
+      },
+      "id": "parse_sheet2",
+      "name": "Parse Sheet 2 - Px Chg > 20%",
+      "type": "n8n-nodes-base.spreadsheetFile",
+      "typeVersion": 2,
+      "position": [
+        448,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "binaryPropertyName": "attachment_0",
+        "fileFormat": "xls",
+        "options": {
+          "headerRow": true,
+          "includeEmptyCells": true,
+          "range": "A2",
+          "sheetName": "(Sheet3) Cash on Non-Performing"
+        }
+      },
+      "id": "parse_sheet3",
+      "name": "Parse Sheet 3 - Cash Non-Performing",
+      "type": "n8n-nodes-base.spreadsheetFile",
+      "typeVersion": 2,
+      "position": [
+        448,
+        592
+      ]
+    },
+    {
+      "parameters": {
+        "binaryPropertyName": "attachment_0",
+        "fileFormat": "xls",
+        "options": {
+          "headerRow": true,
+          "includeEmptyCells": true,
+          "range": "A2",
+          "sheetName": "(Sheet4) Thinly Traded"
+        }
+      },
+      "id": "parse_sheet4",
+      "name": "Parse Sheet 4 - Thinly Traded",
+      "type": "n8n-nodes-base.spreadsheetFile",
+      "typeVersion": 2,
+      "position": [
+        448,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "source_sheet",
+              "name": "sourceSheet",
+              "type": "string",
+              "value": "Sheet1_PnL_2bps"
+            },
+            {
+              "id": "sheet_desc",
+              "name": "sheetDescription",
+              "type": "string",
+              "value": "Positions with P&L in excess of 2 bps of NAV"
+            },
+            {
+              "id": "requires_signoff",
+              "name": "requiresSignoff",
+              "type": "boolean",
+              "value": true
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "tag_sheet1",
+      "name": "Tag Sheet 1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        672,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "source_sheet",
+              "name": "sourceSheet",
+              "type": "string",
+              "value": "Sheet2_Px_Chg_20pct"
+            },
+            {
+              "id": "sheet_desc",
+              "name": "sheetDescription",
+              "type": "string",
+              "value": "Positions with unit price change greater than 20%"
+            },
+            {
+              "id": "requires_signoff",
+              "name": "requiresSignoff",
+              "type": "boolean",
+              "value": true
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "tag_sheet2",
+      "name": "Tag Sheet 2",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        672,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "source_sheet",
+              "name": "sourceSheet",
+              "type": "string",
+              "value": "Sheet3_Cash_NonPerf"
+            },
+            {
+              "id": "sheet_desc",
+              "name": "sheetDescription",
+              "type": "string",
+              "value": "Non-performing positions with cash distribution > $1mm"
+            },
+            {
+              "id": "requires_signoff",
+              "name": "requiresSignoff",
+              "type": "boolean",
+              "value": true
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "tag_sheet3",
+      "name": "Tag Sheet 3",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        672,
+        592
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "source_sheet",
+              "name": "sourceSheet",
+              "type": "string",
+              "value": "Sheet4_Thinly_Traded"
+            },
+            {
+              "id": "sheet_desc",
+              "name": "sheetDescription",
+              "type": "string",
+              "value": "Thinly traded, stale 2+ months, or single source quoted"
+            },
+            {
+              "id": "requires_signoff",
+              "name": "requiresSignoff",
+              "type": "boolean",
+              "value": true
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "tag_sheet4",
+      "name": "Tag Sheet 4",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        672,
+        784
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "merge_12",
+      "name": "Merge Sheets 1+2",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        896,
+        304
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "merge_34",
+      "name": "Merge Sheets 3+4",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        896,
+        688
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "merge_all",
+      "name": "Merge All Sheets",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1120,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalize all sheet items into a consistent tracker record format\n// The column names vary across sheets, so we handle each pattern\n\nconst items = $input.all();\nconst trackerRecords = [];\nconst now = new Date().toISOString();\n\nfor (const item of items) {\n  const d = item.json;\n  const sheet = d.sourceSheet || 'Unknown';\n  \n  // Skip header/subtotal rows (CASE_1, CASE_2, etc.) and blank security rows\n  const security = d['Thinly Traded Quoted Security'] \n    || d['IssuerGroup/Strategy/Security'] \n    || d['(Underlier) Security']\n    || d['Strategy --> Sycode']\n    || d['IssuerGroup/Security']\n    || '';\n  \n  if (!security || security.match(/^CASE_\\d/) || security.match(/^Winners|^Losers/i)) {\n    continue;\n  }\n  \n  // Extract analyst from column 0 or the Analyst(s) column\n  // Sheet1 col0 has senior analyst, col23 has detailed assignment\n  // Sheet4 col0 has senior analyst\n  const seniorAnalyst = d['column_0'] || d[''] || '';\n  const analystAssignment = d['Analyst(s)'] || '';\n  \n  // Parse the analyst assignment format: \"TMONTAGUE;jjeffrey\"\n  let primaryAnalyst = '';\n  let supportingAnalysts = [];\n  \n  if (analystAssignment) {\n    const parts = analystAssignment.split(';');\n    primaryAnalyst = (parts[0] || '').trim().toUpperCase();\n    if (parts[1]) {\n      supportingAnalysts = parts[1].split(',').map(a => a.trim()).filter(Boolean);\n    }\n  } else if (seniorAnalyst && seniorAnalyst.length < 30) {\n    primaryAnalyst = seniorAnalyst.trim().toUpperCase();\n  }\n  \n  // Skip if no analyst assignment (likely a group header row)\n  if (!primaryAnalyst) continue;\n  \n  // Extract issuer group where available\n  const issuerGroup = d['Issuer Group'] || d['IssuerGroup'] || '';\n  \n  // Extract key financial data\n  const closingPx = d['Closing Px'] || d['Local Closing Px'] || '';\n  const openingPx = d['Opening Px'] || d['Local Opening Px'] || '';\n  const pxPctChg = d['Px Pct Chg'] || d['Adj. Px Pct Chg'] || '';\n  const marketValue = d['Market Value'] || d['Functional MarketValue'] || '';\n  const pnl = d['PnL ExFx'] || d['Trading PnL'] || d['Local\\nTotal PnL\\nExFx¹'] || d['Total PnL'] || '';\n  \n  trackerRecords.push({\n    // Identification\n    security: security.trim(),\n    issuerGroup: issuerGroup.trim(),\n    sourceSheet: sheet,\n    sheetDescription: d.sheetDescription || '',\n    \n    // Analyst assignment\n    primaryAnalyst: primaryAnalyst,\n    supportingAnalysts: supportingAnalysts,\n    analystRaw: analystAssignment || seniorAnalyst,\n    \n    // Key financial data for context\n    closingPx: closingPx,\n    openingPx: openingPx,\n    pxPctChg: pxPctChg,\n    marketValue: marketValue,\n    pnl: pnl,\n    \n    // Tracking fields (will be updated by WF2)\n    status: 'PENDING',\n    confirmedBy: '',\n    confirmedAt: '',\n    confirmationEmailId: '',\n    flagged: false,\n    flagReason: '',\n    notes: '',\n    \n    // Metadata\n    createdAt: now,\n    lastUpdated: now\n  });\n}\n\n// Sort by analyst then sheet for clean output\ntrackerRecords.sort((a, b) => {\n  if (a.primaryAnalyst !== b.primaryAnalyst) return a.primaryAnalyst.localeCompare(b.primaryAnalyst);\n  return a.sourceSheet.localeCompare(b.sourceSheet);\n});\n\nreturn trackerRecords.map(r => ({ json: r }));"
+      },
+      "id": "normalize_1",
+      "name": "Normalize & Build Tracker Records",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate a summary of what was ingested for logging/audit\nconst items = $input.all();\n\n// Count by analyst\nconst byAnalyst = {};\nconst bySheet = {};\n\nfor (const item of items) {\n  const analyst = item.json.primaryAnalyst;\n  const sheet = item.json.sourceSheet;\n  \n  byAnalyst[analyst] = (byAnalyst[analyst] || 0) + 1;\n  bySheet[sheet] = (bySheet[sheet] || 0) + 1;\n}\n\nconst summary = {\n  totalLineItems: items.length,\n  uniqueAnalysts: Object.keys(byAnalyst).length,\n  itemsByAnalyst: byAnalyst,\n  itemsBySheet: bySheet,\n  ingestedAt: new Date().toISOString(),\n  status: 'INGESTION_COMPLETE'\n};\n\n// Return summary as first item, then all tracker records\nreturn [{ json: summary }, ...items];"
+      },
+      "id": "summary_1",
+      "name": "Generate Ingestion Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1744,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## T+3 PnL Review - Workflow 1: Ingestion\n\n**Purpose:** Ingest the monthly PRICE_CHANGE_ALL XLS attachment from the pricechange@ mailbox, parse Sheets 1-4, extract analyst-to-security line items, and build the tracking records that Workflows 2 (response listener) and 3 (summary/follow-up) operate against.\n\n**Trigger:** Fires when a new email with attachment arrives matching the P&L Review subject pattern.\n\n**Output:** Normalized tracker records with status=PENDING for each security line item requiring analyst sign-off.",
+        "height": 360,
+        "width": 400
+      },
+      "id": "sticky_overview",
+      "name": "Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -512,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Parallel Sheet Parsing\n\nEach sheet has a different structure:\n- **Sheet 1:** Headers at row 16, analyst in col 0 & col 23\n- **Sheet 2:** Headers at row 2, analyst in col 0\n- **Sheet 3:** Headers at row 2, may be empty\n- **Sheet 4:** Headers at row 2, analyst in col 0\n\nSheet 5 is informational only — not parsed here.\n\n⚠️ The `range` parameter tells each node where data starts.\n⚠️ Sheet names must match EXACTLY (they include parentheses).",
+        "height": 300,
+        "width": 320
+      },
+      "id": "sticky_parse",
+      "name": "Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Normalization Logic\n\nThe Code node handles:\n1. Column name differences across sheets\n2. Parsing analyst format: `TMONTAGUE;jjeffrey`\n3. Skipping header/subtotal rows (CASE_1, etc)\n4. Building a uniform tracker record with:\n   - Security identification\n   - Analyst assignment (primary + supporting)\n   - Key financial data for context\n   - Tracking fields (status, confirmedBy, etc)\n\n**Next step:** Connect output to your tracker store (SharePoint list, Excel file, or database).",
+        "height": 340,
+        "width": 320
+      },
+      "id": "sticky_normalize",
+      "name": "Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1264,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1552,
+        496
+      ],
+      "id": "c8308201-8865-4955-a8e8-2adfc0d982e8",
+      "name": "Upsert Line Items to tracker table"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/New_York",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "binaryMode": "separate"
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-03-23T15:50:57.640Z",
+      "createdAt": "2026-03-23T15:50:57.640Z",
+      "role": "workflow:owner",
+      "workflowId": "4Jf7jnQPM5da02zs",
+      "projectId": "sSYd8awhzL2oziun"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-04-23T19:53:15.000Z",
+  "versionId": "b167857c-79db-4b8f-8f44-ec2a757ee9b6"
+}
