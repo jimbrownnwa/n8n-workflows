@@ -27,13 +27,7 @@
     },
     "Run an Actor and get dataset": {
       "main": [
-        [
-          {
-            "node": "Loop Over Items",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     },
     "Loop Over Items": {
@@ -47,7 +41,7 @@
         ],
         [
           {
-            "node": "Run an Actor and get dataset",
+            "node": "Run an Actor and get dataset1",
             "type": "main",
             "index": 0
           }
@@ -148,6 +142,17 @@
           }
         ]
       ]
+    },
+    "Run an Actor and get dataset1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "createdAt": "2026-03-10T20:27:59.912Z",
@@ -162,22 +167,22 @@
       "parameters": {
         "documentId": {
           "__rl": true,
-          "value": "1sdP4KNLRs3M50AWRWssQV21Tifmo_PhRRDBYhGHbapk",
+          "value": "1GawW76VfCudZnAyxrrN7smCC3Y0mEWQUJ1SAJfbedAU",
           "mode": "list",
-          "cachedResultName": "phantombuster-all-leads-07182026",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sdP4KNLRs3M50AWRWssQV21Tifmo_PhRRDBYhGHbapk/edit?usp=drivesdk"
+          "cachedResultName": "phantombuster-leads-08082026-deduplicated",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GawW76VfCudZnAyxrrN7smCC3Y0mEWQUJ1SAJfbedAU/edit?usp=drivesdk"
         },
         "sheetName": {
           "__rl": true,
-          "value": 1067385270,
+          "value": 328483432,
           "mode": "list",
-          "cachedResultName": "phantombuster-all-leads-07182026",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sdP4KNLRs3M50AWRWssQV21Tifmo_PhRRDBYhGHbapk/edit#gid=1067385270"
+          "cachedResultName": "phantombuster-leads-08082026-deduplicated",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GawW76VfCudZnAyxrrN7smCC3Y0mEWQUJ1SAJfbedAU/edit#gid=328483432"
         },
         "filtersUI": {
           "values": [
             {
-              "lookupColumn": "Processed"
+              "lookupColumn": "Procesed"
             }
           ]
         },
@@ -213,8 +218,8 @@
       "type": "@apify/n8n-nodes-apify.apify",
       "typeVersion": 1,
       "position": [
-        400,
-        144
+        464,
+        400
       ],
       "id": "4ca6f4ea-43e3-4118-b03c-bbd5ed46d10e",
       "name": "Run an Actor and get dataset",
@@ -229,7 +234,7 @@
     },
     {
       "parameters": {
-        "maxItems": 300
+        "maxItems": 100
       },
       "type": "n8n-nodes-base.limit",
       "typeVersion": 1,
@@ -245,32 +250,32 @@
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "1sdP4KNLRs3M50AWRWssQV21Tifmo_PhRRDBYhGHbapk",
+          "value": "1GawW76VfCudZnAyxrrN7smCC3Y0mEWQUJ1SAJfbedAU",
           "mode": "list",
-          "cachedResultName": "phantombuster-all-leads-07182026",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sdP4KNLRs3M50AWRWssQV21Tifmo_PhRRDBYhGHbapk/edit?usp=drivesdk"
+          "cachedResultName": "phantombuster-leads-08082026-deduplicated",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GawW76VfCudZnAyxrrN7smCC3Y0mEWQUJ1SAJfbedAU/edit?usp=drivesdk"
         },
         "sheetName": {
           "__rl": true,
-          "value": 1098934526,
+          "value": 1161103697,
           "mode": "list",
           "cachedResultName": "Leads",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sdP4KNLRs3M50AWRWssQV21Tifmo_PhRRDBYhGHbapk/edit#gid=1098934526"
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GawW76VfCudZnAyxrrN7smCC3Y0mEWQUJ1SAJfbedAU/edit#gid=1161103697"
         },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "fullName": "={{ $('Code in JavaScript1').item.json.fullName }}",
-            "firstName": "={{ $('Code in JavaScript1').item.json.firstName }}",
-            "lastName": "={{ $('Code in JavaScript1').item.json.lastName }}",
-            "companyName": "={{ $('Run an Actor and get dataset').item.json.companyName }}",
-            "industry": "={{ $('Run an Actor and get dataset').item.json.industry }}",
-            "employeeCount": "={{ $('Run an Actor and get dataset').item.json.employeeCount }}",
-            "HQ": "={{ $('Run an Actor and get dataset').item.json.headquarter.city }}{{ $('Run an Actor and get dataset').item.json.headquarter.geographicArea }}",
-            "jobAgeBucket": "={{ $('Code in JavaScript1').item.json.job_age_bucket }}",
+            "fullName": "={{ $('Limit').item.json.fullName }}",
+            "firstName": "={{ $('Limit').item.json.firstName }}",
+            "lastName": "={{ $('Limit').item.json.lastName }}",
+            "linkedInJobTitle": "={{ $('Limit').item.json.linkedinJobTitle }}",
+            "companyName": "={{ $('Limit').item.json.companyName }}",
+            "companyURL": "={{ $json.website }}",
+            "industry": "={{ $('Run an Actor and get dataset1').item.json.industries[0].name }}",
+            "employeeCount": "={{ $('Run an Actor and get dataset1').item.json.employeeCount }}",
             "processed": "n",
-            "linkedInJobTitle": "={{ $('Filter for job <90 days').item.json.linkedinJobTitle }}",
-            "companyURL": "={{ $json.websiteUrl }}"
+            "HQ": "=",
+            "jobAgeBucket": "={{ $('Filter for job <90 days').item.json.job_age_bucket }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -308,8 +313,7 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
+              "canBeUsedToMatch": true
             },
             {
               "id": "companyName",
@@ -327,8 +331,7 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
+              "canBeUsedToMatch": true
             },
             {
               "id": "industry",
@@ -364,8 +367,7 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
+              "canBeUsedToMatch": true
             },
             {
               "id": "jobAgeBucket",
@@ -374,8 +376,7 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
+              "canBeUsedToMatch": true
             },
             {
               "id": "emailAddress",
@@ -384,8 +385,7 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
+              "canBeUsedToMatch": true
             },
             {
               "id": "emailQuality",
@@ -394,8 +394,7 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
+              "canBeUsedToMatch": true
             },
             {
               "id": "emailResult",
@@ -404,8 +403,7 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
+              "canBeUsedToMatch": true
             }
           ],
           "attemptToConvertTypes": false,
@@ -447,23 +445,23 @@
         "operation": "update",
         "documentId": {
           "__rl": true,
-          "value": "1sdP4KNLRs3M50AWRWssQV21Tifmo_PhRRDBYhGHbapk",
+          "value": "1GawW76VfCudZnAyxrrN7smCC3Y0mEWQUJ1SAJfbedAU",
           "mode": "list",
-          "cachedResultName": "phantombuster-all-leads-07182026",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sdP4KNLRs3M50AWRWssQV21Tifmo_PhRRDBYhGHbapk/edit?usp=drivesdk"
+          "cachedResultName": "phantombuster-leads-08082026-deduplicated",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GawW76VfCudZnAyxrrN7smCC3Y0mEWQUJ1SAJfbedAU/edit?usp=drivesdk"
         },
         "sheetName": {
           "__rl": true,
-          "value": 1067385270,
+          "value": 328483432,
           "mode": "list",
-          "cachedResultName": "phantombuster-all-leads-07182026",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sdP4KNLRs3M50AWRWssQV21Tifmo_PhRRDBYhGHbapk/edit#gid=1067385270"
+          "cachedResultName": "phantombuster-leads-08082026-deduplicated",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GawW76VfCudZnAyxrrN7smCC3Y0mEWQUJ1SAJfbedAU/edit#gid=328483432"
         },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "Processed": "y",
-            "row_number": "={{ $('Get row(s) in sheet').item.json.row_number }}"
+            "row_number": "={{ $('Get row(s) in sheet').item.json.row_number }}",
+            "Procesed": "y"
           },
           "matchingColumns": [
             "row_number"
@@ -902,13 +900,14 @@
               "canBeUsedToMatch": true
             },
             {
-              "id": "Processed",
-              "displayName": "Processed",
+              "id": "Procesed",
+              "displayName": "Procesed",
               "required": false,
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "row_number",
@@ -967,7 +966,7 @@
           "conditions": [
             {
               "id": "b2df97e3-3268-41a8-a658-9157b612fb0f",
-              "leftValue": "={{ $('Loop Over Items').item.json.websiteUrl }}",
+              "leftValue": "={{ $json.website }}",
               "rightValue": "",
               "operator": {
                 "type": "string",
@@ -994,23 +993,23 @@
         "operation": "update",
         "documentId": {
           "__rl": true,
-          "value": "1sdP4KNLRs3M50AWRWssQV21Tifmo_PhRRDBYhGHbapk",
+          "value": "1GawW76VfCudZnAyxrrN7smCC3Y0mEWQUJ1SAJfbedAU",
           "mode": "list",
-          "cachedResultName": "phantombuster-all-leads-07182026",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sdP4KNLRs3M50AWRWssQV21Tifmo_PhRRDBYhGHbapk/edit?usp=drivesdk"
+          "cachedResultName": "phantombuster-leads-08082026-deduplicated",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GawW76VfCudZnAyxrrN7smCC3Y0mEWQUJ1SAJfbedAU/edit?usp=drivesdk"
         },
         "sheetName": {
           "__rl": true,
-          "value": 1067385270,
+          "value": 328483432,
           "mode": "list",
-          "cachedResultName": "phantombuster-all-leads-07182026",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sdP4KNLRs3M50AWRWssQV21Tifmo_PhRRDBYhGHbapk/edit#gid=1067385270"
+          "cachedResultName": "phantombuster-leads-08082026-deduplicated",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GawW76VfCudZnAyxrrN7smCC3Y0mEWQUJ1SAJfbedAU/edit#gid=328483432"
         },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
             "row_number": "={{ $('Get row(s) in sheet').item.json.row_number }}",
-            "Processed": "y"
+            "Procesed": "y"
           },
           "matchingColumns": [
             "row_number"
@@ -1449,13 +1448,14 @@
               "canBeUsedToMatch": true
             },
             {
-              "id": "Processed",
-              "displayName": "Processed",
+              "id": "Procesed",
+              "displayName": "Procesed",
               "required": false,
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "canBeUsedToMatch": true,
+              "removed": false
             },
             {
               "id": "row_number",
@@ -1477,8 +1477,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        688,
-        48
+        640,
+        64
       ],
       "id": "0b7f0c44-279e-473b-bdf9-f3cd09fac707",
       "name": "Update row in sheet1",
@@ -1609,32 +1609,32 @@
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "1aagfAFvEnb2ZhxciS_Rrd9G9ImTuHl8_kZ0S-6d385Y",
+          "value": "1-mx9clf2ui5FI-db0okpIVPVyuMUcDF21zNUswO2RVQ",
           "mode": "list",
-          "cachedResultName": "phantombuster-all-leads-07162026",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1aagfAFvEnb2ZhxciS_Rrd9G9ImTuHl8_kZ0S-6d385Y/edit?usp=drivesdk"
+          "cachedResultName": "phantombuster-leads-08052026-deduplicated",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-mx9clf2ui5FI-db0okpIVPVyuMUcDF21zNUswO2RVQ/edit?usp=drivesdk"
         },
         "sheetName": {
           "__rl": true,
-          "value": 745859945,
+          "value": 1482107535,
           "mode": "list",
           "cachedResultName": "Leads",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1aagfAFvEnb2ZhxciS_Rrd9G9ImTuHl8_kZ0S-6d385Y/edit#gid=745859945"
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-mx9clf2ui5FI-db0okpIVPVyuMUcDF21zNUswO2RVQ/edit#gid=1482107535"
         },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "fullName": "={{ $('Code in JavaScript1').item.json.fullName }}",
-            "firstName": "={{ $('Code in JavaScript1').item.json.firstName }}",
-            "lastName": "={{ $('Code in JavaScript1').item.json.lastName }}",
-            "companyName": "={{ $('Run an Actor and get dataset').item.json.companyName }}",
+            "fullName": "={{ $('Limit').item.json.fullName }}",
+            "firstName": "={{ $('Limit').item.json.firstName }}",
+            "lastName": "={{ $('Limit').item.json.lastName }}",
+            "linkedInJobTitle": "={{ $('Limit').item.json.linkedinJobTitle }}",
+            "companyName": "={{ $('Limit').item.json.companyName }}",
+            "companyURL": "={{ $('Run an Actor and get dataset').item.json.websiteUrl }}",
             "industry": "={{ $('Run an Actor and get dataset').item.json.industry }}",
             "employeeCount": "={{ $('Run an Actor and get dataset').item.json.employeeCount }}",
-            "HQ": "={{ $('Run an Actor and get dataset').item.json.headquarter.city }}{{ $('Run an Actor and get dataset').item.json.headquarter.geographicArea }}",
-            "jobAgeBucket": "={{ $('Code in JavaScript1').item.json.job_age_bucket }}",
             "processed": "n",
-            "linkedInJobTitle": "={{ $('Filter for job <90 days').item.json.linkedinJobTitle }}",
-            "companyUrl": "={{ $json.websiteUrl }}"
+            "HQ": "={{ $('Run an Actor and get dataset').item.json.headquarter.city }}",
+            "jobAgeBucket": "={{ $('Filter for job <90 days').item.json.job_age_bucket }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -1672,8 +1672,7 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
+              "canBeUsedToMatch": true
             },
             {
               "id": "companyName",
@@ -1685,14 +1684,13 @@
               "canBeUsedToMatch": true
             },
             {
-              "id": "companyUrl",
-              "displayName": "companyUrl",
+              "id": "companyURL",
+              "displayName": "companyURL",
               "required": false,
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
+              "canBeUsedToMatch": true
             },
             {
               "id": "industry",
@@ -1728,8 +1726,7 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
+              "canBeUsedToMatch": true
             },
             {
               "id": "jobAgeBucket",
@@ -1738,8 +1735,34 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "emailAddress",
+              "displayName": "emailAddress",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "emailQuality",
+              "displayName": "emailQuality",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "emailResult",
+              "displayName": "emailResult",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
             }
           ],
           "attemptToConvertTypes": false,
@@ -1750,15 +1773,44 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        288,
-        -336
+        592,
+        -368
       ],
-      "id": "1b324057-3036-4b35-b94e-262216fd44fe",
+      "id": "63e3c134-bf31-428c-9535-b7977bb65b4f",
       "name": "Append row in sheet1",
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "eOPhFUrfwo2AgnTD",
           "name": "NWA Boost:Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "Run actor and get dataset",
+        "actorId": {
+          "__rl": true,
+          "value": "UwSdACBp7ymaGUJjS",
+          "mode": "list",
+          "cachedResultName": "Linkedin Company Details Scraper (No Cookies) ✅ Bulk (harvestapi/linkedin-company)",
+          "cachedResultUrl": "https://console.apify.com/actors/UwSdACBp7ymaGUJjS/input"
+        },
+        "customBody": "={\n    \"companies\": [\n        \"{{ $json.linkedinCompanyUrl }}\"\n    ]\n} "
+      },
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 1,
+      "position": [
+        480,
+        176
+      ],
+      "id": "8260e944-f9ab-4bb4-8f5c-315cf000f448",
+      "name": "Run an Actor and get dataset1",
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "credentials": {
+        "apifyApi": {
+          "id": "yQhrYqwilo3zE6O6",
+          "name": "jimbrown131: Apify"
         }
       }
     }
@@ -1767,7 +1819,9 @@
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate",
-    "availableInMCP": false
+    "availableInMCP": false,
+    "timeSavedMode": "dynamic",
+    "callerPolicy": "workflowsFromSameOwner"
   },
   "shared": [
     {
@@ -1781,6 +1835,6 @@
   "staticData": null,
   "tags": [],
   "triggerCount": 0,
-  "updatedAt": "2026-07-18T15:46:40.805Z",
-  "versionId": "40036384-fe25-4219-acfe-cb48bcce55b3"
+  "updatedAt": "2026-08-08T15:55:09.494Z",
+  "versionId": "074346f3-3b04-4246-a62d-94d550df7b0b"
 }
