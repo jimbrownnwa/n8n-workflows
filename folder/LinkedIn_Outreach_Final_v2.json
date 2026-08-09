@@ -226,17 +226,17 @@
       "parameters": {
         "documentId": {
           "__rl": true,
-          "value": "1sdP4KNLRs3M50AWRWssQV21Tifmo_PhRRDBYhGHbapk",
+          "value": "1GawW76VfCudZnAyxrrN7smCC3Y0mEWQUJ1SAJfbedAU",
           "mode": "list",
-          "cachedResultName": "phantombuster-all-leads-07182026",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sdP4KNLRs3M50AWRWssQV21Tifmo_PhRRDBYhGHbapk/edit?usp=drivesdk"
+          "cachedResultName": "phantombuster-leads-08082026-deduplicated",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GawW76VfCudZnAyxrrN7smCC3Y0mEWQUJ1SAJfbedAU/edit?usp=drivesdk"
         },
         "sheetName": {
           "__rl": true,
-          "value": 1098934526,
+          "value": 1161103697,
           "mode": "list",
           "cachedResultName": "Leads",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sdP4KNLRs3M50AWRWssQV21Tifmo_PhRRDBYhGHbapk/edit#gid=1098934526"
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GawW76VfCudZnAyxrrN7smCC3Y0mEWQUJ1SAJfbedAU/edit#gid=1161103697"
         },
         "filtersUI": {
           "values": [
@@ -389,17 +389,17 @@
         "operation": "update",
         "documentId": {
           "__rl": true,
-          "value": "1sdP4KNLRs3M50AWRWssQV21Tifmo_PhRRDBYhGHbapk",
+          "value": "1GawW76VfCudZnAyxrrN7smCC3Y0mEWQUJ1SAJfbedAU",
           "mode": "list",
-          "cachedResultName": "phantombuster-all-leads-07182026",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sdP4KNLRs3M50AWRWssQV21Tifmo_PhRRDBYhGHbapk/edit?usp=drivesdk"
+          "cachedResultName": "phantombuster-leads-08082026-deduplicated",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GawW76VfCudZnAyxrrN7smCC3Y0mEWQUJ1SAJfbedAU/edit?usp=drivesdk"
         },
         "sheetName": {
           "__rl": true,
-          "value": 1098934526,
+          "value": 1161103697,
           "mode": "list",
           "cachedResultName": "Leads",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sdP4KNLRs3M50AWRWssQV21Tifmo_PhRRDBYhGHbapk/edit#gid=1098934526"
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GawW76VfCudZnAyxrrN7smCC3Y0mEWQUJ1SAJfbedAU/edit#gid=1161103697"
         },
         "columns": {
           "mappingMode": "defineBelow",
@@ -565,6 +565,7 @@
       ],
       "id": "4ee13fff-610b-45ac-9882-2c6cf97cab72",
       "name": "Update row in sheet",
+      "retryOnFail": true,
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "eOPhFUrfwo2AgnTD",
@@ -577,17 +578,17 @@
         "operation": "update",
         "documentId": {
           "__rl": true,
-          "value": "1sdP4KNLRs3M50AWRWssQV21Tifmo_PhRRDBYhGHbapk",
+          "value": "1GawW76VfCudZnAyxrrN7smCC3Y0mEWQUJ1SAJfbedAU",
           "mode": "list",
-          "cachedResultName": "phantombuster-all-leads-07182026",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sdP4KNLRs3M50AWRWssQV21Tifmo_PhRRDBYhGHbapk/edit?usp=drivesdk"
+          "cachedResultName": "phantombuster-leads-08082026-deduplicated",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GawW76VfCudZnAyxrrN7smCC3Y0mEWQUJ1SAJfbedAU/edit?usp=drivesdk"
         },
         "sheetName": {
           "__rl": true,
-          "value": 1098934526,
+          "value": 1161103697,
           "mode": "list",
           "cachedResultName": "Leads",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sdP4KNLRs3M50AWRWssQV21Tifmo_PhRRDBYhGHbapk/edit#gid=1098934526"
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GawW76VfCudZnAyxrrN7smCC3Y0mEWQUJ1SAJfbedAU/edit#gid=1161103697"
         },
         "columns": {
           "mappingMode": "defineBelow",
@@ -755,6 +756,7 @@
       ],
       "id": "e86949d3-9d79-43f8-9aa4-ea38f00648da",
       "name": "Update row in sheet1",
+      "retryOnFail": true,
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "eOPhFUrfwo2AgnTD",
@@ -764,7 +766,7 @@
     },
     {
       "parameters": {
-        "url": "=https://api.millionverifier.com/api/v3/?api=\nF2yas3I75DrbdXbIXj5s9oPRx&email={{ $json.predicted_email }}&timeout=10",
+        "url": "=https://api.millionverifier.com/api/v3/?api=\nkf6NECNPrRAk9guezpItx2Tou&email={{ $json.predicted_email }}&timeout=10",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -778,7 +780,7 @@
     },
     {
       "parameters": {
-        "url": "=https://api.millionverifier.com/api/v3/?api=\nF2yas3I75DrbdXbIXj5s9oPRx&email={{ $json.email }}&timeout=10",
+        "url": "=https://api.millionverifier.com/api/v3/?api=\nkf6NECNPrRAk9guezpItx2Tou&email={{ $json.email }}&timeout=10",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -852,6 +854,194 @@
       "id": "3c3889fb-a982-4c8c-bcea-3184ac0ffebb",
       "name": "Wait1",
       "webhookId": "ca495dbe-844c-42be-a05d-1bd0aced0b58"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1-mx9clf2ui5FI-db0okpIVPVyuMUcDF21zNUswO2RVQ",
+          "mode": "list",
+          "cachedResultName": "phantombuster-leads-08052026-deduplicated",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-mx9clf2ui5FI-db0okpIVPVyuMUcDF21zNUswO2RVQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1098934526,
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sdP4KNLRs3M50AWRWssQV21Tifmo_PhRRDBYhGHbapk/edit#gid=1098934526"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{ $('Get LinkedIn Leads').item.json.row_number }}",
+            "processed": "y",
+            "emailAddress": "={{ $json.email }}",
+            "emailQuality": "={{ $json.quality }}",
+            "emailResult": "={{ $json.result }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "fullName",
+              "displayName": "fullName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "firstName",
+              "displayName": "firstName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lastName",
+              "displayName": "lastName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedInJobTitle",
+              "displayName": "linkedInJobTitle",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "companyName",
+              "displayName": "companyName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "companyURL",
+              "displayName": "companyURL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "industry",
+              "displayName": "industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "employeeCount",
+              "displayName": "employeeCount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "HQ",
+              "displayName": "HQ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed",
+              "displayName": "processed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "jobAgeBucket",
+              "displayName": "jobAgeBucket",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "emailAddress",
+              "displayName": "emailAddress",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "emailQuality",
+              "displayName": "emailQuality",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "emailResult",
+              "displayName": "emailResult",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        640,
+        64
+      ],
+      "id": "6206ce12-bbb4-4301-83a0-49ede9cb57b6",
+      "name": "Update row in sheet2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "eOPhFUrfwo2AgnTD",
+          "name": "NWA Boost:Google Sheets"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -872,6 +1062,6 @@
   "staticData": null,
   "tags": [],
   "triggerCount": 0,
-  "updatedAt": "2026-07-18T20:28:38.254Z",
-  "versionId": "6d962f32-b63e-4bfb-b9ed-2ac0216ef96c"
+  "updatedAt": "2026-08-08T18:00:23.161Z",
+  "versionId": "2789b2d8-c6a0-4a43-bf15-d1e279f17e2e"
 }
