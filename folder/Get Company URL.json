@@ -162,6 +162,7 @@
     "templateCredsSetupCompleted": true
   },
   "name": "Get Company URL",
+  "nodeGroups": [],
   "nodes": [
     {
       "parameters": {
@@ -234,7 +235,7 @@
     },
     {
       "parameters": {
-        "maxItems": 100
+        "maxItems": 200
       },
       "type": "n8n-nodes-base.limit",
       "typeVersion": 1,
@@ -1495,7 +1496,7 @@
           "interval": [
             {
               "field": "minutes",
-              "minutesInterval": 12
+              "minutesInterval": 30
             }
           ]
         }
@@ -1508,21 +1509,6 @@
       ],
       "id": "5a3f6091-b99d-4014-8871-1d28bf833e8f",
       "name": "Schedule Trigger"
-    },
-    {
-      "parameters": {
-        "content": "## Trigger\nCan run on a schedule or executed manually\n",
-        "height": 96,
-        "color": 3
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        -1216,
-        -256
-      ],
-      "typeVersion": 1,
-      "id": "2ff376ff-5a7b-4380-bebc-57e2d9dfe816",
-      "name": "Sticky Note"
     },
     {
       "parameters": {},
@@ -1579,7 +1565,8 @@
         96
       ],
       "id": "6dd913fd-123f-4642-b193-6dbff741bf3c",
-      "name": "Filter for job <90 days"
+      "name": "Filter for job <90 days",
+      "disabled": true
     },
     {
       "parameters": {
@@ -1603,187 +1590,6 @@
       ],
       "id": "ed1bd082-7287-4515-a53f-3573d71ef345",
       "name": "Set linkendinCompanyUrl"
-    },
-    {
-      "parameters": {
-        "operation": "append",
-        "documentId": {
-          "__rl": true,
-          "value": "1-mx9clf2ui5FI-db0okpIVPVyuMUcDF21zNUswO2RVQ",
-          "mode": "list",
-          "cachedResultName": "phantombuster-leads-08052026-deduplicated",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-mx9clf2ui5FI-db0okpIVPVyuMUcDF21zNUswO2RVQ/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": 1482107535,
-          "mode": "list",
-          "cachedResultName": "Leads",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-mx9clf2ui5FI-db0okpIVPVyuMUcDF21zNUswO2RVQ/edit#gid=1482107535"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "fullName": "={{ $('Limit').item.json.fullName }}",
-            "firstName": "={{ $('Limit').item.json.firstName }}",
-            "lastName": "={{ $('Limit').item.json.lastName }}",
-            "linkedInJobTitle": "={{ $('Limit').item.json.linkedinJobTitle }}",
-            "companyName": "={{ $('Limit').item.json.companyName }}",
-            "companyURL": "={{ $('Run an Actor and get dataset').item.json.websiteUrl }}",
-            "industry": "={{ $('Run an Actor and get dataset').item.json.industry }}",
-            "employeeCount": "={{ $('Run an Actor and get dataset').item.json.employeeCount }}",
-            "processed": "n",
-            "HQ": "={{ $('Run an Actor and get dataset').item.json.headquarter.city }}",
-            "jobAgeBucket": "={{ $('Filter for job <90 days').item.json.job_age_bucket }}"
-          },
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "fullName",
-              "displayName": "fullName",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "firstName",
-              "displayName": "firstName",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "lastName",
-              "displayName": "lastName",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "linkedInJobTitle",
-              "displayName": "linkedInJobTitle",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "companyName",
-              "displayName": "companyName",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "companyURL",
-              "displayName": "companyURL",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "industry",
-              "displayName": "industry",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "employeeCount",
-              "displayName": "employeeCount",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "HQ",
-              "displayName": "HQ",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "processed",
-              "displayName": "processed",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "jobAgeBucket",
-              "displayName": "jobAgeBucket",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "emailAddress",
-              "displayName": "emailAddress",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "emailQuality",
-              "displayName": "emailQuality",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "emailResult",
-              "displayName": "emailResult",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        592,
-        -368
-      ],
-      "id": "63e3c134-bf31-428c-9535-b7977bb65b4f",
-      "name": "Append row in sheet1",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "eOPhFUrfwo2AgnTD",
-          "name": "NWA Boost:Google Sheets"
-        }
-      }
     },
     {
       "parameters": {
@@ -1832,9 +1638,18 @@
       "projectId": "sSYd8awhzL2oziun"
     }
   ],
-  "staticData": null,
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": [
+        null
+      ],
+      "recurrenceRuleSignatures": [
+        null
+      ]
+    }
+  },
   "tags": [],
-  "triggerCount": 0,
-  "updatedAt": "2026-08-08T15:55:09.494Z",
-  "versionId": "074346f3-3b04-4246-a62d-94d550df7b0b"
+  "triggerCount": 1,
+  "updatedAt": "2026-09-05T15:20:16.953Z",
+  "versionId": "fcc66a08-d2f8-4ed4-ac05-abfa3052dfce"
 }
