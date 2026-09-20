@@ -1,0 +1,2318 @@
+{
+  "active": true,
+  "activeVersion": {
+    "versionId": "e4cb7159-932c-4bcb-9c8c-135bd1f8e4a5",
+    "workflowId": "JkhPZ2jelCinvZqH",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "vendor-declined",
+          "responseMode": "lastNode",
+          "options": {}
+        },
+        "id": "2ce174b6-5057-4cfd-a188-880d8dab61b0",
+        "name": "Vendor Declined",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          0,
+          0
+        ],
+        "webhookId": "ec7cc4a1-80a7-4cf7-9d5a-016451c44051"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT vb.booking_id, vb.engagement_id, vb.vendor_id, vb.service_type, vb.cost, v.vendor_name, v.rating, e.industry, e.engagement_name, e.budget_variance, c.client_name FROM AIGS_DEMO.ONBOARDING.VENDOR_BOOKINGS vb JOIN AIGS_DEMO.ONBOARDING.VENDORS v ON v.vendor_id = vb.vendor_id JOIN AIGS_DEMO.ONBOARDING.ENGAGEMENTS e ON e.engagement_id = vb.engagement_id JOIN AIGS_DEMO.ONBOARDING.CLIENTS c ON c.client_id = e.client_id WHERE vb.status = 'CONFIRMED' AND vb.replaced_booking_id IS NULL AND c.source = 'DEMO_LIVE' AND e.status = 'IN_PROGRESS' AND ('{{ $json.body?.engagement_id ?? \"\" }}' = '' OR vb.engagement_id = '{{ $json.body?.engagement_id ?? \"\" }}') ORDER BY vb.booked_at DESC LIMIT 1",
+          "options": {}
+        },
+        "id": "dad79266-60da-478a-b9a9-518ce0376e98",
+        "name": "Find Live Booking",
+        "type": "n8n-nodes-base.snowflake",
+        "typeVersion": 1.1,
+        "position": [
+          224,
+          0
+        ],
+        "credentials": {
+          "snowflake": {
+            "id": "cvmpYbY9PU2xjhf0",
+            "name": "Snowflake account 2"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "UPDATE AIGS_DEMO.ONBOARDING.VENDOR_BOOKINGS SET status = 'DECLINED' WHERE booking_id = '{{ $('Find Live Booking').first().json.BOOKING_ID }}'",
+          "options": {}
+        },
+        "id": "eba0671e-56ce-419e-949c-368ee31822eb",
+        "name": "Mark Declined",
+        "type": "n8n-nodes-base.snowflake",
+        "typeVersion": 1.1,
+        "position": [
+          448,
+          0
+        ],
+        "credentials": {
+          "snowflake": {
+            "id": "cvmpYbY9PU2xjhf0",
+            "name": "Snowflake account 2"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT v.vendor_id, v.vendor_name, v.rating, v.cost_per_unit, v.capacity FROM AIGS_DEMO.ONBOARDING.VENDORS v WHERE v.industry = '{{ $('Find Live Booking').first().json.INDUSTRY }}' AND v.service_type = '{{ $('Find Live Booking').first().json.SERVICE_TYPE }}' AND v.active = TRUE AND v.vendor_id <> '{{ $('Find Live Booking').first().json.VENDOR_ID }}' ORDER BY v.rating DESC, v.cost_per_unit ASC LIMIT 5",
+          "options": {}
+        },
+        "id": "4cd764b0-60ea-4c15-84b6-247f1b462502",
+        "name": "Find Alternates",
+        "type": "n8n-nodes-base.snowflake",
+        "typeVersion": 1.1,
+        "position": [
+          672,
+          0
+        ],
+        "credentials": {
+          "snowflake": {
+            "id": "cvmpYbY9PU2xjhf0",
+            "name": "Snowflake account 2"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const ctx = $('Find Live Booking').first().json;\nconst alts = $('Find Alternates').all().map(i => i.json);\n\nif (!ctx || !ctx.BOOKING_ID) {\n  throw new Error('no live CONFIRMED booking found -- run Act 1 first, or the demo data was reset');\n}\nif (alts.length === 0) {\n  throw new Error('no alternate vendors for ' + ctx.INDUSTRY + '/' + ctx.SERVICE_TYPE);\n}\n\nconst n = (v) => v === null || v === undefined ? 0 : Number(v);\n\n// One line per candidate, with the cost delta spelled out. Handing the model a raw\n// table invites it to just pick the top-rated row and say so; naming the tradeoff in\n// dollars is what produces reasoning worth projecting.\nconst lines = alts.map(function (a, i) {\n  const delta = n(a.COST_PER_UNIT) - n(ctx.COST);\n  const sign = delta >= 0 ? '+' : '-';\n  return (i + 1) + '. ' + a.VENDOR_NAME + ' (id ' + a.VENDOR_ID + ') -- rating '\n    + n(a.RATING).toFixed(1) + ', $' + n(a.COST_PER_UNIT).toLocaleString()\n    + ' per unit (' + sign + '$' + Math.abs(delta).toLocaleString()\n    + ' vs the vendor that withdrew), capacity ' + n(a.CAPACITY);\n}).join('\\n');\n\nreturn [{ json: {\n  booking_id: ctx.BOOKING_ID,\n  engagement_id: ctx.ENGAGEMENT_ID,\n  client_name: ctx.CLIENT_NAME,\n  engagement_name: ctx.ENGAGEMENT_NAME,\n  service_type: ctx.SERVICE_TYPE,\n  declined_vendor: ctx.VENDOR_NAME,\n  declined_cost: n(ctx.COST),\n  declined_rating: n(ctx.RATING),\n  budget_variance: n(ctx.BUDGET_VARIANCE),\n  candidate_count: alts.length,\n  candidates: lines\n} }];"
+        },
+        "id": "5ba91677-b9d0-4d0c-9c4d-69ca2882c41c",
+        "name": "Brief the Agent",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          896,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "claude-sonnet-4-5"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=A confirmed vendor has just withdrawn and must be replaced now. Choose the best replacement and explain the decision.\n\n(Context for your judgement only, and never to be repeated in your answer: this is happening overnight with no staff available, so your choice stands as the decision of record.)\n\nEngagement: {{ $json.engagement_name }} ({{ $json.client_name }})\nService needed: {{ $json.service_type }}\nVendor that withdrew: {{ $json.declined_vendor }} -- rating {{ $json.declined_rating }}, ${{ $json.declined_cost }} per unit\nCurrent budget variance on this engagement: ${{ $json.budget_variance }}\n\nAvailable alternatives:\n{{ $json.candidates }}\n\nReturn ONLY valid JSON with these exact keys:\n  chosen_vendor_id      the id of the vendor you are booking\n  chosen_vendor_name    its name\n  chosen_cost           its cost per unit, as a plain number\n  budget_impact         chosen_cost minus the withdrawn vendor's cost, as a plain number (negative means a saving)\n  reasoning             TWO OR THREE SENTENCES in plain business language\n  alternatives_considered  one sentence naming the other candidates and why each was not chosen\n  confidence            a number between 0 and 1\n\nRULES FOR reasoning -- this text is stored on the engagement record and projected in front of senior executives:\n- Write as an operations manager briefing a client, not as an AI describing itself.\n- Never say \"I\", \"as an AI\", \"the model\", \"based on the data provided\", or \"optimal\".\n- Never mention the time of day, that nobody was available, or that no human was involved. Do not praise the speed or the automation. That is the presenter's line, not the record's.\n- Name the tradeoff in money and service terms. Say what it costs and what it protects.\n- Describe service, not database fields: write \"enough capacity to cover the engagement\", never \"180-unit capacity\".\n- No bullet points, no headings, no preamble. Just the sentences."
+              }
+            ]
+          },
+          "options": {
+            "maxTokens": 900,
+            "temperature": 0.2
+          }
+        },
+        "id": "e03cd6e0-8329-4533-9ea9-840a4f9e1f29",
+        "name": "Agent Decides",
+        "type": "@n8n/n8n-nodes-langchain.anthropic",
+        "typeVersion": 1,
+        "position": [
+          1040,
+          -128
+        ],
+        "credentials": {
+          "anthropicApi": {
+            "id": "QIUyAAWFmOxaIZc6",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const inner = $input.first().json;\nconst textPart = inner.content && inner.content[0] ? inner.content[0].text : (inner.text || inner.output || '');\nconst m = String(textPart).match(/\\{[\\s\\S]*\\}/);\nif (!m) { throw new Error('agent returned no JSON: ' + String(textPart).slice(0, 300)); }\nconst d = JSON.parse(m[0]);\n\nconst brief = $('Brief the Agent').first().json;\nconst ctx = $('Find Live Booking').first().json;\n\n// CHANGE THIS BEFORE THE DRESS REHEARSAL.\n// On the night the approval must land on the CEO's phone, not Jim's -- Jim is on stage\n// and cannot tap it. Set to the CEO's address and re-publish.\nconst APPROVER = 'jim.brown@aigs.com';\n\n// The Code node sandbox does not expose the `crypto` global.\nconst uuid = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {\n  const r = Math.random() * 16 | 0;\n  const v = c === 'x' ? r : ((r & 0x3) | 0x8);\n  return v.toString(16);\n});\nconst q = (v) => (v === null || v === undefined) ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\nconst num = (v) => (v === null || v === undefined || v === '' || isNaN(Number(v))) ? '0' : String(Number(v));\n\nif (!d.chosen_vendor_id) { throw new Error('agent chose no vendor id'); }\nif (d.chosen_vendor_name === brief.declined_vendor) {\n  throw new Error('agent re-picked the vendor that withdrew: ' + d.chosen_vendor_name);\n}\n\n// Never trust the model's arithmetic for a number that lands in a financial column.\nconst chosenCost = Number(d.chosen_cost);\nconst computed = chosenCost - Number(brief.declined_cost);\nconst impact = isNaN(computed) ? Number(d.budget_impact) : computed;\nconst safeImpact = isNaN(impact) ? 0 : impact;\n\nconst newBookingId = uuid();\nconst decisionId = uuid();\nconst fallbackId = uuid();\nconst industry = ctx.INDUSTRY;\nconst declinedVendorId = ctx.VENDOR_ID;\n\n// The approval card is read on a phone, standing up, in about ten seconds. Every\n// replacement the agent can pick is CHEAPER than the booking it replaces, so a raw\n// '-90' would read as a deficit. Say what it is in words.\nconst absImpact = Math.abs(safeImpact).toLocaleString();\nlet impactLabel;\nif (safeImpact < 0) { impactLabel = '$' + absImpact + ' saving per unit'; }\nelse if (safeImpact > 0) { impactLabel = '$' + absImpact + ' increase per unit'; }\nelse { impactLabel = 'No change in cost'; }\n\nconst conf = Number(d.confidence);\nconst confidencePct = isNaN(conf) ? 'n/a' : Math.round(conf * 100) + '%';\n\n// Every startData field is typed `text` in Nintex, so send pre-formatted strings.\n// NOTE se_clientnamr -- that typo is the real variable name in the Nintex design.\nconst approvalPayload = JSON.stringify({ startData: {\n  se_approveremail: APPROVER,\n  se_clientnamr: brief.client_name,\n  se_originalvendor: brief.declined_vendor,\n  se_replacementvendor: d.chosen_vendor_name,\n  se_costimpact: impactLabel,\n  se_agentconfidence: confidencePct,\n  se_agentreasoning: d.reasoning\n} });\n\n// AWAITING_APPROVAL, not CONFIRMED. This is the whole point of the beat: the agent\n// picks and prices the replacement, then stops. The workspace renders this status in\n// navy so the room can see the one row that is waiting on a human.\nconst sqlBooking = 'INSERT INTO AIGS_DEMO.ONBOARDING.VENDOR_BOOKINGS (booking_id, engagement_id, vendor_id, service_type, booked_at, status, cost, replaced_booking_id) VALUES ('\n  + [q(newBookingId), q(brief.engagement_id), q(d.chosen_vendor_id), q(brief.service_type), 'CURRENT_TIMESTAMP()', q('AWAITING_APPROVAL'), num(chosenCost), q(brief.booking_id)].join(', ') + ')';\n\nconst actionTaken = 'Re-sourced ' + brief.service_type + ' from ' + brief.declined_vendor\n  + ' to ' + d.chosen_vendor_name + ' at $' + Number(chosenCost).toLocaleString()\n  + ' per unit, pending human approval';\n\nconst sqlDecision = 'INSERT INTO AIGS_DEMO.ONBOARDING.AGENT_DECISIONS (decision_id, engagement_id, trigger_event, reasoning, action_taken, alternatives_considered, confidence, decided_at, human_reviewed) VALUES ('\n  + [q(decisionId), q(brief.engagement_id), q('VENDOR_DECLINED'), q(d.reasoning), q(actionTaken),\n     q(d.alternatives_considered), num(d.confidence), 'CURRENT_TIMESTAMP()', 'FALSE'].join(', ') + ')';\n\n// --- approve path -------------------------------------------------------------\nconst sqlConfirm = 'UPDATE AIGS_DEMO.ONBOARDING.VENDOR_BOOKINGS SET status = ' + q('CONFIRMED')\n  + ' WHERE booking_id = ' + q(newBookingId);\nconst sqlBudget = 'UPDATE AIGS_DEMO.ONBOARDING.ENGAGEMENTS SET budget_variance = COALESCE(budget_variance, 0) + ' + num(safeImpact)\n  + ' WHERE engagement_id = ' + q(brief.engagement_id);\nconst sqlReviewed = 'UPDATE AIGS_DEMO.ONBOARDING.AGENT_DECISIONS SET human_reviewed = TRUE WHERE decision_id = ' + q(decisionId);\n\n// --- reject path --------------------------------------------------------------\n// Falls back to the next-ranked vendor entirely in SQL. Deliberately NOT a second\n// agent call: a wrong tap on stage must recover in one step, not start another\n// approval loop. Excludes both the vendor that withdrew and the one just rejected.\nconst sqlReject = 'UPDATE AIGS_DEMO.ONBOARDING.VENDOR_BOOKINGS SET status = ' + q('REJECTED')\n  + ' WHERE booking_id = ' + q(newBookingId);\n\nconst sqlFallback = 'INSERT INTO AIGS_DEMO.ONBOARDING.VENDOR_BOOKINGS (booking_id, engagement_id, vendor_id, service_type, booked_at, status, cost, replaced_booking_id) SELECT '\n  + [q(fallbackId), q(brief.engagement_id), 'v.vendor_id', q(brief.service_type), 'CURRENT_TIMESTAMP()', q('CONFIRMED'), 'v.cost_per_unit', q(brief.booking_id)].join(', ')\n  + ' FROM AIGS_DEMO.ONBOARDING.VENDORS v WHERE v.industry = ' + q(industry)\n  + ' AND v.service_type = ' + q(brief.service_type) + ' AND v.active = TRUE'\n  + ' AND v.vendor_id NOT IN (' + q(declinedVendorId) + ', ' + q(d.chosen_vendor_id) + ')'\n  + ' ORDER BY v.rating DESC, v.cost_per_unit ASC LIMIT 1';\n\n// The fallback's cost is not known until the row above exists, so read it back.\nconst sqlSettle = 'UPDATE AIGS_DEMO.ONBOARDING.ENGAGEMENTS SET budget_variance = COALESCE(budget_variance, 0) + '\n  + '(SELECT vb.cost - ' + num(brief.declined_cost) + ' FROM AIGS_DEMO.ONBOARDING.VENDOR_BOOKINGS vb WHERE vb.booking_id = ' + q(fallbackId) + ')'\n  + ' WHERE engagement_id = ' + q(brief.engagement_id);\n\nconst sqlFallbackDecision = 'INSERT INTO AIGS_DEMO.ONBOARDING.AGENT_DECISIONS (decision_id, engagement_id, trigger_event, reasoning, action_taken, alternatives_considered, confidence, decided_at, human_reviewed) SELECT '\n  + [q(uuid()), q(brief.engagement_id), q('APPROVAL_REJECTED'),\n     \"'A human reviewer declined \" + String(d.chosen_vendor_name).replace(/'/g, \"''\") + \" for this \" + String(brief.service_type).replace(/'/g, \"''\") + \" booking. The next-ranked available vendor, ' || v.vendor_name || ', was booked instead at $' || TO_VARCHAR(v.cost_per_unit, '999,999.00') || ' per unit.'\",\n     \"'Booked ' || v.vendor_name || ' after human rejection'\",\n     q('Next-ranked vendor by rating, excluding the withdrawn and the rejected vendor'),\n     'NULL', 'CURRENT_TIMESTAMP()', 'TRUE'].join(', ')\n  + ' FROM AIGS_DEMO.ONBOARDING.VENDOR_BOOKINGS b JOIN AIGS_DEMO.ONBOARDING.VENDORS v ON v.vendor_id = b.vendor_id WHERE b.booking_id = ' + q(fallbackId);\n\nreturn [{ json: {\n  engagement_id: brief.engagement_id,\n  client_name: brief.client_name,\n  service_type: brief.service_type,\n  declined_vendor: brief.declined_vendor,\n  replacement_vendor: d.chosen_vendor_name,\n  replacement_cost: chosenCost,\n  cost_impact: safeImpact,\n  cost_impact_label: impactLabel,\n  confidence: Number(d.confidence),\n  reasoning: d.reasoning,\n  alternatives_considered: d.alternatives_considered,\n  action_taken: actionTaken,\n  approver_email: APPROVER,\n  new_booking_id: newBookingId,\n  decision_id: decisionId,\n  fallback_booking_id: fallbackId,\n  approval_payload: approvalPayload,\n  sql_booking: sqlBooking,\n  sql_decision: sqlDecision,\n  sql_confirm: sqlConfirm,\n  sql_budget: sqlBudget,\n  sql_reviewed: sqlReviewed,\n  sql_reject: sqlReject,\n  sql_fallback: sqlFallback,\n  sql_settle: sqlSettle,\n  sql_fallback_decision: sqlFallbackDecision\n} }];",
+          "mode": "runOnceForAllItems",
+          "language": "javaScript"
+        },
+        "id": "3f29c12d-50e5-4003-960b-5229e56c9e78",
+        "name": "Apply Decision",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1344,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "{{ $('Apply Decision').first().json.sql_booking }}",
+          "options": {}
+        },
+        "id": "6d496815-cb7a-418c-ab65-e698829b6f57",
+        "name": "Book Replacement",
+        "type": "n8n-nodes-base.snowflake",
+        "typeVersion": 1.1,
+        "position": [
+          1568,
+          0
+        ],
+        "credentials": {
+          "snowflake": {
+            "id": "cvmpYbY9PU2xjhf0",
+            "name": "Snowflake account 2"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "{{ $('Apply Decision').first().json.sql_budget }}",
+          "options": {}
+        },
+        "id": "930f783e-4892-4e88-bd84-71a9ec2d10f4",
+        "name": "Update Budget",
+        "type": "n8n-nodes-base.snowflake",
+        "typeVersion": 1.1,
+        "position": [
+          1792,
+          0
+        ],
+        "credentials": {
+          "snowflake": {
+            "id": "cvmpYbY9PU2xjhf0",
+            "name": "Snowflake account 2"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "{{ $('Apply Decision').first().json.sql_decision }}",
+          "options": {}
+        },
+        "id": "86592c86-188f-41a0-8ad9-a93dd33b784c",
+        "name": "Record Reasoning",
+        "type": "n8n-nodes-base.snowflake",
+        "typeVersion": 1.1,
+        "position": [
+          2016,
+          0
+        ],
+        "credentials": {
+          "snowflake": {
+            "id": "cvmpYbY9PU2xjhf0",
+            "name": "Snowflake account 2"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "a1",
+                "name": "engagement_id",
+                "value": "={{ $('Apply Decision').first().json.engagement_id }}",
+                "type": "string"
+              },
+              {
+                "id": "a2",
+                "name": "client_name",
+                "value": "={{ $('Apply Decision').first().json.client_name }}",
+                "type": "string"
+              },
+              {
+                "id": "a3",
+                "name": "service_type",
+                "value": "={{ $('Apply Decision').first().json.service_type }}",
+                "type": "string"
+              },
+              {
+                "id": "a4",
+                "name": "declined_vendor",
+                "value": "={{ $('Apply Decision').first().json.declined_vendor }}",
+                "type": "string"
+              },
+              {
+                "id": "a5",
+                "name": "replacement_vendor",
+                "value": "={{ $('Apply Decision').first().json.replacement_vendor }}",
+                "type": "string"
+              },
+              {
+                "id": "a6",
+                "name": "cost_impact",
+                "value": "={{ $('Apply Decision').first().json.cost_impact }}",
+                "type": "number"
+              },
+              {
+                "id": "a7",
+                "name": "confidence",
+                "value": "={{ $('Apply Decision').first().json.confidence }}",
+                "type": "number"
+              },
+              {
+                "id": "a8",
+                "name": "reasoning",
+                "value": "={{ $('Apply Decision').first().json.reasoning }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "44de2d55-01e0-44dc-b6d9-1ec689953d1d",
+        "name": "Act 2 Summary",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.5,
+        "position": [
+          2240,
+          0
+        ]
+      },
+      {
+        "id": "3f16efc4-5db9-40b0-86e3-df634ac3344b",
+        "name": "Request Approval",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.5,
+        "position": [
+          2464,
+          0
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "https://npn-033452.workflowcloud.com/api/v1/workflow/published/e733c15e-ab67-4505-893a-dcc85f94e77e/instances",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpQueryAuth",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ $('Apply Decision').first().json.approval_payload }}",
+          "options": {
+            "timeout": 30000,
+            "response": {
+              "response": {
+                "responseFormat": "text",
+                "outputPropertyName": "data"
+              }
+            }
+          }
+        },
+        "credentials": {
+          "httpQueryAuth": {
+            "id": "58JIxoC36LhI6MzL",
+            "name": "Nintex Approval Start"
+          }
+        },
+        "notes": "Starts the Nintex component workflow. The token is a QUERY parameter, not a header -- it lives in the 'Nintex Approval Start' Query Auth credential so it never sits in this node. Returns HTTP 202 with a BARE INSTANCE ID AS PLAIN TEXT, not JSON, hence responseFormat text."
+      },
+      {
+        "id": "5b6ad0ad-be86-49ef-813a-4c38006ba5e2",
+        "name": "Wait for Decision",
+        "type": "n8n-nodes-base.wait",
+        "typeVersion": 1.1,
+        "position": [
+          2688,
+          0
+        ],
+        "parameters": {
+          "resume": "timeInterval",
+          "amount": 3,
+          "unit": "seconds"
+        },
+        "notes": "3s between polls. Also the loop target: 'Timed Out?' false routes back here.",
+        "webhookId": "5e5effa9-fcac-4462-9d61-42fde13d9849"
+      },
+      {
+        "id": "201af349-e3a4-4b9f-b712-86ebd423c32a",
+        "name": "Poll Task",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.5,
+        "position": [
+          2912,
+          0
+        ],
+        "parameters": {
+          "method": "GET",
+          "url": "=https://us.nintex.io/workflows/v2/tasks?status=all&workflowInstanceId={{ encodeURIComponent($('Request Approval').first().json.data) }}",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "oAuth2Api",
+          "options": {
+            "timeout": 30000
+          },
+          "notes": "status=all IS LOAD BEARING. Without it this endpoint defaults to status=active, and a task that has just been approved or rejected drops out of the response entirely -- 0 tasks, outcome forever null, guaranteed timeout no matter how fast the human taps. v2, not v1: /workflows/v1/tasks returns 404. Uses the OAuth2 client-credentials credential because read:task is granted there and the minted start token is rejected by this endpoint."
+        },
+        "credentials": {
+          "oAuth2Api": {
+            "id": "DuhHkqM9kjbbj021",
+            "name": "Nintex Tables"
+          }
+        },
+        "notes": "v2, not v1 -- /workflows/v1/tasks returns 404. Uses the OAuth2 client-credentials credential because read:task is granted there and the minted start token is rejected by this endpoint."
+      },
+      {
+        "id": "70eda815-98b6-4064-8825-3501e4ddf2cc",
+        "name": "Evaluate Poll",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          3136,
+          0
+        ],
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "// 60 attempts x 3s = ~3 minutes.\n//\n// WAS 20 (~60s) AND THAT WAS TOO SHORT. First real end-to-end run on 2026-09-19 timed\n// out before a human could respond: the task notification arrives by EMAIL, so the\n// clock covers delivery + reading + deciding, not just a tap. On stage the CEO is also\n// deciding while Jim is still talking. Three minutes is generous on purpose -- the bound\n// exists so a demo cannot hang forever, not to hurry the human.\nconst MAX_ATTEMPTS = 60;\nconst attempts = $runIndex + 1;\n\nconst resp = $input.first().json || {};\nconst tasks = resp.tasks || [];\nconst task = tasks[0] || {};\nconst assignment = (task.taskAssignments || [])[0] || {};\n\n// null while active, 'Approve' or 'Reject' once tapped.\nconst outcome = assignment.outcome || null;\n\nreturn [{ json: {\n  attempts: attempts,\n  outcome: outcome,\n  decided: Boolean(outcome),\n  timed_out: !outcome && attempts >= MAX_ATTEMPTS,\n  task_id: task.id || null,\n  task_status: task.status || null,\n  // Carries its own token, so it opens with no login. Surfaced because it is the\n  // fallback when the email has not arrived and the room is waiting.\n  form_url: (assignment.urls || {}).formUrl || null\n} }];"
+        },
+        "notes": "outcome is null while the task is active -- that null is the poll condition. Bounded at 20 attempts (~60s) so a demo cannot hang."
+      },
+      {
+        "id": "16b438ad-9bac-4f5a-b200-0578110b2d05",
+        "name": "Decision In?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          3360,
+          0
+        ],
+        "parameters": {
+          "conditions": {
+            "combinator": "and",
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "c1",
+                "leftValue": "={{ $json.decided }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ]
+          },
+          "options": {}
+        }
+      },
+      {
+        "id": "90ba53c2-81b3-49ad-a8fb-4bb81bf33206",
+        "name": "Timed Out?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          3360,
+          224
+        ],
+        "parameters": {
+          "conditions": {
+            "combinator": "and",
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "c1",
+                "leftValue": "={{ $json.timed_out }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ]
+          },
+          "options": {}
+        },
+        "notes": "False routes back to Wait for Decision. This is the poll loop."
+      },
+      {
+        "id": "c794af30-dd66-4b99-a853-173bcc7e74b4",
+        "name": "Approved?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          3584,
+          -112
+        ],
+        "parameters": {
+          "conditions": {
+            "combinator": "and",
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "c1",
+                "leftValue": "={{ $json.outcome }}",
+                "rightValue": "Approve",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals"
+                }
+              }
+            ]
+          },
+          "options": {}
+        }
+      },
+      {
+        "id": "8f3d3d89-dd8c-43a1-ab93-01fea988d1e9",
+        "name": "Confirm Booking",
+        "type": "n8n-nodes-base.snowflake",
+        "typeVersion": 1.1,
+        "position": [
+          3808,
+          -224
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "={{ $('Apply Decision').first().json.sql_confirm }}",
+          "options": {}
+        },
+        "credentials": {
+          "snowflake": {
+            "id": "cvmpYbY9PU2xjhf0",
+            "name": "Snowflake account 2"
+          }
+        }
+      },
+      {
+        "id": "3e897348-42b4-4f18-882c-85ac455628ff",
+        "name": "Mark Reviewed",
+        "type": "n8n-nodes-base.snowflake",
+        "typeVersion": 1.1,
+        "position": [
+          4256,
+          -224
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "={{ $('Apply Decision').first().json.sql_reviewed }}",
+          "options": {}
+        },
+        "credentials": {
+          "snowflake": {
+            "id": "cvmpYbY9PU2xjhf0",
+            "name": "Snowflake account 2"
+          }
+        },
+        "notes": "Flips human_reviewed on the decision row. This is the audit trail answering 'so the AI just does whatever it wants?'"
+      },
+      {
+        "id": "8b5d713b-04a1-4f0a-addc-3805b2a0ee63",
+        "name": "Reject Booking",
+        "type": "n8n-nodes-base.snowflake",
+        "typeVersion": 1.1,
+        "position": [
+          3808,
+          0
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "={{ $('Apply Decision').first().json.sql_reject }}",
+          "options": {}
+        },
+        "credentials": {
+          "snowflake": {
+            "id": "cvmpYbY9PU2xjhf0",
+            "name": "Snowflake account 2"
+          }
+        }
+      },
+      {
+        "id": "83891422-979e-4e2d-aef1-a546dbfaf354",
+        "name": "Book Fallback",
+        "type": "n8n-nodes-base.snowflake",
+        "typeVersion": 1.1,
+        "position": [
+          4032,
+          0
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "={{ $('Apply Decision').first().json.sql_fallback }}",
+          "options": {}
+        },
+        "credentials": {
+          "snowflake": {
+            "id": "cvmpYbY9PU2xjhf0",
+            "name": "Snowflake account 2"
+          }
+        },
+        "notes": "Next-ranked vendor chosen in SQL, not by a second agent call. A wrong tap on stage must recover in one step."
+      },
+      {
+        "id": "0cceedc6-3c4f-4ee5-8429-bd967bf82125",
+        "name": "Settle Budget After Reject",
+        "type": "n8n-nodes-base.snowflake",
+        "typeVersion": 1.1,
+        "position": [
+          4256,
+          0
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "={{ $('Apply Decision').first().json.sql_settle }}",
+          "options": {}
+        },
+        "credentials": {
+          "snowflake": {
+            "id": "cvmpYbY9PU2xjhf0",
+            "name": "Snowflake account 2"
+          }
+        }
+      },
+      {
+        "id": "8e733dce-27be-4f07-8b9b-07e81b4433e9",
+        "name": "Record Fallback",
+        "type": "n8n-nodes-base.snowflake",
+        "typeVersion": 1.1,
+        "position": [
+          4480,
+          0
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "={{ $json.sql }}",
+          "options": {}
+        },
+        "credentials": {
+          "snowflake": {
+            "id": "cvmpYbY9PU2xjhf0",
+            "name": "Snowflake account 2"
+          }
+        }
+      },
+      {
+        "id": "e99a302d-ea25-44f8-be50-938dfcdd81ec",
+        "name": "Rejected Summary",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.5,
+        "position": [
+          4704,
+          0
+        ],
+        "parameters": {
+          "mode": "manual",
+          "includeOtherFields": false,
+          "assignments": {
+            "assignments": [
+              {
+                "id": "r1",
+                "name": "engagement_id",
+                "value": "={{ $('Apply Decision').first().json.engagement_id }}",
+                "type": "string"
+              },
+              {
+                "id": "r2",
+                "name": "client_name",
+                "value": "={{ $('Apply Decision').first().json.client_name }}",
+                "type": "string"
+              },
+              {
+                "id": "r3",
+                "name": "declined_vendor",
+                "value": "={{ $('Apply Decision').first().json.declined_vendor }}",
+                "type": "string"
+              },
+              {
+                "id": "r4",
+                "name": "replacement_vendor",
+                "value": "={{ $('Apply Decision').first().json.replacement_vendor }}",
+                "type": "string"
+              },
+              {
+                "id": "r5",
+                "name": "approval_outcome",
+                "value": "Reject",
+                "type": "string"
+              },
+              {
+                "id": "r6",
+                "name": "fell_back_to_next_vendor",
+                "value": "={{ true }}",
+                "type": "boolean"
+              },
+              {
+                "id": "r7",
+                "name": "reasoning",
+                "value": "={{ $('Build Fallback Decision').first().json.reasoning }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        }
+      },
+      {
+        "id": "4f9a6e04-dce5-4641-87f8-a2ea6f4649d6",
+        "name": "Timeout Summary",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.5,
+        "position": [
+          3584,
+          336
+        ],
+        "parameters": {
+          "mode": "manual",
+          "includeOtherFields": false,
+          "assignments": {
+            "assignments": [
+              {
+                "id": "t1",
+                "name": "engagement_id",
+                "value": "={{ $('Apply Decision').first().json.engagement_id }}",
+                "type": "string"
+              },
+              {
+                "id": "t2",
+                "name": "client_name",
+                "value": "={{ $('Apply Decision').first().json.client_name }}",
+                "type": "string"
+              },
+              {
+                "id": "t3",
+                "name": "replacement_vendor",
+                "value": "={{ $('Apply Decision').first().json.replacement_vendor }}",
+                "type": "string"
+              },
+              {
+                "id": "t4",
+                "name": "approval_outcome",
+                "value": "TIMED_OUT",
+                "type": "string"
+              },
+              {
+                "id": "t5",
+                "name": "booking_left_as",
+                "value": "AWAITING_APPROVAL",
+                "type": "string"
+              },
+              {
+                "id": "t6",
+                "name": "attempts",
+                "value": "={{ $json.attempts }}",
+                "type": "number"
+              },
+              {
+                "id": "t7",
+                "name": "approve_here",
+                "value": "={{ $json.form_url }}",
+                "type": "string"
+              },
+              {
+                "id": "t8",
+                "name": "reasoning",
+                "value": "={{ $('Apply Decision').first().json.reasoning }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "notes": "Deliberately does NOT confirm the booking. Timing out and proceeding anyway would make the governance beat a lie."
+      },
+      {
+        "id": "e9dda576-a71f-4056-aaef-9559d8cdeef7",
+        "name": "Read Fallback",
+        "type": "n8n-nodes-base.snowflake",
+        "typeVersion": 1.1,
+        "position": [
+          4480,
+          112
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "=SELECT v.vendor_name, b.cost FROM AIGS_DEMO.ONBOARDING.VENDOR_BOOKINGS b JOIN AIGS_DEMO.ONBOARDING.VENDORS v ON v.vendor_id = b.vendor_id WHERE b.booking_id = '{{ $('Apply Decision').first().json.fallback_booking_id }}'",
+          "options": {}
+        },
+        "credentials": {
+          "snowflake": {
+            "id": "cvmpYbY9PU2xjhf0",
+            "name": "Snowflake account 2"
+          }
+        },
+        "notes": "The fallback vendor is chosen inside SQL, so its name and cost are only knowable after the insert. Read them back rather than concatenating them in SQL."
+      },
+      {
+        "id": "308b40ea-1d46-4e03-9635-a267fee76b1e",
+        "name": "Build Fallback Decision",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          4704,
+          112
+        ],
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "const row = $input.first().json || {};\nconst a = $('Apply Decision').first().json;\n\nconst q = (v) => (v === null || v === undefined) ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\nconst num = (v) => (v === null || v === undefined || v === '' || isNaN(Number(v))) ? '0' : String(Number(v));\n\nconst uuid = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {\n  const r = Math.random() * 16 | 0;\n  const v = c === 'x' ? r : ((r & 0x3) | 0x8);\n  return v.toString(16);\n});\n\nconst vendor = row.VENDOR_NAME || row.vendor_name || 'the next-ranked vendor';\nconst costRaw = row.COST !== undefined ? row.COST : row.cost;\nconst cost = Number(costRaw);\nconst costText = isNaN(cost) ? 'the catalogue rate'\n  : '$' + cost.toLocaleString() + ' per unit';\n\n// Written for a projector, same rules as the agent's own reasoning: plain business\n// language, no mention of the mechanism.\nconst reasoning = 'A human reviewer declined ' + a.replacement_vendor + ' for this '\n  + a.service_type + ' booking. The next-ranked available vendor, ' + vendor\n  + ', was booked instead at ' + costText + '.';\n\nconst actionTaken = 'Booked ' + vendor + ' at ' + costText + ' after human rejection';\n\nconst sql = 'INSERT INTO AIGS_DEMO.ONBOARDING.AGENT_DECISIONS (decision_id, engagement_id, trigger_event, reasoning, action_taken, alternatives_considered, confidence, decided_at, human_reviewed) VALUES ('\n  + [q(uuid()), q(a.engagement_id), q('APPROVAL_REJECTED'), q(reasoning), q(actionTaken),\n     q('Next-ranked vendor by rating, excluding the withdrawn vendor and the rejected replacement'),\n     'NULL', 'CURRENT_TIMESTAMP()', 'TRUE'].join(', ') + ')';\n\nreturn [{ json: {\n  fallback_vendor: vendor,\n  fallback_cost: isNaN(cost) ? null : cost,\n  reasoning: reasoning,\n  sql: sql\n} }];"
+        },
+        "notes": "Builds a plain INSERT ... VALUES. Deliberately no || concatenation and no TO_VARCHAR format model: that version compiled fine when run directly against Snowflake but failed inside an n8n expression, and a live demo is the wrong place to find out why."
+      },
+      {
+        "id": "b143a0cd-5536-4d52-bd39-89ca51748188",
+        "name": "Fallback Vendor",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.5,
+        "position": [
+          5152,
+          112
+        ],
+        "parameters": {
+          "mode": "manual",
+          "includeOtherFields": true,
+          "assignments": {
+            "assignments": [
+              {
+                "id": "fv1",
+                "name": "fallback_vendor",
+                "value": "={{ $('Build Fallback Decision').first().json.fallback_vendor }}",
+                "type": "string"
+              },
+              {
+                "id": "fv2",
+                "name": "fallback_cost",
+                "value": "={{ $('Build Fallback Decision').first().json.fallback_cost }}",
+                "type": "number"
+              }
+            ]
+          },
+          "options": {}
+        }
+      },
+      {
+        "id": "932cb494-20a7-4a79-8438-77fdc57140d7",
+        "name": "Mark Reviewed After Reject",
+        "type": "n8n-nodes-base.snowflake",
+        "typeVersion": 1.1,
+        "position": [
+          4928,
+          112
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "={{ $('Apply Decision').first().json.sql_reviewed }}",
+          "options": {}
+        },
+        "credentials": {
+          "snowflake": {
+            "id": "cvmpYbY9PU2xjhf0",
+            "name": "Snowflake account 2"
+          }
+        },
+        "notes": "A rejection IS a human review. Without this the original decision row reads human_reviewed = FALSE on the audit panel, which undercuts the whole governance beat. Same statement as the approve path."
+      }
+    ],
+    "connections": {
+      "Vendor Declined": {
+        "main": [
+          [
+            {
+              "node": "Find Live Booking",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Find Live Booking": {
+        "main": [
+          [
+            {
+              "node": "Mark Declined",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Mark Declined": {
+        "main": [
+          [
+            {
+              "node": "Find Alternates",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Find Alternates": {
+        "main": [
+          [
+            {
+              "node": "Brief the Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Brief the Agent": {
+        "main": [
+          [
+            {
+              "node": "Agent Decides",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Agent Decides": {
+        "main": [
+          [
+            {
+              "node": "Apply Decision",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Apply Decision": {
+        "main": [
+          [
+            {
+              "node": "Book Replacement",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Book Replacement": {
+        "main": [
+          [
+            {
+              "node": "Record Reasoning",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Record Reasoning": {
+        "main": [
+          [
+            {
+              "node": "Request Approval",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Request Approval": {
+        "main": [
+          [
+            {
+              "node": "Wait for Decision",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Wait for Decision": {
+        "main": [
+          [
+            {
+              "node": "Poll Task",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Poll Task": {
+        "main": [
+          [
+            {
+              "node": "Evaluate Poll",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Evaluate Poll": {
+        "main": [
+          [
+            {
+              "node": "Decision In?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Decision In?": {
+        "main": [
+          [
+            {
+              "node": "Approved?",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Timed Out?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Timed Out?": {
+        "main": [
+          [
+            {
+              "node": "Timeout Summary",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Wait for Decision",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Approved?": {
+        "main": [
+          [
+            {
+              "node": "Confirm Booking",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Reject Booking",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Confirm Booking": {
+        "main": [
+          [
+            {
+              "node": "Update Budget",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Update Budget": {
+        "main": [
+          [
+            {
+              "node": "Mark Reviewed",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Mark Reviewed": {
+        "main": [
+          [
+            {
+              "node": "Act 2 Summary",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Reject Booking": {
+        "main": [
+          [
+            {
+              "node": "Book Fallback",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Book Fallback": {
+        "main": [
+          [
+            {
+              "node": "Settle Budget After Reject",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Settle Budget After Reject": {
+        "main": [
+          [
+            {
+              "node": "Read Fallback",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Read Fallback": {
+        "main": [
+          [
+            {
+              "node": "Build Fallback Decision",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Fallback Decision": {
+        "main": [
+          [
+            {
+              "node": "Record Fallback",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Rejected Summary": {
+        "main": [
+          [
+            {
+              "node": "Fallback Vendor",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Record Fallback": {
+        "main": [
+          [
+            {
+              "node": "Mark Reviewed After Reject",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Mark Reviewed After Reject": {
+        "main": [
+          [
+            {
+              "node": "Rejected Summary",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "nodeGroups": [],
+    "authors": "James Brown (via MCP)",
+    "name": "Mark the original decision reviewed on the reject path too",
+    "description": "After a rejection the original VENDOR_DECLINED decision row was left human_reviewed = FALSE, even though a human had reviewed it and said no. On the audit panel that reads as unreviewed, which is the opposite of the point the beat makes. Reuses the same sql_reviewed statement already proven on the approve path.",
+    "autosaved": false,
+    "createdAt": "2026-09-20T00:06:00.480Z",
+    "updatedAt": "2026-09-20T00:06:00.480Z"
+  },
+  "activeVersionId": "e4cb7159-932c-4bcb-9c8c-135bd1f8e4a5",
+  "connections": {
+    "Vendor Declined": {
+      "main": [
+        [
+          {
+            "node": "Find Live Booking",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Live Booking": {
+      "main": [
+        [
+          {
+            "node": "Mark Declined",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Declined": {
+      "main": [
+        [
+          {
+            "node": "Find Alternates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Alternates": {
+      "main": [
+        [
+          {
+            "node": "Brief the Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Brief the Agent": {
+      "main": [
+        [
+          {
+            "node": "Agent Decides",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Decides": {
+      "main": [
+        [
+          {
+            "node": "Apply Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply Decision": {
+      "main": [
+        [
+          {
+            "node": "Book Replacement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Book Replacement": {
+      "main": [
+        [
+          {
+            "node": "Record Reasoning",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Record Reasoning": {
+      "main": [
+        [
+          {
+            "node": "Request Approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Request Approval": {
+      "main": [
+        [
+          {
+            "node": "Wait for Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for Decision": {
+      "main": [
+        [
+          {
+            "node": "Poll Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Poll Task": {
+      "main": [
+        [
+          {
+            "node": "Evaluate Poll",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluate Poll": {
+      "main": [
+        [
+          {
+            "node": "Decision In?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decision In?": {
+      "main": [
+        [
+          {
+            "node": "Approved?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Timed Out?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Timed Out?": {
+      "main": [
+        [
+          {
+            "node": "Timeout Summary",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait for Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approved?": {
+      "main": [
+        [
+          {
+            "node": "Confirm Booking",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject Booking",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confirm Booking": {
+      "main": [
+        [
+          {
+            "node": "Update Budget",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Budget": {
+      "main": [
+        [
+          {
+            "node": "Mark Reviewed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Reviewed": {
+      "main": [
+        [
+          {
+            "node": "Act 2 Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reject Booking": {
+      "main": [
+        [
+          {
+            "node": "Book Fallback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Book Fallback": {
+      "main": [
+        [
+          {
+            "node": "Settle Budget After Reject",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settle Budget After Reject": {
+      "main": [
+        [
+          {
+            "node": "Read Fallback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Fallback": {
+      "main": [
+        [
+          {
+            "node": "Build Fallback Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Fallback Decision": {
+      "main": [
+        [
+          {
+            "node": "Record Fallback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rejected Summary": {
+      "main": [
+        [
+          {
+            "node": "Fallback Vendor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Record Fallback": {
+      "main": [
+        [
+          {
+            "node": "Mark Reviewed After Reject",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Reviewed After Reject": {
+      "main": [
+        [
+          {
+            "node": "Rejected Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-09-19T19:04:53.998Z",
+  "id": "JkhPZ2jelCinvZqH",
+  "isArchived": false,
+  "meta": {
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp"
+  },
+  "name": "AiGS Act 2 - Exception Agent",
+  "nodeGroups": [],
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "vendor-declined",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "2ce174b6-5057-4cfd-a188-880d8dab61b0",
+      "name": "Vendor Declined",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "ec7cc4a1-80a7-4cf7-9d5a-016451c44051"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT vb.booking_id, vb.engagement_id, vb.vendor_id, vb.service_type, vb.cost, v.vendor_name, v.rating, e.industry, e.engagement_name, e.budget_variance, c.client_name FROM AIGS_DEMO.ONBOARDING.VENDOR_BOOKINGS vb JOIN AIGS_DEMO.ONBOARDING.VENDORS v ON v.vendor_id = vb.vendor_id JOIN AIGS_DEMO.ONBOARDING.ENGAGEMENTS e ON e.engagement_id = vb.engagement_id JOIN AIGS_DEMO.ONBOARDING.CLIENTS c ON c.client_id = e.client_id WHERE vb.status = 'CONFIRMED' AND vb.replaced_booking_id IS NULL AND c.source = 'DEMO_LIVE' AND e.status = 'IN_PROGRESS' AND ('{{ $json.body?.engagement_id ?? \"\" }}' = '' OR vb.engagement_id = '{{ $json.body?.engagement_id ?? \"\" }}') ORDER BY vb.booked_at DESC LIMIT 1",
+        "options": {}
+      },
+      "id": "dad79266-60da-478a-b9a9-518ce0376e98",
+      "name": "Find Live Booking",
+      "type": "n8n-nodes-base.snowflake",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        0
+      ],
+      "credentials": {
+        "snowflake": {
+          "id": "cvmpYbY9PU2xjhf0",
+          "name": "Snowflake account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE AIGS_DEMO.ONBOARDING.VENDOR_BOOKINGS SET status = 'DECLINED' WHERE booking_id = '{{ $('Find Live Booking').first().json.BOOKING_ID }}'",
+        "options": {}
+      },
+      "id": "eba0671e-56ce-419e-949c-368ee31822eb",
+      "name": "Mark Declined",
+      "type": "n8n-nodes-base.snowflake",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        0
+      ],
+      "credentials": {
+        "snowflake": {
+          "id": "cvmpYbY9PU2xjhf0",
+          "name": "Snowflake account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT v.vendor_id, v.vendor_name, v.rating, v.cost_per_unit, v.capacity FROM AIGS_DEMO.ONBOARDING.VENDORS v WHERE v.industry = '{{ $('Find Live Booking').first().json.INDUSTRY }}' AND v.service_type = '{{ $('Find Live Booking').first().json.SERVICE_TYPE }}' AND v.active = TRUE AND v.vendor_id <> '{{ $('Find Live Booking').first().json.VENDOR_ID }}' ORDER BY v.rating DESC, v.cost_per_unit ASC LIMIT 5",
+        "options": {}
+      },
+      "id": "4cd764b0-60ea-4c15-84b6-247f1b462502",
+      "name": "Find Alternates",
+      "type": "n8n-nodes-base.snowflake",
+      "typeVersion": 1.1,
+      "position": [
+        672,
+        0
+      ],
+      "credentials": {
+        "snowflake": {
+          "id": "cvmpYbY9PU2xjhf0",
+          "name": "Snowflake account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $('Find Live Booking').first().json;\nconst alts = $('Find Alternates').all().map(i => i.json);\n\nif (!ctx || !ctx.BOOKING_ID) {\n  throw new Error('no live CONFIRMED booking found -- run Act 1 first, or the demo data was reset');\n}\nif (alts.length === 0) {\n  throw new Error('no alternate vendors for ' + ctx.INDUSTRY + '/' + ctx.SERVICE_TYPE);\n}\n\nconst n = (v) => v === null || v === undefined ? 0 : Number(v);\n\n// One line per candidate, with the cost delta spelled out. Handing the model a raw\n// table invites it to just pick the top-rated row and say so; naming the tradeoff in\n// dollars is what produces reasoning worth projecting.\nconst lines = alts.map(function (a, i) {\n  const delta = n(a.COST_PER_UNIT) - n(ctx.COST);\n  const sign = delta >= 0 ? '+' : '-';\n  return (i + 1) + '. ' + a.VENDOR_NAME + ' (id ' + a.VENDOR_ID + ') -- rating '\n    + n(a.RATING).toFixed(1) + ', $' + n(a.COST_PER_UNIT).toLocaleString()\n    + ' per unit (' + sign + '$' + Math.abs(delta).toLocaleString()\n    + ' vs the vendor that withdrew), capacity ' + n(a.CAPACITY);\n}).join('\\n');\n\nreturn [{ json: {\n  booking_id: ctx.BOOKING_ID,\n  engagement_id: ctx.ENGAGEMENT_ID,\n  client_name: ctx.CLIENT_NAME,\n  engagement_name: ctx.ENGAGEMENT_NAME,\n  service_type: ctx.SERVICE_TYPE,\n  declined_vendor: ctx.VENDOR_NAME,\n  declined_cost: n(ctx.COST),\n  declined_rating: n(ctx.RATING),\n  budget_variance: n(ctx.BUDGET_VARIANCE),\n  candidate_count: alts.length,\n  candidates: lines\n} }];"
+      },
+      "id": "5ba91677-b9d0-4d0c-9c4d-69ca2882c41c",
+      "name": "Brief the Agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "claude-sonnet-4-5"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=A confirmed vendor has just withdrawn and must be replaced now. Choose the best replacement and explain the decision.\n\n(Context for your judgement only, and never to be repeated in your answer: this is happening overnight with no staff available, so your choice stands as the decision of record.)\n\nEngagement: {{ $json.engagement_name }} ({{ $json.client_name }})\nService needed: {{ $json.service_type }}\nVendor that withdrew: {{ $json.declined_vendor }} -- rating {{ $json.declined_rating }}, ${{ $json.declined_cost }} per unit\nCurrent budget variance on this engagement: ${{ $json.budget_variance }}\n\nAvailable alternatives:\n{{ $json.candidates }}\n\nReturn ONLY valid JSON with these exact keys:\n  chosen_vendor_id      the id of the vendor you are booking\n  chosen_vendor_name    its name\n  chosen_cost           its cost per unit, as a plain number\n  budget_impact         chosen_cost minus the withdrawn vendor's cost, as a plain number (negative means a saving)\n  reasoning             TWO OR THREE SENTENCES in plain business language\n  alternatives_considered  one sentence naming the other candidates and why each was not chosen\n  confidence            a number between 0 and 1\n\nRULES FOR reasoning -- this text is stored on the engagement record and projected in front of senior executives:\n- Write as an operations manager briefing a client, not as an AI describing itself.\n- Never say \"I\", \"as an AI\", \"the model\", \"based on the data provided\", or \"optimal\".\n- Never mention the time of day, that nobody was available, or that no human was involved. Do not praise the speed or the automation. That is the presenter's line, not the record's.\n- Name the tradeoff in money and service terms. Say what it costs and what it protects.\n- Describe service, not database fields: write \"enough capacity to cover the engagement\", never \"180-unit capacity\".\n- No bullet points, no headings, no preamble. Just the sentences."
+            }
+          ]
+        },
+        "options": {
+          "maxTokens": 900,
+          "temperature": 0.2
+        }
+      },
+      "id": "e03cd6e0-8329-4533-9ea9-840a4f9e1f29",
+      "name": "Agent Decides",
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        -128
+      ],
+      "credentials": {
+        "anthropicApi": {
+          "id": "QIUyAAWFmOxaIZc6",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const inner = $input.first().json;\nconst textPart = inner.content && inner.content[0] ? inner.content[0].text : (inner.text || inner.output || '');\nconst m = String(textPart).match(/\\{[\\s\\S]*\\}/);\nif (!m) { throw new Error('agent returned no JSON: ' + String(textPart).slice(0, 300)); }\nconst d = JSON.parse(m[0]);\n\nconst brief = $('Brief the Agent').first().json;\nconst ctx = $('Find Live Booking').first().json;\n\n// CHANGE THIS BEFORE THE DRESS REHEARSAL.\n// On the night the approval must land on the CEO's phone, not Jim's -- Jim is on stage\n// and cannot tap it. Set to the CEO's address and re-publish.\nconst APPROVER = 'jim.brown@aigs.com';\n\n// The Code node sandbox does not expose the `crypto` global.\nconst uuid = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {\n  const r = Math.random() * 16 | 0;\n  const v = c === 'x' ? r : ((r & 0x3) | 0x8);\n  return v.toString(16);\n});\nconst q = (v) => (v === null || v === undefined) ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\nconst num = (v) => (v === null || v === undefined || v === '' || isNaN(Number(v))) ? '0' : String(Number(v));\n\nif (!d.chosen_vendor_id) { throw new Error('agent chose no vendor id'); }\nif (d.chosen_vendor_name === brief.declined_vendor) {\n  throw new Error('agent re-picked the vendor that withdrew: ' + d.chosen_vendor_name);\n}\n\n// Never trust the model's arithmetic for a number that lands in a financial column.\nconst chosenCost = Number(d.chosen_cost);\nconst computed = chosenCost - Number(brief.declined_cost);\nconst impact = isNaN(computed) ? Number(d.budget_impact) : computed;\nconst safeImpact = isNaN(impact) ? 0 : impact;\n\nconst newBookingId = uuid();\nconst decisionId = uuid();\nconst fallbackId = uuid();\nconst industry = ctx.INDUSTRY;\nconst declinedVendorId = ctx.VENDOR_ID;\n\n// The approval card is read on a phone, standing up, in about ten seconds. Every\n// replacement the agent can pick is CHEAPER than the booking it replaces, so a raw\n// '-90' would read as a deficit. Say what it is in words.\nconst absImpact = Math.abs(safeImpact).toLocaleString();\nlet impactLabel;\nif (safeImpact < 0) { impactLabel = '$' + absImpact + ' saving per unit'; }\nelse if (safeImpact > 0) { impactLabel = '$' + absImpact + ' increase per unit'; }\nelse { impactLabel = 'No change in cost'; }\n\nconst conf = Number(d.confidence);\nconst confidencePct = isNaN(conf) ? 'n/a' : Math.round(conf * 100) + '%';\n\n// Every startData field is typed `text` in Nintex, so send pre-formatted strings.\n// NOTE se_clientnamr -- that typo is the real variable name in the Nintex design.\nconst approvalPayload = JSON.stringify({ startData: {\n  se_approveremail: APPROVER,\n  se_clientnamr: brief.client_name,\n  se_originalvendor: brief.declined_vendor,\n  se_replacementvendor: d.chosen_vendor_name,\n  se_costimpact: impactLabel,\n  se_agentconfidence: confidencePct,\n  se_agentreasoning: d.reasoning\n} });\n\n// AWAITING_APPROVAL, not CONFIRMED. This is the whole point of the beat: the agent\n// picks and prices the replacement, then stops. The workspace renders this status in\n// navy so the room can see the one row that is waiting on a human.\nconst sqlBooking = 'INSERT INTO AIGS_DEMO.ONBOARDING.VENDOR_BOOKINGS (booking_id, engagement_id, vendor_id, service_type, booked_at, status, cost, replaced_booking_id) VALUES ('\n  + [q(newBookingId), q(brief.engagement_id), q(d.chosen_vendor_id), q(brief.service_type), 'CURRENT_TIMESTAMP()', q('AWAITING_APPROVAL'), num(chosenCost), q(brief.booking_id)].join(', ') + ')';\n\nconst actionTaken = 'Re-sourced ' + brief.service_type + ' from ' + brief.declined_vendor\n  + ' to ' + d.chosen_vendor_name + ' at $' + Number(chosenCost).toLocaleString()\n  + ' per unit, pending human approval';\n\nconst sqlDecision = 'INSERT INTO AIGS_DEMO.ONBOARDING.AGENT_DECISIONS (decision_id, engagement_id, trigger_event, reasoning, action_taken, alternatives_considered, confidence, decided_at, human_reviewed) VALUES ('\n  + [q(decisionId), q(brief.engagement_id), q('VENDOR_DECLINED'), q(d.reasoning), q(actionTaken),\n     q(d.alternatives_considered), num(d.confidence), 'CURRENT_TIMESTAMP()', 'FALSE'].join(', ') + ')';\n\n// --- approve path -------------------------------------------------------------\nconst sqlConfirm = 'UPDATE AIGS_DEMO.ONBOARDING.VENDOR_BOOKINGS SET status = ' + q('CONFIRMED')\n  + ' WHERE booking_id = ' + q(newBookingId);\nconst sqlBudget = 'UPDATE AIGS_DEMO.ONBOARDING.ENGAGEMENTS SET budget_variance = COALESCE(budget_variance, 0) + ' + num(safeImpact)\n  + ' WHERE engagement_id = ' + q(brief.engagement_id);\nconst sqlReviewed = 'UPDATE AIGS_DEMO.ONBOARDING.AGENT_DECISIONS SET human_reviewed = TRUE WHERE decision_id = ' + q(decisionId);\n\n// --- reject path --------------------------------------------------------------\n// Falls back to the next-ranked vendor entirely in SQL. Deliberately NOT a second\n// agent call: a wrong tap on stage must recover in one step, not start another\n// approval loop. Excludes both the vendor that withdrew and the one just rejected.\nconst sqlReject = 'UPDATE AIGS_DEMO.ONBOARDING.VENDOR_BOOKINGS SET status = ' + q('REJECTED')\n  + ' WHERE booking_id = ' + q(newBookingId);\n\nconst sqlFallback = 'INSERT INTO AIGS_DEMO.ONBOARDING.VENDOR_BOOKINGS (booking_id, engagement_id, vendor_id, service_type, booked_at, status, cost, replaced_booking_id) SELECT '\n  + [q(fallbackId), q(brief.engagement_id), 'v.vendor_id', q(brief.service_type), 'CURRENT_TIMESTAMP()', q('CONFIRMED'), 'v.cost_per_unit', q(brief.booking_id)].join(', ')\n  + ' FROM AIGS_DEMO.ONBOARDING.VENDORS v WHERE v.industry = ' + q(industry)\n  + ' AND v.service_type = ' + q(brief.service_type) + ' AND v.active = TRUE'\n  + ' AND v.vendor_id NOT IN (' + q(declinedVendorId) + ', ' + q(d.chosen_vendor_id) + ')'\n  + ' ORDER BY v.rating DESC, v.cost_per_unit ASC LIMIT 1';\n\n// The fallback's cost is not known until the row above exists, so read it back.\nconst sqlSettle = 'UPDATE AIGS_DEMO.ONBOARDING.ENGAGEMENTS SET budget_variance = COALESCE(budget_variance, 0) + '\n  + '(SELECT vb.cost - ' + num(brief.declined_cost) + ' FROM AIGS_DEMO.ONBOARDING.VENDOR_BOOKINGS vb WHERE vb.booking_id = ' + q(fallbackId) + ')'\n  + ' WHERE engagement_id = ' + q(brief.engagement_id);\n\nconst sqlFallbackDecision = 'INSERT INTO AIGS_DEMO.ONBOARDING.AGENT_DECISIONS (decision_id, engagement_id, trigger_event, reasoning, action_taken, alternatives_considered, confidence, decided_at, human_reviewed) SELECT '\n  + [q(uuid()), q(brief.engagement_id), q('APPROVAL_REJECTED'),\n     \"'A human reviewer declined \" + String(d.chosen_vendor_name).replace(/'/g, \"''\") + \" for this \" + String(brief.service_type).replace(/'/g, \"''\") + \" booking. The next-ranked available vendor, ' || v.vendor_name || ', was booked instead at $' || TO_VARCHAR(v.cost_per_unit, '999,999.00') || ' per unit.'\",\n     \"'Booked ' || v.vendor_name || ' after human rejection'\",\n     q('Next-ranked vendor by rating, excluding the withdrawn and the rejected vendor'),\n     'NULL', 'CURRENT_TIMESTAMP()', 'TRUE'].join(', ')\n  + ' FROM AIGS_DEMO.ONBOARDING.VENDOR_BOOKINGS b JOIN AIGS_DEMO.ONBOARDING.VENDORS v ON v.vendor_id = b.vendor_id WHERE b.booking_id = ' + q(fallbackId);\n\nreturn [{ json: {\n  engagement_id: brief.engagement_id,\n  client_name: brief.client_name,\n  service_type: brief.service_type,\n  declined_vendor: brief.declined_vendor,\n  replacement_vendor: d.chosen_vendor_name,\n  replacement_cost: chosenCost,\n  cost_impact: safeImpact,\n  cost_impact_label: impactLabel,\n  confidence: Number(d.confidence),\n  reasoning: d.reasoning,\n  alternatives_considered: d.alternatives_considered,\n  action_taken: actionTaken,\n  approver_email: APPROVER,\n  new_booking_id: newBookingId,\n  decision_id: decisionId,\n  fallback_booking_id: fallbackId,\n  approval_payload: approvalPayload,\n  sql_booking: sqlBooking,\n  sql_decision: sqlDecision,\n  sql_confirm: sqlConfirm,\n  sql_budget: sqlBudget,\n  sql_reviewed: sqlReviewed,\n  sql_reject: sqlReject,\n  sql_fallback: sqlFallback,\n  sql_settle: sqlSettle,\n  sql_fallback_decision: sqlFallbackDecision\n} }];",
+        "mode": "runOnceForAllItems",
+        "language": "javaScript"
+      },
+      "id": "3f29c12d-50e5-4003-960b-5229e56c9e78",
+      "name": "Apply Decision",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $('Apply Decision').first().json.sql_booking }}",
+        "options": {}
+      },
+      "id": "6d496815-cb7a-418c-ab65-e698829b6f57",
+      "name": "Book Replacement",
+      "type": "n8n-nodes-base.snowflake",
+      "typeVersion": 1.1,
+      "position": [
+        1568,
+        0
+      ],
+      "credentials": {
+        "snowflake": {
+          "id": "cvmpYbY9PU2xjhf0",
+          "name": "Snowflake account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $('Apply Decision').first().json.sql_budget }}",
+        "options": {}
+      },
+      "id": "930f783e-4892-4e88-bd84-71a9ec2d10f4",
+      "name": "Update Budget",
+      "type": "n8n-nodes-base.snowflake",
+      "typeVersion": 1.1,
+      "position": [
+        1792,
+        0
+      ],
+      "credentials": {
+        "snowflake": {
+          "id": "cvmpYbY9PU2xjhf0",
+          "name": "Snowflake account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $('Apply Decision').first().json.sql_decision }}",
+        "options": {}
+      },
+      "id": "86592c86-188f-41a0-8ad9-a93dd33b784c",
+      "name": "Record Reasoning",
+      "type": "n8n-nodes-base.snowflake",
+      "typeVersion": 1.1,
+      "position": [
+        2016,
+        0
+      ],
+      "credentials": {
+        "snowflake": {
+          "id": "cvmpYbY9PU2xjhf0",
+          "name": "Snowflake account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "engagement_id",
+              "value": "={{ $('Apply Decision').first().json.engagement_id }}",
+              "type": "string"
+            },
+            {
+              "id": "a2",
+              "name": "client_name",
+              "value": "={{ $('Apply Decision').first().json.client_name }}",
+              "type": "string"
+            },
+            {
+              "id": "a3",
+              "name": "service_type",
+              "value": "={{ $('Apply Decision').first().json.service_type }}",
+              "type": "string"
+            },
+            {
+              "id": "a4",
+              "name": "declined_vendor",
+              "value": "={{ $('Apply Decision').first().json.declined_vendor }}",
+              "type": "string"
+            },
+            {
+              "id": "a5",
+              "name": "replacement_vendor",
+              "value": "={{ $('Apply Decision').first().json.replacement_vendor }}",
+              "type": "string"
+            },
+            {
+              "id": "a6",
+              "name": "cost_impact",
+              "value": "={{ $('Apply Decision').first().json.cost_impact }}",
+              "type": "number"
+            },
+            {
+              "id": "a7",
+              "name": "confidence",
+              "value": "={{ $('Apply Decision').first().json.confidence }}",
+              "type": "number"
+            },
+            {
+              "id": "a8",
+              "name": "reasoning",
+              "value": "={{ $('Apply Decision').first().json.reasoning }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "44de2d55-01e0-44dc-b6d9-1ec689953d1d",
+      "name": "Act 2 Summary",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        2240,
+        0
+      ]
+    },
+    {
+      "id": "3f16efc4-5db9-40b0-86e3-df634ac3344b",
+      "name": "Request Approval",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        2464,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://npn-033452.workflowcloud.com/api/v1/workflow/published/e733c15e-ab67-4505-893a-dcc85f94e77e/instances",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $('Apply Decision').first().json.approval_payload }}",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "responseFormat": "text",
+              "outputPropertyName": "data"
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "58JIxoC36LhI6MzL",
+          "name": "Nintex Approval Start"
+        }
+      },
+      "notes": "Starts the Nintex component workflow. The token is a QUERY parameter, not a header -- it lives in the 'Nintex Approval Start' Query Auth credential so it never sits in this node. Returns HTTP 202 with a BARE INSTANCE ID AS PLAIN TEXT, not JSON, hence responseFormat text."
+    },
+    {
+      "id": "5b6ad0ad-be86-49ef-813a-4c38006ba5e2",
+      "name": "Wait for Decision",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2688,
+        0
+      ],
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": 3,
+        "unit": "seconds"
+      },
+      "notes": "3s between polls. Also the loop target: 'Timed Out?' false routes back here.",
+      "webhookId": "5e5effa9-fcac-4462-9d61-42fde13d9849"
+    },
+    {
+      "id": "201af349-e3a4-4b9f-b712-86ebd423c32a",
+      "name": "Poll Task",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        2912,
+        0
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://us.nintex.io/workflows/v2/tasks?status=all&workflowInstanceId={{ encodeURIComponent($('Request Approval').first().json.data) }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "options": {
+          "timeout": 30000
+        },
+        "notes": "status=all IS LOAD BEARING. Without it this endpoint defaults to status=active, and a task that has just been approved or rejected drops out of the response entirely -- 0 tasks, outcome forever null, guaranteed timeout no matter how fast the human taps. v2, not v1: /workflows/v1/tasks returns 404. Uses the OAuth2 client-credentials credential because read:task is granted there and the minted start token is rejected by this endpoint."
+      },
+      "credentials": {
+        "oAuth2Api": {
+          "id": "DuhHkqM9kjbbj021",
+          "name": "Nintex Tables"
+        }
+      },
+      "notes": "v2, not v1 -- /workflows/v1/tasks returns 404. Uses the OAuth2 client-credentials credential because read:task is granted there and the minted start token is rejected by this endpoint."
+    },
+    {
+      "id": "70eda815-98b6-4064-8825-3501e4ddf2cc",
+      "name": "Evaluate Poll",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3136,
+        0
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// 60 attempts x 3s = ~3 minutes.\n//\n// WAS 20 (~60s) AND THAT WAS TOO SHORT. First real end-to-end run on 2026-09-19 timed\n// out before a human could respond: the task notification arrives by EMAIL, so the\n// clock covers delivery + reading + deciding, not just a tap. On stage the CEO is also\n// deciding while Jim is still talking. Three minutes is generous on purpose -- the bound\n// exists so a demo cannot hang forever, not to hurry the human.\nconst MAX_ATTEMPTS = 60;\nconst attempts = $runIndex + 1;\n\nconst resp = $input.first().json || {};\nconst tasks = resp.tasks || [];\nconst task = tasks[0] || {};\nconst assignment = (task.taskAssignments || [])[0] || {};\n\n// null while active, 'Approve' or 'Reject' once tapped.\nconst outcome = assignment.outcome || null;\n\nreturn [{ json: {\n  attempts: attempts,\n  outcome: outcome,\n  decided: Boolean(outcome),\n  timed_out: !outcome && attempts >= MAX_ATTEMPTS,\n  task_id: task.id || null,\n  task_status: task.status || null,\n  // Carries its own token, so it opens with no login. Surfaced because it is the\n  // fallback when the email has not arrived and the room is waiting.\n  form_url: (assignment.urls || {}).formUrl || null\n} }];"
+      },
+      "notes": "outcome is null while the task is active -- that null is the poll condition. Bounded at 20 attempts (~60s) so a demo cannot hang."
+    },
+    {
+      "id": "16b438ad-9bac-4f5a-b200-0578110b2d05",
+      "name": "Decision In?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3360,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.decided }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "90ba53c2-81b3-49ad-a8fb-4bb81bf33206",
+      "name": "Timed Out?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3360,
+        224
+      ],
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.timed_out }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "notes": "False routes back to Wait for Decision. This is the poll loop."
+    },
+    {
+      "id": "c794af30-dd66-4b99-a853-173bcc7e74b4",
+      "name": "Approved?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3584,
+        -112
+      ],
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.outcome }}",
+              "rightValue": "Approve",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "8f3d3d89-dd8c-43a1-ab93-01fea988d1e9",
+      "name": "Confirm Booking",
+      "type": "n8n-nodes-base.snowflake",
+      "typeVersion": 1.1,
+      "position": [
+        3808,
+        -224
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $('Apply Decision').first().json.sql_confirm }}",
+        "options": {}
+      },
+      "credentials": {
+        "snowflake": {
+          "id": "cvmpYbY9PU2xjhf0",
+          "name": "Snowflake account 2"
+        }
+      }
+    },
+    {
+      "id": "3e897348-42b4-4f18-882c-85ac455628ff",
+      "name": "Mark Reviewed",
+      "type": "n8n-nodes-base.snowflake",
+      "typeVersion": 1.1,
+      "position": [
+        4256,
+        -224
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $('Apply Decision').first().json.sql_reviewed }}",
+        "options": {}
+      },
+      "credentials": {
+        "snowflake": {
+          "id": "cvmpYbY9PU2xjhf0",
+          "name": "Snowflake account 2"
+        }
+      },
+      "notes": "Flips human_reviewed on the decision row. This is the audit trail answering 'so the AI just does whatever it wants?'"
+    },
+    {
+      "id": "8b5d713b-04a1-4f0a-addc-3805b2a0ee63",
+      "name": "Reject Booking",
+      "type": "n8n-nodes-base.snowflake",
+      "typeVersion": 1.1,
+      "position": [
+        3808,
+        0
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $('Apply Decision').first().json.sql_reject }}",
+        "options": {}
+      },
+      "credentials": {
+        "snowflake": {
+          "id": "cvmpYbY9PU2xjhf0",
+          "name": "Snowflake account 2"
+        }
+      }
+    },
+    {
+      "id": "83891422-979e-4e2d-aef1-a546dbfaf354",
+      "name": "Book Fallback",
+      "type": "n8n-nodes-base.snowflake",
+      "typeVersion": 1.1,
+      "position": [
+        4032,
+        0
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $('Apply Decision').first().json.sql_fallback }}",
+        "options": {}
+      },
+      "credentials": {
+        "snowflake": {
+          "id": "cvmpYbY9PU2xjhf0",
+          "name": "Snowflake account 2"
+        }
+      },
+      "notes": "Next-ranked vendor chosen in SQL, not by a second agent call. A wrong tap on stage must recover in one step."
+    },
+    {
+      "id": "0cceedc6-3c4f-4ee5-8429-bd967bf82125",
+      "name": "Settle Budget After Reject",
+      "type": "n8n-nodes-base.snowflake",
+      "typeVersion": 1.1,
+      "position": [
+        4256,
+        0
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $('Apply Decision').first().json.sql_settle }}",
+        "options": {}
+      },
+      "credentials": {
+        "snowflake": {
+          "id": "cvmpYbY9PU2xjhf0",
+          "name": "Snowflake account 2"
+        }
+      }
+    },
+    {
+      "id": "8e733dce-27be-4f07-8b9b-07e81b4433e9",
+      "name": "Record Fallback",
+      "type": "n8n-nodes-base.snowflake",
+      "typeVersion": 1.1,
+      "position": [
+        4480,
+        0
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "credentials": {
+        "snowflake": {
+          "id": "cvmpYbY9PU2xjhf0",
+          "name": "Snowflake account 2"
+        }
+      }
+    },
+    {
+      "id": "e99a302d-ea25-44f8-be50-938dfcdd81ec",
+      "name": "Rejected Summary",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        4704,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "r1",
+              "name": "engagement_id",
+              "value": "={{ $('Apply Decision').first().json.engagement_id }}",
+              "type": "string"
+            },
+            {
+              "id": "r2",
+              "name": "client_name",
+              "value": "={{ $('Apply Decision').first().json.client_name }}",
+              "type": "string"
+            },
+            {
+              "id": "r3",
+              "name": "declined_vendor",
+              "value": "={{ $('Apply Decision').first().json.declined_vendor }}",
+              "type": "string"
+            },
+            {
+              "id": "r4",
+              "name": "replacement_vendor",
+              "value": "={{ $('Apply Decision').first().json.replacement_vendor }}",
+              "type": "string"
+            },
+            {
+              "id": "r5",
+              "name": "approval_outcome",
+              "value": "Reject",
+              "type": "string"
+            },
+            {
+              "id": "r6",
+              "name": "fell_back_to_next_vendor",
+              "value": "={{ true }}",
+              "type": "boolean"
+            },
+            {
+              "id": "r7",
+              "name": "reasoning",
+              "value": "={{ $('Build Fallback Decision').first().json.reasoning }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "4f9a6e04-dce5-4641-87f8-a2ea6f4649d6",
+      "name": "Timeout Summary",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        3584,
+        336
+      ],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "t1",
+              "name": "engagement_id",
+              "value": "={{ $('Apply Decision').first().json.engagement_id }}",
+              "type": "string"
+            },
+            {
+              "id": "t2",
+              "name": "client_name",
+              "value": "={{ $('Apply Decision').first().json.client_name }}",
+              "type": "string"
+            },
+            {
+              "id": "t3",
+              "name": "replacement_vendor",
+              "value": "={{ $('Apply Decision').first().json.replacement_vendor }}",
+              "type": "string"
+            },
+            {
+              "id": "t4",
+              "name": "approval_outcome",
+              "value": "TIMED_OUT",
+              "type": "string"
+            },
+            {
+              "id": "t5",
+              "name": "booking_left_as",
+              "value": "AWAITING_APPROVAL",
+              "type": "string"
+            },
+            {
+              "id": "t6",
+              "name": "attempts",
+              "value": "={{ $json.attempts }}",
+              "type": "number"
+            },
+            {
+              "id": "t7",
+              "name": "approve_here",
+              "value": "={{ $json.form_url }}",
+              "type": "string"
+            },
+            {
+              "id": "t8",
+              "name": "reasoning",
+              "value": "={{ $('Apply Decision').first().json.reasoning }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "notes": "Deliberately does NOT confirm the booking. Timing out and proceeding anyway would make the governance beat a lie."
+    },
+    {
+      "id": "e9dda576-a71f-4056-aaef-9559d8cdeef7",
+      "name": "Read Fallback",
+      "type": "n8n-nodes-base.snowflake",
+      "typeVersion": 1.1,
+      "position": [
+        4480,
+        112
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=SELECT v.vendor_name, b.cost FROM AIGS_DEMO.ONBOARDING.VENDOR_BOOKINGS b JOIN AIGS_DEMO.ONBOARDING.VENDORS v ON v.vendor_id = b.vendor_id WHERE b.booking_id = '{{ $('Apply Decision').first().json.fallback_booking_id }}'",
+        "options": {}
+      },
+      "credentials": {
+        "snowflake": {
+          "id": "cvmpYbY9PU2xjhf0",
+          "name": "Snowflake account 2"
+        }
+      },
+      "notes": "The fallback vendor is chosen inside SQL, so its name and cost are only knowable after the insert. Read them back rather than concatenating them in SQL."
+    },
+    {
+      "id": "308b40ea-1d46-4e03-9635-a267fee76b1e",
+      "name": "Build Fallback Decision",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4704,
+        112
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const row = $input.first().json || {};\nconst a = $('Apply Decision').first().json;\n\nconst q = (v) => (v === null || v === undefined) ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\nconst num = (v) => (v === null || v === undefined || v === '' || isNaN(Number(v))) ? '0' : String(Number(v));\n\nconst uuid = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {\n  const r = Math.random() * 16 | 0;\n  const v = c === 'x' ? r : ((r & 0x3) | 0x8);\n  return v.toString(16);\n});\n\nconst vendor = row.VENDOR_NAME || row.vendor_name || 'the next-ranked vendor';\nconst costRaw = row.COST !== undefined ? row.COST : row.cost;\nconst cost = Number(costRaw);\nconst costText = isNaN(cost) ? 'the catalogue rate'\n  : '$' + cost.toLocaleString() + ' per unit';\n\n// Written for a projector, same rules as the agent's own reasoning: plain business\n// language, no mention of the mechanism.\nconst reasoning = 'A human reviewer declined ' + a.replacement_vendor + ' for this '\n  + a.service_type + ' booking. The next-ranked available vendor, ' + vendor\n  + ', was booked instead at ' + costText + '.';\n\nconst actionTaken = 'Booked ' + vendor + ' at ' + costText + ' after human rejection';\n\nconst sql = 'INSERT INTO AIGS_DEMO.ONBOARDING.AGENT_DECISIONS (decision_id, engagement_id, trigger_event, reasoning, action_taken, alternatives_considered, confidence, decided_at, human_reviewed) VALUES ('\n  + [q(uuid()), q(a.engagement_id), q('APPROVAL_REJECTED'), q(reasoning), q(actionTaken),\n     q('Next-ranked vendor by rating, excluding the withdrawn vendor and the rejected replacement'),\n     'NULL', 'CURRENT_TIMESTAMP()', 'TRUE'].join(', ') + ')';\n\nreturn [{ json: {\n  fallback_vendor: vendor,\n  fallback_cost: isNaN(cost) ? null : cost,\n  reasoning: reasoning,\n  sql: sql\n} }];"
+      },
+      "notes": "Builds a plain INSERT ... VALUES. Deliberately no || concatenation and no TO_VARCHAR format model: that version compiled fine when run directly against Snowflake but failed inside an n8n expression, and a live demo is the wrong place to find out why."
+    },
+    {
+      "id": "b143a0cd-5536-4d52-bd39-89ca51748188",
+      "name": "Fallback Vendor",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        5152,
+        112
+      ],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": true,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fv1",
+              "name": "fallback_vendor",
+              "value": "={{ $('Build Fallback Decision').first().json.fallback_vendor }}",
+              "type": "string"
+            },
+            {
+              "id": "fv2",
+              "name": "fallback_cost",
+              "value": "={{ $('Build Fallback Decision').first().json.fallback_cost }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "932cb494-20a7-4a79-8438-77fdc57140d7",
+      "name": "Mark Reviewed After Reject",
+      "type": "n8n-nodes-base.snowflake",
+      "typeVersion": 1.1,
+      "position": [
+        4928,
+        112
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $('Apply Decision').first().json.sql_reviewed }}",
+        "options": {}
+      },
+      "credentials": {
+        "snowflake": {
+          "id": "cvmpYbY9PU2xjhf0",
+          "name": "Snowflake account 2"
+        }
+      },
+      "notes": "A rejection IS a human review. Without this the original decision row reads human_reviewed = FALSE on the audit panel, which undercuts the whole governance beat. Same statement as the approve path."
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true,
+    "binaryMode": "separate"
+  },
+  "shared": [
+    {
+      "role": "workflow:owner",
+      "workflowId": "JkhPZ2jelCinvZqH",
+      "projectId": "sSYd8awhzL2oziun",
+      "createdAt": "2026-09-19T19:04:54.008Z",
+      "updatedAt": "2026-09-19T19:04:54.008Z"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-09-20T00:38:46.929Z",
+  "versionId": "e4cb7159-932c-4bcb-9c8c-135bd1f8e4a5"
+}
