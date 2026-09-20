@@ -1,0 +1,1196 @@
+{
+  "active": true,
+  "activeVersion": {
+    "versionId": "40a5e900-aa5d-4999-b23f-739dc650b96e",
+    "workflowId": "Ff1L2YWVWaRTN88B",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "intake",
+          "responseMode": "lastNode",
+          "options": {}
+        },
+        "id": "317b9d74-ce75-41aa-abb9-b16c14fac35f",
+        "name": "Attendee Intake",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          0,
+          0
+        ],
+        "webhookId": "e005008f-0777-4fcd-a987-3b9a7f7967a8"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "a1",
+                "name": "full_name",
+                "value": "={{ $json.body?.full_name ?? $json.full_name ?? \"Guest\" }}",
+                "type": "string"
+              },
+              {
+                "id": "a2",
+                "name": "email",
+                "value": "={{ $json.body?.email ?? $json.email ?? \"\" }}",
+                "type": "string"
+              },
+              {
+                "id": "a3",
+                "name": "company",
+                "value": "={{ $json.body?.company ?? $json.company ?? \"Unknown Company\" }}",
+                "type": "string"
+              },
+              {
+                "id": "a4",
+                "name": "job_title",
+                "value": "={{ $json.body?.job_title ?? $json.job_title ?? \"\" }}",
+                "type": "string"
+              },
+              {
+                "id": "a5",
+                "name": "industry",
+                "value": "={{ ({'EVENTS & HOSPITALITY':'EVENTS','EVENTS AND HOSPITALITY':'EVENTS','EVENTS':'EVENTS','MANUFACTURING':'MANUFACTURING','HEALTHCARE':'HEALTHCARE','HEALTH CARE':'HEALTHCARE','PROFESSIONAL SERVICES':'PROF_SERVICES','PROF_SERVICES':'PROF_SERVICES'})[($json.body?.industry ?? $json.industry ?? 'EVENTS').toString().trim().toUpperCase()] ?? 'EVENTS' }}",
+                "type": "string"
+              },
+              {
+                "id": "a6",
+                "name": "self_reported_days",
+                "value": "={{ Number($json.body?.self_reported_days ?? $json.self_reported_days ?? 0) }}",
+                "type": "number"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "123680a5-908f-4d2c-ada4-ec1dd06021df",
+        "name": "Normalize Submission",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.5,
+        "position": [
+          224,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "claude-sonnet-4-5"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=Read the attached signed contract and return ONLY valid JSON with these exact keys: client_name, contract_value (number, no symbols or commas), contract_signed_at (YYYY-MM-DD), go_live_date (YYYY-MM-DD), services (array of codes chosen ONLY from this list: {{ ({'EVENTS':'SHUTTLE, VENUE, CATERING, STAFFING, AV','MANUFACTURING':'QUALITY_AUDIT, LOGISTICS, TOOLING, CERTIFICATION','HEALTHCARE':'CREDENTIALING, PAYER_ENROLLMENT, BACKGROUND_CHECK, EMR_PROVISIONING','PROF_SERVICES':'CONFLICT_CHECK, BILLING_SETUP, STAFFING, COMPLIANCE_REVIEW'})[$('Normalize Submission').first().json.industry] }}). Include a service code only if the contract obliges the provider to deliver that service. The monetary amount appears in the Fees section written both in words and in figures; return the figure as a plain number."
+              }
+            ]
+          },
+          "addAttachments": true,
+          "attachmentsInputType": "binary",
+          "options": {
+            "maxTokens": 1024,
+            "temperature": 0
+          }
+        },
+        "id": "3fecb0c9-7fb3-4663-82bb-2cc408491df5",
+        "name": "Extract Contract Terms",
+        "type": "@n8n/n8n-nodes-langchain.anthropic",
+        "typeVersion": 1,
+        "position": [
+          912,
+          -192
+        ],
+        "credentials": {
+          "anthropicApi": {
+            "id": "QIUyAAWFmOxaIZc6",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const inner = $input.first().json;\nconst textPart = inner.content && inner.content[0] ? inner.content[0].text : (inner.text || inner.output || '');\nconst jsonMatch = String(textPart).match(/\\{[\\s\\S]*\\}/);\nlet terms = {};\nif (jsonMatch) { terms = JSON.parse(jsonMatch[0]); }\n\n// The Code node sandbox does not expose the `crypto` global -- crypto.randomUUID()\n// throws ReferenceError. Self-contained UUID v4 instead.\nconst uuid = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {\n  const r = Math.random() * 16 | 0;\n  const v = c === 'x' ? r : ((r & 0x3) | 0x8);\n  return v.toString(16);\n});\n\nconst intake = $('Normalize Submission').first().json;\nconst q = (v) => (v === null || v === undefined) ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\nconst num = (v) => (v === null || v === undefined || v === '') ? 'NULL' : String(Number(v));\n\n// INDUSTRY RESOLUTION -- do not simplify this.\n// The n8n Form dropdown submits the human LABEL ('Events & Hospitality'), while the\n// webhook path submits the CODE ('EVENTS'). An earlier version only uppercased the\n// value, so every label failed the enum check and fell back to EVENTS -- meaning\n// manufacturing, healthcare and prof-services attendees would all have seen an\n// events onboarding. That silently destroys the industry-adaptive premise, which is\n// the whole reason the demo satisfies 'relatable to many industries'.\nconst LABEL_TO_CODE = {\n  'EVENTS & HOSPITALITY': 'EVENTS',\n  'EVENTS AND HOSPITALITY': 'EVENTS',\n  'EVENTS': 'EVENTS',\n  'MANUFACTURING': 'MANUFACTURING',\n  'HEALTHCARE': 'HEALTHCARE',\n  'HEALTH CARE': 'HEALTHCARE',\n  'PROFESSIONAL SERVICES': 'PROF_SERVICES',\n  'PROF_SERVICES': 'PROF_SERVICES'\n};\nconst rawIndustry = String(intake.industry || '').trim().toUpperCase();\nconst industry = LABEL_TO_CODE[rawIndustry] || 'EVENTS';\n\nconst clientName = terms.client_name || intake.company;\n\n// The vocabulary shift. A healthcare executive must never see the word 'Event'.\nconst NOUN = { EVENTS: 'Event', MANUFACTURING: 'Supplier', HEALTHCARE: 'Provider', PROF_SERVICES: 'Engagement' };\nconst SUFFIX = { EVENTS: 'Annual Leadership Summit', MANUFACTURING: 'Tier 1 Supplier Qualification', HEALTHCARE: 'Provider Credentialing Cohort', PROF_SERVICES: 'FY27 Advisory Engagement' };\nconst industryNoun = NOUN[industry];\nconst engagementName = clientName + ' - ' + SUFFIX[industry];\n\nconst clientId = uuid();\nconst engagementId = uuid();\nconst leadId = uuid();\n\nconst TASKS = {\n  EVENTS: ['Confirm shuttle vendor', 'Lock venue contract', 'Finalize catering headcount', 'Schedule AV load-in', 'Issue deposit invoice'],\n  MANUFACTURING: ['Request quality certifications', 'Schedule supplier audit', 'Create ERP vendor record', 'Issue first purchase order', 'Confirm logistics lane'],\n  HEALTHCARE: ['Collect provider credentials', 'Submit primary source verification', 'File payer enrollment', 'Provision EMR access', 'Confirm privileging'],\n  PROF_SERVICES: ['Run conflict check', 'Issue engagement letter', 'Open matter in billing', 'Assign engagement team', 'Set rate card']\n};\nconst PRIMARY = { EVENTS: 'SHUTTLE', MANUFACTURING: 'QUALITY_AUDIT', HEALTHCARE: 'CREDENTIALING', PROF_SERVICES: 'CONFLICT_CHECK' };\n\nconst sqlClients = 'INSERT INTO AIGS_DEMO.ONBOARDING.CLIENTS (client_id, client_name, industry, contact_name, contact_email, source, created_at) VALUES ('\n  + [q(clientId), q(clientName), q(industry), q(intake.full_name), q(intake.email), q('DEMO_LIVE'), 'CURRENT_TIMESTAMP()'].join(', ') + ')';\n\nconst signed = terms.contract_signed_at ? q(terms.contract_signed_at) : 'CURRENT_TIMESTAMP()';\nconst goLive = terms.go_live_date ? q(terms.go_live_date) : 'NULL';\nconst sqlEngagements = 'INSERT INTO AIGS_DEMO.ONBOARDING.ENGAGEMENTS (engagement_id, client_id, industry, engagement_name, contract_value, contract_signed_at, go_live_date, status, onboarding_started_at, budget_variance, risk_flag) VALUES ('\n  + [q(engagementId), q(clientId), q(industry), q(engagementName), num(terms.contract_value), signed, goLive, q('IN_PROGRESS'), 'CURRENT_TIMESTAMP()', '0', 'FALSE'].join(', ') + ')';\n\nconst taskList = TASKS[industry];\nconst tuples = taskList.map(function (name, i) {\n  return '(' + [q(uuid()), q(engagementId), q(name), q(industry), String(i + 1), q(intake.full_name), 'DATEADD(day, ' + ((i + 1) * 2) + ', CURRENT_DATE())', q('PENDING')].join(', ') + ')';\n});\nconst sqlTasks = 'INSERT INTO AIGS_DEMO.ONBOARDING.TASKS (task_id, engagement_id, task_name, task_category, sequence, assigned_to, due_date, status) SELECT column1, column2, column3, column4, column5, column6, column7, column8 FROM VALUES ' + tuples.join(', ');\n\nconst svc = PRIMARY[industry];\nconst sqlBookings = 'INSERT INTO AIGS_DEMO.ONBOARDING.VENDOR_BOOKINGS (booking_id, engagement_id, vendor_id, service_type, booked_at, status, cost) SELECT '\n  + [q(uuid()), q(engagementId), 'v.vendor_id', q(svc), 'CURRENT_TIMESTAMP()', q('CONFIRMED'), 'v.cost_per_unit'].join(', ')\n  + ' FROM AIGS_DEMO.ONBOARDING.VENDORS v WHERE v.industry = ' + q(industry) + ' AND v.service_type = ' + q(svc)\n  + ' AND v.active = TRUE ORDER BY v.rating DESC, v.cost_per_unit ASC LIMIT 1';\n\nconst sqlLeads = 'INSERT INTO AIGS_DEMO.ONBOARDING.ATTENDEE_LEADS (lead_id, submitted_at, full_name, email, company, job_title, industry, self_reported_days, engagement_id, enrichment_status) VALUES ('\n  + [q(leadId), 'CURRENT_TIMESTAMP()', q(intake.full_name), q(intake.email), q(intake.company), q(intake.job_title), q(industry), num(intake.self_reported_days), q(engagementId), q('PENDING')].join(', ') + ')';\n\nreturn [{ json: {\n  engagement_id: engagementId,\n  client_id: clientId,\n  lead_id: leadId,\n  industry: industry,\n  industry_noun: industryNoun,\n  industry_raw: rawIndustry,\n  client_name: clientName,\n  engagement_name: engagementName,\n  contract_value: terms.contract_value === undefined ? null : terms.contract_value,\n  go_live_date: terms.go_live_date === undefined ? null : terms.go_live_date,\n  self_reported_days: intake.self_reported_days,\n  task_count: taskList.length,\n  sql_clients: sqlClients,\n  sql_engagements: sqlEngagements,\n  sql_tasks: sqlTasks,\n  sql_bookings: sqlBookings,\n  sql_leads: sqlLeads\n} }];"
+        },
+        "id": "0bb12924-4918-41a3-9eb4-e7561bdef93d",
+        "name": "Build Snowflake Rows",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1120,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "{{ $('Build Snowflake Rows').first().json.sql_clients }}",
+          "options": {}
+        },
+        "id": "0e64cf16-7bfb-4c09-89b4-bfbcbd3b8aaf",
+        "name": "Write Client",
+        "type": "n8n-nodes-base.snowflake",
+        "typeVersion": 1.1,
+        "position": [
+          1344,
+          0
+        ],
+        "credentials": {
+          "snowflake": {
+            "id": "cvmpYbY9PU2xjhf0",
+            "name": "Snowflake account 2"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "{{ $('Build Snowflake Rows').first().json.sql_engagements }}",
+          "options": {}
+        },
+        "id": "0e5d22ed-e27d-47de-86f7-05d200135cde",
+        "name": "Write Engagement",
+        "type": "n8n-nodes-base.snowflake",
+        "typeVersion": 1.1,
+        "position": [
+          1568,
+          0
+        ],
+        "credentials": {
+          "snowflake": {
+            "id": "cvmpYbY9PU2xjhf0",
+            "name": "Snowflake account 2"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "{{ $('Build Snowflake Rows').first().json.sql_tasks }}",
+          "options": {}
+        },
+        "id": "92d0ff4f-2875-4c39-99ce-94828ea48cdc",
+        "name": "Write Onboarding Tasks",
+        "type": "n8n-nodes-base.snowflake",
+        "typeVersion": 1.1,
+        "position": [
+          1792,
+          0
+        ],
+        "credentials": {
+          "snowflake": {
+            "id": "cvmpYbY9PU2xjhf0",
+            "name": "Snowflake account 2"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "{{ $('Build Snowflake Rows').first().json.sql_bookings }}",
+          "options": {}
+        },
+        "id": "31930761-4a73-4047-b349-c19df5ffda41",
+        "name": "Book Primary Vendor",
+        "type": "n8n-nodes-base.snowflake",
+        "typeVersion": 1.1,
+        "position": [
+          2016,
+          0
+        ],
+        "credentials": {
+          "snowflake": {
+            "id": "cvmpYbY9PU2xjhf0",
+            "name": "Snowflake account 2"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "{{ $('Build Snowflake Rows').first().json.sql_leads }}",
+          "options": {}
+        },
+        "id": "0a2b86f4-fa77-4813-afd3-7cca7dd82e7a",
+        "name": "Capture Attendee Lead",
+        "type": "n8n-nodes-base.snowflake",
+        "typeVersion": 1.1,
+        "position": [
+          2240,
+          0
+        ],
+        "credentials": {
+          "snowflake": {
+            "id": "cvmpYbY9PU2xjhf0",
+            "name": "Snowflake account 2"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "formTitle": "Onboard a new client in 90 seconds",
+          "formDescription": "Tell us about your world. We'll run a real onboarding — with your industry's vocabulary — on the screen in front of you.",
+          "formFields": {
+            "values": [
+              {
+                "fieldLabel": "Your name",
+                "fieldName": "full_name",
+                "placeholder": "Dana Whitfield",
+                "requiredField": true
+              },
+              {
+                "fieldLabel": "Work email",
+                "fieldType": "email",
+                "fieldName": "email",
+                "placeholder": "you@company.com",
+                "requiredField": true
+              },
+              {
+                "fieldLabel": "Company",
+                "fieldName": "company",
+                "placeholder": "Meridian Events Group",
+                "requiredField": true
+              },
+              {
+                "fieldLabel": "Title",
+                "fieldName": "job_title",
+                "placeholder": "Chief Operating Officer"
+              },
+              {
+                "fieldLabel": "Which is closest to your world?",
+                "fieldType": "dropdown",
+                "fieldName": "industry",
+                "fieldOptions": {
+                  "values": [
+                    {
+                      "option": "Events & Hospitality"
+                    },
+                    {
+                      "option": "Manufacturing"
+                    },
+                    {
+                      "option": "Healthcare"
+                    },
+                    {
+                      "option": "Professional Services"
+                    }
+                  ]
+                },
+                "requiredField": true
+              },
+              {
+                "fieldLabel": "Honestly — how many days does onboarding a new client take your team today?",
+                "fieldType": "number",
+                "fieldName": "self_reported_days",
+                "placeholder": "9",
+                "requiredField": true
+              }
+            ]
+          },
+          "responseMode": "onReceived",
+          "options": {
+            "appendAttribution": false,
+            "buttonLabel": "Run it",
+            "path": "onboard",
+            "respondWithOptions": {
+              "values": {
+                "formSubmittedText": "You're in — look up. That's your onboarding running on the screen."
+              }
+            },
+            "ignoreBots": true,
+            "customCss": "@import url('https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@600;700&family=Outfit:wght@400;500&display=swap');\n\n:root {\n  --brand-orange: #FF9240;\n  --brand-blue: #3898EC;\n  --brand-navy: #2D4979;\n  --text: #0D0D0D;\n}\n\nbody, .container {\n  font-family: 'Outfit', -apple-system, system-ui, sans-serif;\n  color: var(--text);\n  background: #FFFFFF;\n}\n\nh1, .form-header h1 {\n  font-family: 'Bai Jamjuree', 'Outfit', sans-serif;\n  font-weight: 700;\n  color: var(--brand-navy);\n  letter-spacing: -0.02em;\n}\n\n.form-header p, .form-description {\n  font-family: 'Outfit', sans-serif;\n  font-size: 17px;\n  line-height: 1.5;\n}\n\nlabel, .form-label {\n  font-family: 'Outfit', sans-serif;\n  font-weight: 500;\n  color: var(--brand-navy);\n}\n\ninput, select, textarea {\n  font-family: 'Outfit', sans-serif;\n  font-size: 17px;\n  border-radius: 10px;\n  border: 1.5px solid #D8DEE9;\n}\n\ninput:focus, select:focus, textarea:focus {\n  border-color: var(--brand-blue);\n  outline: none;\n  box-shadow: 0 0 0 3px rgba(56,152,236,0.15);\n}\n\nbutton[type='submit'], .btn-primary {\n  background: var(--brand-orange);\n  border-color: var(--brand-orange);\n  color: #FFFFFF;\n  font-family: 'Bai Jamjuree', sans-serif;\n  font-weight: 600;\n  font-size: 18px;\n  border-radius: 10px;\n  padding: 14px 24px;\n}\n\nbutton[type='submit']:hover, .btn-primary:hover {\n  background: #F07E28;\n  border-color: #F07E28;\n}\n\n.card, .form-container {\n  border-radius: 10px;\n}"
+          }
+        },
+        "id": "d0d279f2-edb1-4a3d-957a-1762191817a6",
+        "name": "Attendee Intake Form",
+        "type": "n8n-nodes-base.formTrigger",
+        "typeVersion": 2.6,
+        "position": [
+          -224,
+          224
+        ],
+        "webhookId": "cdbd960b-0ae1-427c-a3c4-da9ae94c8cfc"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "s1",
+                "name": "engagement_id",
+                "value": "={{ $('Build Snowflake Rows').first().json.engagement_id }}",
+                "type": "string"
+              },
+              {
+                "id": "s2",
+                "name": "client_name",
+                "value": "={{ $('Build Snowflake Rows').first().json.client_name }}",
+                "type": "string"
+              },
+              {
+                "id": "s3",
+                "name": "engagement_name",
+                "value": "={{ $('Build Snowflake Rows').first().json.engagement_name }}",
+                "type": "string"
+              },
+              {
+                "id": "s4",
+                "name": "industry",
+                "value": "={{ $('Build Snowflake Rows').first().json.industry }}",
+                "type": "string"
+              },
+              {
+                "id": "s5",
+                "name": "industry_noun",
+                "value": "={{ $('Build Snowflake Rows').first().json.industry_noun }}",
+                "type": "string"
+              },
+              {
+                "id": "s6",
+                "name": "contract_value",
+                "value": "={{ $('Build Snowflake Rows').first().json.contract_value }}",
+                "type": "number"
+              },
+              {
+                "id": "s7",
+                "name": "self_reported_days",
+                "value": "={{ $('Build Snowflake Rows').first().json.self_reported_days }}",
+                "type": "number"
+              },
+              {
+                "id": "s8",
+                "name": "task_count",
+                "value": "={{ $('Build Snowflake Rows').first().json.task_count }}",
+                "type": "number"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "dcfca962-638f-4c4d-8ed7-fa0b64b4fba3",
+        "name": "Run Summary",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.5,
+        "position": [
+          1952,
+          352
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT GET_PRESIGNED_URL(@AIGS_DEMO.ONBOARDING.CONTRACTS, '{{ ({'EVENTS':'events-meridian-signed.pdf','MANUFACTURING':'manufacturing-ironbridge-signed.pdf','HEALTHCARE':'healthcare-clearwater-signed.pdf','PROF_SERVICES':'profservices-ashford-signed.pdf'})[$('Normalize Submission').first().json.industry] }}', 600) AS URL",
+          "options": {}
+        },
+        "id": "fd421b75-b1a1-41c2-af8c-2507ee35074e",
+        "name": "Get Contract URL",
+        "type": "n8n-nodes-base.snowflake",
+        "typeVersion": 1.1,
+        "position": [
+          448,
+          0
+        ],
+        "credentials": {
+          "snowflake": {
+            "id": "cvmpYbY9PU2xjhf0",
+            "name": "Snowflake account 2"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "url": "={{ $json.URL }}",
+          "options": {
+            "response": {
+              "response": {
+                "responseFormat": "file"
+              }
+            },
+            "timeout": 30000
+          }
+        },
+        "id": "736f0e79-8541-4616-8218-88be1b932bc7",
+        "name": "Download Contract",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.5,
+        "position": [
+          624,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// S3 serves the staged file with no Content-Type header, so n8n labels the binary\n// 'application/octet-stream'. The Anthropic node inspects mimeType (not the file\n// extension) and refuses anything that is not an image or a PDF:\n//   Unsupported file type: application/octet-stream. Only images and PDFs are supported.\n// These are always PDFs from our own Snowflake stage, so correct the label.\nconst items = $input.all();\nfor (const item of items) {\n  if (item.binary && item.binary.data) {\n    item.binary.data.mimeType = 'application/pdf';\n    item.binary.data.fileExtension = 'pdf';\n    if (!item.binary.data.fileName) { item.binary.data.fileName = 'contract.pdf'; }\n  }\n}\nreturn items;"
+        },
+        "id": "84888b94-78d0-4dcc-80d2-cd15ea10a244",
+        "name": "Tag as PDF",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          800,
+          0
+        ]
+      }
+    ],
+    "connections": {
+      "Attendee Intake": {
+        "main": [
+          [
+            {
+              "node": "Normalize Submission",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extract Contract Terms": {
+        "main": [
+          [
+            {
+              "node": "Build Snowflake Rows",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Snowflake Rows": {
+        "main": [
+          [
+            {
+              "node": "Write Client",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Write Client": {
+        "main": [
+          [
+            {
+              "node": "Write Engagement",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Write Engagement": {
+        "main": [
+          [
+            {
+              "node": "Write Onboarding Tasks",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Write Onboarding Tasks": {
+        "main": [
+          [
+            {
+              "node": "Book Primary Vendor",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Book Primary Vendor": {
+        "main": [
+          [
+            {
+              "node": "Capture Attendee Lead",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Attendee Intake Form": {
+        "main": [
+          [
+            {
+              "node": "Normalize Submission",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Capture Attendee Lead": {
+        "main": [
+          [
+            {
+              "node": "Run Summary",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Normalize Submission": {
+        "main": [
+          [
+            {
+              "node": "Get Contract URL",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Contract URL": {
+        "main": [
+          [
+            {
+              "node": "Download Contract",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Download Contract": {
+        "main": [
+          [
+            {
+              "node": "Tag as PDF",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Tag as PDF": {
+        "main": [
+          [
+            {
+              "node": "Extract Contract Terms",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "nodeGroups": [],
+    "authors": "James Brown (via MCP)",
+    "name": "Remove the CTA nodes so the success screen renders again",
+    "description": "Disabling CTA Page was not enough. n8n sees a Form node anywhere in the workflow and stops rendering the trigger's own formSubmittedText, so attendees got a raw \"status 200\" instead of the success screen. Removes CTA Page, Came From the Form? and Webhook Response, returning Act 1 to its exact pre-CTA shape with Run Summary as the final node. The CTA markup is preserved in n8n/cta-screen.md along with the three settings a rebuild needs.",
+    "autosaved": false,
+    "createdAt": "2026-09-20T01:48:49.965Z",
+    "updatedAt": "2026-09-20T01:48:49.965Z"
+  },
+  "activeVersionId": "40a5e900-aa5d-4999-b23f-739dc650b96e",
+  "connections": {
+    "Attendee Intake": {
+      "main": [
+        [
+          {
+            "node": "Normalize Submission",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Contract Terms": {
+      "main": [
+        [
+          {
+            "node": "Build Snowflake Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Snowflake Rows": {
+      "main": [
+        [
+          {
+            "node": "Write Client",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Client": {
+      "main": [
+        [
+          {
+            "node": "Write Engagement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Engagement": {
+      "main": [
+        [
+          {
+            "node": "Write Onboarding Tasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Onboarding Tasks": {
+      "main": [
+        [
+          {
+            "node": "Book Primary Vendor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Book Primary Vendor": {
+      "main": [
+        [
+          {
+            "node": "Capture Attendee Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Attendee Intake Form": {
+      "main": [
+        [
+          {
+            "node": "Normalize Submission",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Capture Attendee Lead": {
+      "main": [
+        [
+          {
+            "node": "Run Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Submission": {
+      "main": [
+        [
+          {
+            "node": "Get Contract URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Contract URL": {
+      "main": [
+        [
+          {
+            "node": "Download Contract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Contract": {
+      "main": [
+        [
+          {
+            "node": "Tag as PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tag as PDF": {
+      "main": [
+        [
+          {
+            "node": "Extract Contract Terms",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-09-18T00:44:13.298Z",
+  "id": "Ff1L2YWVWaRTN88B",
+  "isArchived": false,
+  "meta": {
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp"
+  },
+  "name": "AiGS Act 1 - Onboarding Orchestrator",
+  "nodeGroups": [],
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "intake",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "317b9d74-ce75-41aa-abb9-b16c14fac35f",
+      "name": "Attendee Intake",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "e005008f-0777-4fcd-a987-3b9a7f7967a8"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "full_name",
+              "value": "={{ $json.body?.full_name ?? $json.full_name ?? \"Guest\" }}",
+              "type": "string"
+            },
+            {
+              "id": "a2",
+              "name": "email",
+              "value": "={{ $json.body?.email ?? $json.email ?? \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "a3",
+              "name": "company",
+              "value": "={{ $json.body?.company ?? $json.company ?? \"Unknown Company\" }}",
+              "type": "string"
+            },
+            {
+              "id": "a4",
+              "name": "job_title",
+              "value": "={{ $json.body?.job_title ?? $json.job_title ?? \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "a5",
+              "name": "industry",
+              "value": "={{ ({'EVENTS & HOSPITALITY':'EVENTS','EVENTS AND HOSPITALITY':'EVENTS','EVENTS':'EVENTS','MANUFACTURING':'MANUFACTURING','HEALTHCARE':'HEALTHCARE','HEALTH CARE':'HEALTHCARE','PROFESSIONAL SERVICES':'PROF_SERVICES','PROF_SERVICES':'PROF_SERVICES'})[($json.body?.industry ?? $json.industry ?? 'EVENTS').toString().trim().toUpperCase()] ?? 'EVENTS' }}",
+              "type": "string"
+            },
+            {
+              "id": "a6",
+              "name": "self_reported_days",
+              "value": "={{ Number($json.body?.self_reported_days ?? $json.self_reported_days ?? 0) }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "123680a5-908f-4d2c-ada4-ec1dd06021df",
+      "name": "Normalize Submission",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "claude-sonnet-4-5"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Read the attached signed contract and return ONLY valid JSON with these exact keys: client_name, contract_value (number, no symbols or commas), contract_signed_at (YYYY-MM-DD), go_live_date (YYYY-MM-DD), services (array of codes chosen ONLY from this list: {{ ({'EVENTS':'SHUTTLE, VENUE, CATERING, STAFFING, AV','MANUFACTURING':'QUALITY_AUDIT, LOGISTICS, TOOLING, CERTIFICATION','HEALTHCARE':'CREDENTIALING, PAYER_ENROLLMENT, BACKGROUND_CHECK, EMR_PROVISIONING','PROF_SERVICES':'CONFLICT_CHECK, BILLING_SETUP, STAFFING, COMPLIANCE_REVIEW'})[$('Normalize Submission').first().json.industry] }}). Include a service code only if the contract obliges the provider to deliver that service. The monetary amount appears in the Fees section written both in words and in figures; return the figure as a plain number."
+            }
+          ]
+        },
+        "addAttachments": true,
+        "attachmentsInputType": "binary",
+        "options": {
+          "maxTokens": 1024,
+          "temperature": 0
+        }
+      },
+      "id": "3fecb0c9-7fb3-4663-82bb-2cc408491df5",
+      "name": "Extract Contract Terms",
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        912,
+        -192
+      ],
+      "credentials": {
+        "anthropicApi": {
+          "id": "QIUyAAWFmOxaIZc6",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const inner = $input.first().json;\nconst textPart = inner.content && inner.content[0] ? inner.content[0].text : (inner.text || inner.output || '');\nconst jsonMatch = String(textPart).match(/\\{[\\s\\S]*\\}/);\nlet terms = {};\nif (jsonMatch) { terms = JSON.parse(jsonMatch[0]); }\n\n// The Code node sandbox does not expose the `crypto` global -- crypto.randomUUID()\n// throws ReferenceError. Self-contained UUID v4 instead.\nconst uuid = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {\n  const r = Math.random() * 16 | 0;\n  const v = c === 'x' ? r : ((r & 0x3) | 0x8);\n  return v.toString(16);\n});\n\nconst intake = $('Normalize Submission').first().json;\nconst q = (v) => (v === null || v === undefined) ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\nconst num = (v) => (v === null || v === undefined || v === '') ? 'NULL' : String(Number(v));\n\n// INDUSTRY RESOLUTION -- do not simplify this.\n// The n8n Form dropdown submits the human LABEL ('Events & Hospitality'), while the\n// webhook path submits the CODE ('EVENTS'). An earlier version only uppercased the\n// value, so every label failed the enum check and fell back to EVENTS -- meaning\n// manufacturing, healthcare and prof-services attendees would all have seen an\n// events onboarding. That silently destroys the industry-adaptive premise, which is\n// the whole reason the demo satisfies 'relatable to many industries'.\nconst LABEL_TO_CODE = {\n  'EVENTS & HOSPITALITY': 'EVENTS',\n  'EVENTS AND HOSPITALITY': 'EVENTS',\n  'EVENTS': 'EVENTS',\n  'MANUFACTURING': 'MANUFACTURING',\n  'HEALTHCARE': 'HEALTHCARE',\n  'HEALTH CARE': 'HEALTHCARE',\n  'PROFESSIONAL SERVICES': 'PROF_SERVICES',\n  'PROF_SERVICES': 'PROF_SERVICES'\n};\nconst rawIndustry = String(intake.industry || '').trim().toUpperCase();\nconst industry = LABEL_TO_CODE[rawIndustry] || 'EVENTS';\n\nconst clientName = terms.client_name || intake.company;\n\n// The vocabulary shift. A healthcare executive must never see the word 'Event'.\nconst NOUN = { EVENTS: 'Event', MANUFACTURING: 'Supplier', HEALTHCARE: 'Provider', PROF_SERVICES: 'Engagement' };\nconst SUFFIX = { EVENTS: 'Annual Leadership Summit', MANUFACTURING: 'Tier 1 Supplier Qualification', HEALTHCARE: 'Provider Credentialing Cohort', PROF_SERVICES: 'FY27 Advisory Engagement' };\nconst industryNoun = NOUN[industry];\nconst engagementName = clientName + ' - ' + SUFFIX[industry];\n\nconst clientId = uuid();\nconst engagementId = uuid();\nconst leadId = uuid();\n\nconst TASKS = {\n  EVENTS: ['Confirm shuttle vendor', 'Lock venue contract', 'Finalize catering headcount', 'Schedule AV load-in', 'Issue deposit invoice'],\n  MANUFACTURING: ['Request quality certifications', 'Schedule supplier audit', 'Create ERP vendor record', 'Issue first purchase order', 'Confirm logistics lane'],\n  HEALTHCARE: ['Collect provider credentials', 'Submit primary source verification', 'File payer enrollment', 'Provision EMR access', 'Confirm privileging'],\n  PROF_SERVICES: ['Run conflict check', 'Issue engagement letter', 'Open matter in billing', 'Assign engagement team', 'Set rate card']\n};\nconst PRIMARY = { EVENTS: 'SHUTTLE', MANUFACTURING: 'QUALITY_AUDIT', HEALTHCARE: 'CREDENTIALING', PROF_SERVICES: 'CONFLICT_CHECK' };\n\nconst sqlClients = 'INSERT INTO AIGS_DEMO.ONBOARDING.CLIENTS (client_id, client_name, industry, contact_name, contact_email, source, created_at) VALUES ('\n  + [q(clientId), q(clientName), q(industry), q(intake.full_name), q(intake.email), q('DEMO_LIVE'), 'CURRENT_TIMESTAMP()'].join(', ') + ')';\n\nconst signed = terms.contract_signed_at ? q(terms.contract_signed_at) : 'CURRENT_TIMESTAMP()';\nconst goLive = terms.go_live_date ? q(terms.go_live_date) : 'NULL';\nconst sqlEngagements = 'INSERT INTO AIGS_DEMO.ONBOARDING.ENGAGEMENTS (engagement_id, client_id, industry, engagement_name, contract_value, contract_signed_at, go_live_date, status, onboarding_started_at, budget_variance, risk_flag) VALUES ('\n  + [q(engagementId), q(clientId), q(industry), q(engagementName), num(terms.contract_value), signed, goLive, q('IN_PROGRESS'), 'CURRENT_TIMESTAMP()', '0', 'FALSE'].join(', ') + ')';\n\nconst taskList = TASKS[industry];\nconst tuples = taskList.map(function (name, i) {\n  return '(' + [q(uuid()), q(engagementId), q(name), q(industry), String(i + 1), q(intake.full_name), 'DATEADD(day, ' + ((i + 1) * 2) + ', CURRENT_DATE())', q('PENDING')].join(', ') + ')';\n});\nconst sqlTasks = 'INSERT INTO AIGS_DEMO.ONBOARDING.TASKS (task_id, engagement_id, task_name, task_category, sequence, assigned_to, due_date, status) SELECT column1, column2, column3, column4, column5, column6, column7, column8 FROM VALUES ' + tuples.join(', ');\n\nconst svc = PRIMARY[industry];\nconst sqlBookings = 'INSERT INTO AIGS_DEMO.ONBOARDING.VENDOR_BOOKINGS (booking_id, engagement_id, vendor_id, service_type, booked_at, status, cost) SELECT '\n  + [q(uuid()), q(engagementId), 'v.vendor_id', q(svc), 'CURRENT_TIMESTAMP()', q('CONFIRMED'), 'v.cost_per_unit'].join(', ')\n  + ' FROM AIGS_DEMO.ONBOARDING.VENDORS v WHERE v.industry = ' + q(industry) + ' AND v.service_type = ' + q(svc)\n  + ' AND v.active = TRUE ORDER BY v.rating DESC, v.cost_per_unit ASC LIMIT 1';\n\nconst sqlLeads = 'INSERT INTO AIGS_DEMO.ONBOARDING.ATTENDEE_LEADS (lead_id, submitted_at, full_name, email, company, job_title, industry, self_reported_days, engagement_id, enrichment_status) VALUES ('\n  + [q(leadId), 'CURRENT_TIMESTAMP()', q(intake.full_name), q(intake.email), q(intake.company), q(intake.job_title), q(industry), num(intake.self_reported_days), q(engagementId), q('PENDING')].join(', ') + ')';\n\nreturn [{ json: {\n  engagement_id: engagementId,\n  client_id: clientId,\n  lead_id: leadId,\n  industry: industry,\n  industry_noun: industryNoun,\n  industry_raw: rawIndustry,\n  client_name: clientName,\n  engagement_name: engagementName,\n  contract_value: terms.contract_value === undefined ? null : terms.contract_value,\n  go_live_date: terms.go_live_date === undefined ? null : terms.go_live_date,\n  self_reported_days: intake.self_reported_days,\n  task_count: taskList.length,\n  sql_clients: sqlClients,\n  sql_engagements: sqlEngagements,\n  sql_tasks: sqlTasks,\n  sql_bookings: sqlBookings,\n  sql_leads: sqlLeads\n} }];"
+      },
+      "id": "0bb12924-4918-41a3-9eb4-e7561bdef93d",
+      "name": "Build Snowflake Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $('Build Snowflake Rows').first().json.sql_clients }}",
+        "options": {}
+      },
+      "id": "0e64cf16-7bfb-4c09-89b4-bfbcbd3b8aaf",
+      "name": "Write Client",
+      "type": "n8n-nodes-base.snowflake",
+      "typeVersion": 1.1,
+      "position": [
+        1344,
+        0
+      ],
+      "credentials": {
+        "snowflake": {
+          "id": "cvmpYbY9PU2xjhf0",
+          "name": "Snowflake account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $('Build Snowflake Rows').first().json.sql_engagements }}",
+        "options": {}
+      },
+      "id": "0e5d22ed-e27d-47de-86f7-05d200135cde",
+      "name": "Write Engagement",
+      "type": "n8n-nodes-base.snowflake",
+      "typeVersion": 1.1,
+      "position": [
+        1568,
+        0
+      ],
+      "credentials": {
+        "snowflake": {
+          "id": "cvmpYbY9PU2xjhf0",
+          "name": "Snowflake account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $('Build Snowflake Rows').first().json.sql_tasks }}",
+        "options": {}
+      },
+      "id": "92d0ff4f-2875-4c39-99ce-94828ea48cdc",
+      "name": "Write Onboarding Tasks",
+      "type": "n8n-nodes-base.snowflake",
+      "typeVersion": 1.1,
+      "position": [
+        1792,
+        0
+      ],
+      "credentials": {
+        "snowflake": {
+          "id": "cvmpYbY9PU2xjhf0",
+          "name": "Snowflake account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $('Build Snowflake Rows').first().json.sql_bookings }}",
+        "options": {}
+      },
+      "id": "31930761-4a73-4047-b349-c19df5ffda41",
+      "name": "Book Primary Vendor",
+      "type": "n8n-nodes-base.snowflake",
+      "typeVersion": 1.1,
+      "position": [
+        2016,
+        0
+      ],
+      "credentials": {
+        "snowflake": {
+          "id": "cvmpYbY9PU2xjhf0",
+          "name": "Snowflake account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $('Build Snowflake Rows').first().json.sql_leads }}",
+        "options": {}
+      },
+      "id": "0a2b86f4-fa77-4813-afd3-7cca7dd82e7a",
+      "name": "Capture Attendee Lead",
+      "type": "n8n-nodes-base.snowflake",
+      "typeVersion": 1.1,
+      "position": [
+        2240,
+        0
+      ],
+      "credentials": {
+        "snowflake": {
+          "id": "cvmpYbY9PU2xjhf0",
+          "name": "Snowflake account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "formTitle": "Onboard a new client in 90 seconds",
+        "formDescription": "Tell us about your world. We'll run a real onboarding — with your industry's vocabulary — on the screen in front of you.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Your name",
+              "fieldName": "full_name",
+              "placeholder": "Dana Whitfield",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Work email",
+              "fieldType": "email",
+              "fieldName": "email",
+              "placeholder": "you@company.com",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Company",
+              "fieldName": "company",
+              "placeholder": "Meridian Events Group",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Title",
+              "fieldName": "job_title",
+              "placeholder": "Chief Operating Officer"
+            },
+            {
+              "fieldLabel": "Which is closest to your world?",
+              "fieldType": "dropdown",
+              "fieldName": "industry",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Events & Hospitality"
+                  },
+                  {
+                    "option": "Manufacturing"
+                  },
+                  {
+                    "option": "Healthcare"
+                  },
+                  {
+                    "option": "Professional Services"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Honestly — how many days does onboarding a new client take your team today?",
+              "fieldType": "number",
+              "fieldName": "self_reported_days",
+              "placeholder": "9",
+              "requiredField": true
+            }
+          ]
+        },
+        "responseMode": "onReceived",
+        "options": {
+          "appendAttribution": false,
+          "buttonLabel": "Run it",
+          "path": "onboard",
+          "respondWithOptions": {
+            "values": {
+              "formSubmittedText": "You're in — look up. That's your onboarding running on the screen."
+            }
+          },
+          "ignoreBots": true,
+          "customCss": "@import url('https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@600;700&family=Outfit:wght@400;500&display=swap');\n\n:root {\n  --brand-orange: #FF9240;\n  --brand-blue: #3898EC;\n  --brand-navy: #2D4979;\n  --text: #0D0D0D;\n}\n\nbody, .container {\n  font-family: 'Outfit', -apple-system, system-ui, sans-serif;\n  color: var(--text);\n  background: #FFFFFF;\n}\n\nh1, .form-header h1 {\n  font-family: 'Bai Jamjuree', 'Outfit', sans-serif;\n  font-weight: 700;\n  color: var(--brand-navy);\n  letter-spacing: -0.02em;\n}\n\n.form-header p, .form-description {\n  font-family: 'Outfit', sans-serif;\n  font-size: 17px;\n  line-height: 1.5;\n}\n\nlabel, .form-label {\n  font-family: 'Outfit', sans-serif;\n  font-weight: 500;\n  color: var(--brand-navy);\n}\n\ninput, select, textarea {\n  font-family: 'Outfit', sans-serif;\n  font-size: 17px;\n  border-radius: 10px;\n  border: 1.5px solid #D8DEE9;\n}\n\ninput:focus, select:focus, textarea:focus {\n  border-color: var(--brand-blue);\n  outline: none;\n  box-shadow: 0 0 0 3px rgba(56,152,236,0.15);\n}\n\nbutton[type='submit'], .btn-primary {\n  background: var(--brand-orange);\n  border-color: var(--brand-orange);\n  color: #FFFFFF;\n  font-family: 'Bai Jamjuree', sans-serif;\n  font-weight: 600;\n  font-size: 18px;\n  border-radius: 10px;\n  padding: 14px 24px;\n}\n\nbutton[type='submit']:hover, .btn-primary:hover {\n  background: #F07E28;\n  border-color: #F07E28;\n}\n\n.card, .form-container {\n  border-radius: 10px;\n}"
+        }
+      },
+      "id": "d0d279f2-edb1-4a3d-957a-1762191817a6",
+      "name": "Attendee Intake Form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        -224,
+        224
+      ],
+      "webhookId": "cdbd960b-0ae1-427c-a3c4-da9ae94c8cfc"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "s1",
+              "name": "engagement_id",
+              "value": "={{ $('Build Snowflake Rows').first().json.engagement_id }}",
+              "type": "string"
+            },
+            {
+              "id": "s2",
+              "name": "client_name",
+              "value": "={{ $('Build Snowflake Rows').first().json.client_name }}",
+              "type": "string"
+            },
+            {
+              "id": "s3",
+              "name": "engagement_name",
+              "value": "={{ $('Build Snowflake Rows').first().json.engagement_name }}",
+              "type": "string"
+            },
+            {
+              "id": "s4",
+              "name": "industry",
+              "value": "={{ $('Build Snowflake Rows').first().json.industry }}",
+              "type": "string"
+            },
+            {
+              "id": "s5",
+              "name": "industry_noun",
+              "value": "={{ $('Build Snowflake Rows').first().json.industry_noun }}",
+              "type": "string"
+            },
+            {
+              "id": "s6",
+              "name": "contract_value",
+              "value": "={{ $('Build Snowflake Rows').first().json.contract_value }}",
+              "type": "number"
+            },
+            {
+              "id": "s7",
+              "name": "self_reported_days",
+              "value": "={{ $('Build Snowflake Rows').first().json.self_reported_days }}",
+              "type": "number"
+            },
+            {
+              "id": "s8",
+              "name": "task_count",
+              "value": "={{ $('Build Snowflake Rows').first().json.task_count }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "dcfca962-638f-4c4d-8ed7-fa0b64b4fba3",
+      "name": "Run Summary",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1952,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT GET_PRESIGNED_URL(@AIGS_DEMO.ONBOARDING.CONTRACTS, '{{ ({'EVENTS':'events-meridian-signed.pdf','MANUFACTURING':'manufacturing-ironbridge-signed.pdf','HEALTHCARE':'healthcare-clearwater-signed.pdf','PROF_SERVICES':'profservices-ashford-signed.pdf'})[$('Normalize Submission').first().json.industry] }}', 600) AS URL",
+        "options": {}
+      },
+      "id": "fd421b75-b1a1-41c2-af8c-2507ee35074e",
+      "name": "Get Contract URL",
+      "type": "n8n-nodes-base.snowflake",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        0
+      ],
+      "credentials": {
+        "snowflake": {
+          "id": "cvmpYbY9PU2xjhf0",
+          "name": "Snowflake account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.URL }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          },
+          "timeout": 30000
+        }
+      },
+      "id": "736f0e79-8541-4616-8218-88be1b932bc7",
+      "name": "Download Contract",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        624,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// S3 serves the staged file with no Content-Type header, so n8n labels the binary\n// 'application/octet-stream'. The Anthropic node inspects mimeType (not the file\n// extension) and refuses anything that is not an image or a PDF:\n//   Unsupported file type: application/octet-stream. Only images and PDFs are supported.\n// These are always PDFs from our own Snowflake stage, so correct the label.\nconst items = $input.all();\nfor (const item of items) {\n  if (item.binary && item.binary.data) {\n    item.binary.data.mimeType = 'application/pdf';\n    item.binary.data.fileExtension = 'pdf';\n    if (!item.binary.data.fileName) { item.binary.data.fileName = 'contract.pdf'; }\n  }\n}\nreturn items;"
+      },
+      "id": "84888b94-78d0-4dcc-80d2-cd15ea10a244",
+      "name": "Tag as PDF",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        0
+      ]
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true,
+    "binaryMode": "separate"
+  },
+  "shared": [
+    {
+      "role": "workflow:owner",
+      "workflowId": "Ff1L2YWVWaRTN88B",
+      "projectId": "sSYd8awhzL2oziun",
+      "createdAt": "2026-09-18T00:44:13.309Z",
+      "updatedAt": "2026-09-18T00:44:13.309Z"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 2,
+  "updatedAt": "2026-09-20T01:48:49.964Z",
+  "versionId": "40a5e900-aa5d-4999-b23f-739dc650b96e"
+}
