@@ -1,0 +1,78 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Snowflake",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-09-17T22:38:45.703Z",
+  "id": "FuK5OGtsNR8lWQoT",
+  "isArchived": true,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "My workflow 31",
+  "nodeGroups": [],
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "fbc167ad-51c2-4fd8-b442-6b1ecaef222c",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.snowflake",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "ba177112-f6a2-4e65-8602-463c88e313da",
+      "name": "Snowflake",
+      "credentials": {
+        "snowflake": {
+          "id": "cvmpYbY9PU2xjhf0",
+          "name": "Snowflake account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "shared": [
+    {
+      "role": "workflow:owner",
+      "workflowId": "FuK5OGtsNR8lWQoT",
+      "projectId": "sSYd8awhzL2oziun",
+      "createdAt": "2026-09-17T22:38:45.708Z",
+      "updatedAt": "2026-09-17T22:38:45.708Z"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-09-20T00:39:42.000Z",
+  "versionId": "22440409-3c95-4eb4-886d-b04550790d8f"
+}
